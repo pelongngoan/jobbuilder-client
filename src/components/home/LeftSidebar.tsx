@@ -48,23 +48,26 @@ export default function LeftSidebar() {
         <CardContent className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium text-secondary">Quick Links</h3>
           <div className="mt-4 space-y-3">
-            <Link to="/jobs">
-              <a className="flex items-center text-primary hover:underline">
-                <Bookmark className="mr-2 h-4 w-4" />
-                <span>My saved jobs</span>
-              </a>
+            <Link
+              to="/jobs"
+              className="flex items-center text-primary hover:underline"
+            >
+              <Bookmark className="mr-2 h-4 w-4" />
+              <span>My saved jobs</span>
             </Link>
-            <Link to="/resume">
-              <a className="flex items-center text-primary hover:underline">
-                <FileText className="mr-2 h-4 w-4" />
-                <span>My resumes</span>
-              </a>
+            <Link
+              to="/resume"
+              className="flex items-center text-primary hover:underline"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              <span>My resumes</span>
             </Link>
-            <Link to="/jobs">
-              <a className="flex items-center text-primary hover:underline">
-                <Briefcase className="mr-2 h-4 w-4" />
-                <span>Job applications</span>
-              </a>
+            <Link
+              to="/jobs"
+              className="flex items-center text-primary hover:underline"
+            >
+              <Briefcase className="mr-2 h-4 w-4" />
+              <span>Job applications</span>
             </Link>
             <a
               href="#"
@@ -73,11 +76,12 @@ export default function LeftSidebar() {
               <Users className="mr-2 h-4 w-4" />
               <span>My network</span>
             </a>
-            <Link to="/company">
-              <a className="flex items-center text-primary hover:underline">
-                <Building className="mr-2 h-4 w-4" />
-                <span>Companies I follow</span>
-              </a>
+            <Link
+              to="/company"
+              className="flex items-center text-primary hover:underline"
+            >
+              <Building className="mr-2 h-4 w-4" />
+              <span>Companies I follow</span>
             </Link>
           </div>
         </CardContent>

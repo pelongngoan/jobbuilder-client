@@ -13,11 +13,14 @@ import {
 } from "../ui/dialog";
 
 interface CreatePostProps {
-  onSubmit: (postData: { content: string; image?: string }) => void;
-  isLoading: boolean;
+  onSubmit?: (postData: { content: string; image?: string }) => void;
+  isLoading?: boolean;
 }
 
-export default function CreatePost({ onSubmit, isLoading }: CreatePostProps) {
+export default function CreatePost({
+  onSubmit = () => {},
+  isLoading = false,
+}: CreatePostProps) {
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);

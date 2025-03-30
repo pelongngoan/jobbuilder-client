@@ -17,45 +17,45 @@ export default function Feed() {
     queryKey: ["/api/posts"],
   });
 
-  const createPostMutation = useMutation({
-    mutationFn: async (postData: { content: string; image?: string }) => {
-      const res = await apiRequest("POST", "/api/posts", postData);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
-      toast({
-        title: "Post created",
-        description: "Your post has been published successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to create post",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // const createPostMutation = useMutation({
+  //   mutationFn: async (postData: { content: string; image?: string }) => {
+  //     const res = await apiRequest("POST", "/api/posts", postData);
+  //     return res.json();
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+  //     toast({
+  //       title: "Post created",
+  //       description: "Your post has been published successfully",
+  //     });
+  //   },
+  //   onError: (error: Error) => {
+  //     toast({
+  //       title: "Failed to create post",
+  //       description: error.message,
+  //       variant: "destructive",
+  //     });
+  //   },
+  // });
 
-  if (error) {
-    return (
-      <div className="lg:w-2/4 space-y-6">
-        <div className="p-4 bg-red-50 text-red-500 rounded-lg">
-          Error loading posts: {error.message}
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="lg:w-2/4 space-y-6">
+  //       <div className="p-4 bg-red-50 text-red-500 rounded-lg">
+  //         Error loading posts: {error.message}
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="lg:w-2/4 space-y-6">
       <CreatePost
-        onSubmit={(postData) => createPostMutation.mutate(postData)}
-        isLoading={createPostMutation.isPending}
+      // onSubmit={(postData) => createPostMutation.mutate(postData)}
+      // isLoading={createPostMutation.isPending}
       />
 
-      {isLoading && (
+      {/* {isLoading && (
         <>
           <Skeleton className="w-full h-64 rounded-lg" />
           <Skeleton className="w-full h-48 rounded-lg" />
@@ -71,7 +71,7 @@ export default function Feed() {
             Be the first to share something with your network!
           </p>
         </div>
-      ) : null}
+      ) : null} */}
     </div>
   );
 }
