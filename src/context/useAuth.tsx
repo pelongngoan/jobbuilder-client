@@ -4,12 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import {
-  insertUserSchema,
-  User as SelectUser,
-  InsertUser,
-} from "../shared/schema";
-import { useToast } from "./use-toast";
+import { User as SelectUser, InsertUser } from "../shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 
 type AuthContextType = {
@@ -30,7 +25,6 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
   const {
     data: user,
     error,
@@ -102,10 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.name || user.username}!`,
-      });
     },
     onError: (error: Error) => {
       toast({
