@@ -1,7 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import { Register } from "../pages/Register";
-import { Login } from "../pages/Login";
 import { Home } from "../pages/Home";
 import { Resumes } from "../pages/Resumes";
 import { Search } from "../pages/Search";
@@ -9,6 +8,7 @@ import { Profile } from "../pages/Profile";
 import { PostJob } from "../pages/PostJob";
 import { CreateResume } from "../pages/CreateResume";
 import { ResumeEditor } from "../pages/ResumeEditor";
+import { Login } from "@mui/icons-material";
 
 export const router = createBrowserRouter([
   {

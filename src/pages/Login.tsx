@@ -1,17 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  LogIn,
-  Briefcase,
-  Search,
-  Building,
-  Users,
-} from "lucide-react";
-import { ThemeSwitcher } from "../components/ThemeSwitcher";
+import { LogIn, Briefcase, Search, Building, Users } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import {
@@ -95,7 +84,6 @@ export const Login = () => {
               <Briefcase className="h-6 w-6 mr-2 text-blue-900" />
               <h1 className="text-xl font-bold text-blue-900">JobBuilder</h1>
             </div>
-            <ThemeSwitcher />
           </div>
 
           <Card>
@@ -117,7 +105,6 @@ export const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  leftIcon={<Mail className="h-5 w-5" />}
                 />
 
                 <Input
@@ -127,20 +114,6 @@ export const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  leftIcon={<Lock className="h-5 w-5" />}
-                  rightIcon={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-slate-400 hover:text-slate-600 focus:outline-none"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
-                    </button>
-                  }
                 />
 
                 <div className="flex items-center justify-between">
