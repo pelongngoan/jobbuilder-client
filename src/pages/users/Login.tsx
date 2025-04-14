@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LogIn, Briefcase, Search, Building, Users } from "lucide-react";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
 import {
   Card,
   CardHeader,
   CardContent,
   CardFooter,
-} from "../components/ui/Card";
+} from "../../components/ui/Card";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -157,7 +157,7 @@ export const Login = () => {
               <p className="text-sm text-slate-600">
                 Don't have an account?{" "}
                 <Link
-                  to="/register"
+                  to="/users/register"
                   className="font-medium text-blue-600 hover:text-blue-700"
                 >
                   Sign up

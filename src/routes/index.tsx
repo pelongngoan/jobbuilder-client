@@ -3,7 +3,15 @@ import { Navigate, RouteObject } from "react-router-dom";
 import AdminLayout from "../layout/AdminLayout";
 import HRLayout from "../layout/HRLayout";
 import CompanyLayout from "../layout/CompanyLayout";
-import { Login } from "../pages/Login";
+import { Login } from "../pages/users/Login";
+import { Home } from "../pages/Home";
+import { UserLayout } from "../layout/UserLayout";
+import { Resumes } from "../pages/Resumes";
+import { Search } from "lucide-react";
+import { CreateResume } from "../pages/CreateResume";
+import { PostJob } from "../pages/PostJob";
+import { ResumeEditor } from "../pages/ResumeEditor";
+import { Register } from "../pages/users/Register";
 
 // Placeholder components - replace these with your actual components
 const Dashboard = () => <div>Dashboard</div>;
@@ -61,14 +69,51 @@ const companyRoutes: RouteObject = {
 
 // Auth routes
 const authRoutes: RouteObject = {
-  path: "/login",
-  element: <Login />,
+  path: "/users",
+  element: <UserLayout />,
+  children: [
+    { path: "login", element: <Login /> },
+    { path: "register", element: <Register /> },
+  ],
+};
+
+const companyAuthRoutes: RouteObject = {
+  path: "/company",
+  element: <CompanyLayout />,
+  children: [
+    { path: "login", element: <Login /> },
+    { path: "register", element: <Register /> },
+  ],
+};
+
+const hrAuthRoutes: RouteObject = {
+  path: "/hr",
+  element: <HRLayout />,
+  children: [
+    { path: "login", element: <Login /> },
+    { path: "register", element: <Register /> },
+  ],
+};
+
+const adminAuthRoutes: RouteObject = {
+  path: "/admin",
+  element: <AdminLayout />,
+  children: [{ path: "login", element: <Login /> }],
 };
 
 // Root route that redirects to login
 const rootRoute: RouteObject = {
   path: "/",
-  element: <Navigate to="/login" replace />,
+  element: <UserLayout />,
+  children: [
+    { path: "home", element: <Home /> },
+    { path: "resumes", element: <Resumes /> },
+    { path: "search", element: <Search /> },
+    { path: "profile", element: <Profile /> },
+    { path: "post-job", element: <PostJob /> },
+    { path: "create-resume", element: <CreateResume /> },
+    { path: "resume-editor/:templateId", element: <ResumeEditor /> },
+  ],
 };
 
 export const routes: RouteObject[] = [

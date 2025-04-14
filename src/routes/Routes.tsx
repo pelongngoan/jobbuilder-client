@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
-import { Register } from "../pages/Register";
+import { Register } from "../pages/users/Register";
 import { Home } from "../pages/Home";
 import { Resumes } from "../pages/Resumes";
 import { Search } from "../pages/Search";
