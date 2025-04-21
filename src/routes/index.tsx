@@ -7,11 +7,13 @@ import { Login } from "../pages/users/Login";
 import { Home } from "../pages/Home";
 import { UserLayout } from "../layout/UserLayout";
 import { Resumes } from "../pages/Resumes";
-import { Search } from "lucide-react";
 import { CreateResume } from "../pages/CreateResume";
 import { PostJob } from "../pages/PostJob";
 import { ResumeEditor } from "../pages/ResumeEditor";
 import { Register } from "../pages/users/Register";
+import { Search } from "../pages/Search";
+import { Profile } from "../pages/Profile";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 // Placeholder components - replace these with your actual components
 const Dashboard = () => <div>Dashboard</div>;
@@ -23,7 +25,6 @@ const Settings = () => <div>Settings</div>;
 const Employees = () => <div>Employees</div>;
 const Jobs = () => <div>Jobs</div>;
 const Teams = () => <div>Teams</div>;
-const Profile = () => <div>Profile</div>;
 
 // Admin routes
 const adminRoutes: RouteObject = {
@@ -106,7 +107,14 @@ const rootRoute: RouteObject = {
   path: "/",
   element: <UserLayout />,
   children: [
-    { path: "home", element: <Home /> },
+    {
+      path: "home",
+      element: (
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      ),
+    },
     { path: "resumes", element: <Resumes /> },
     { path: "search", element: <Search /> },
     { path: "profile", element: <Profile /> },

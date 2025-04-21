@@ -1,11 +1,19 @@
-import { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import { store } from "./store";
+import { apiRequest } from "./lib/api/axios";
+import { loadingInterceptors } from "./lib/api/axios-interceptors";
+import App from "./App";
 import "./index.css";
-import { StrictMode } from "react";
-import App from "./App.tsx";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-    {/* <RouterProvider router={router} /> */}
-  </StrictMode>
+// Apply loading interceptors
+loadingInterceptors(apiRequest);
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
 );

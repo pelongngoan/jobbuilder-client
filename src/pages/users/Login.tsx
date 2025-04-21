@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { LogIn, Briefcase, Search, Building, Users } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  LogIn,
+  Briefcase,
+  Search,
+  Building,
+  Users,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import {
@@ -9,23 +17,39 @@ import {
   CardContent,
   CardFooter,
 } from "../../components/ui/Card";
+import { useDispatch, useSelector } from "react-redux";
+import { login, setCredentials } from "../../store/auth/authSlice";
+import { RootState, AppDispatch } from "../../store";
+
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+}
 
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { loading } = useSelector((state: RootState) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Handle login logic here
-      console.log("Login attempt with:", { email, password });
-    }, 1000);
+    try {
+      const result = (await dispatch(
+        login({ email, password })
+      ).unwrap()) as LoginResponse;
+      navigate("/home");
+      dispatch(setCredentials({ token: result.token, user: result.user }));
+    } catch (error) {
+      // Handle error appropriately
+      console.error("Login failed:", error);
+    }
   };
 
   return (
@@ -108,12 +132,27 @@ export const Login = () => {
                 />
 
                 <Input
+                  className="align-middle"
                   label="Password"
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  rightIcon={
+                    <Button
+                      className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 border-none active:border-none active:scale-95"
+                      variant="ghost"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
+                    </Button>
+                  }
                 />
 
                 <div className="flex items-center justify-between">
@@ -144,7 +183,7 @@ export const Login = () => {
 
                 <Button
                   type="submit"
-                  isLoading={isLoading}
+                  isLoading={loading}
                   leftIcon={<LogIn className="h-5 w-5" />}
                   className="w-full"
                 >
