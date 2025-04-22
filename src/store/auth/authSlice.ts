@@ -22,7 +22,7 @@ interface LoginCredentials {
 
 const initialState: AuthState = {
   token: localStorage.getItem("token"),
-  isAuthenticated: false,
+  isAuthenticated: !!localStorage.getItem("token"),
   user: null,
   loading: false,
   error: null,
@@ -34,6 +34,7 @@ export const login = createAsyncThunk(
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       const response = await apiRequest.post("/auth/login", credentials);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
       if (error instanceof Error) {
@@ -44,15 +45,33 @@ export const login = createAsyncThunk(
   }
 );
 
+export const logoutUser = createAsyncThunk("auth/logout", async () => {
+  console.log("logout");
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+});
+
+export const verifyToken = createAsyncThunk(
+  "auth/verify",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No token found");
+      }
+      const response = await apiRequest.get("/auth/verify");
+      return response.data;
+    } catch (error) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return rejectWithValue("Invalid token");
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    token: localStorage.getItem("token"),
-    isAuthenticated: !!localStorage.getItem("token"),
-    user: JSON.parse(localStorage.getItem("user") || "null"),
-    loading: false,
-    error: null,
-  },
+  initialState,
   reducers: {
     setCredentials: (
       state,
@@ -90,10 +109,20 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
         localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(verifyToken.fulfilled, (state, action) => {
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+      })
+      .addCase(verifyToken.rejected, (state) => {
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
       });
   },
 });

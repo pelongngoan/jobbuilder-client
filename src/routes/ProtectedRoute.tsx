@@ -4,5 +4,5 @@ import { RootState } from "../store";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  return isAuthenticated ? children : <Navigate to="/users/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };

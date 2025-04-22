@@ -12,12 +12,15 @@ import {
   Settings,
 } from "lucide-react";
 import { Button } from "./ui/Button";
+import { logoutUser } from "../store/auth/authSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../store";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
+  const dispatch = useDispatch<AppDispatch>();
   const notifications = [
     {
       id: 1,
@@ -134,7 +137,10 @@ export const Navigation = () => {
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </Link>
-                  <button className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-slate-50">
+                  <button
+                    onClick={() => dispatch(logoutUser())}
+                    className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
+                  >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign out
                   </button>
