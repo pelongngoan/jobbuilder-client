@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserPlus, Briefcase, Search, Building, Users } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -9,6 +9,9 @@ import {
   CardContent,
   CardFooter,
 } from "../../components/ui/Card";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../store";
+import { login, setCredentials } from "../../store/auth/authSlice";
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,14 +22,21 @@ export const Register = () => {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { loading } = useSelector((state: RootState) => state.auth);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    e.preventDefault();
+    //  try {
+    //    const result = (await dispatch(
+    //      si({ email, password })
+    //    ).unwrap()) as LoginResponse;
+    //    navigate("/home");
+    //    dispatch(setCredentials({ token: result.token, user: result.user }));
+    //  } catch (error) {
+    //    // Handle error appropriately
+    //    console.error("Login failed:", error);
+    //  }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

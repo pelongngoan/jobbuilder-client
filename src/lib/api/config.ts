@@ -1,7 +1,7 @@
 import axios from "axios";
+import { store } from "../../store";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +13,7 @@ export const apiClient = axios.create({
 // Request interceptor for API calls
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = store.getState().auth.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

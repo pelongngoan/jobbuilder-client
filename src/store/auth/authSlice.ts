@@ -46,28 +46,9 @@ export const login = createAsyncThunk(
 );
 
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
-  console.log("logout");
   localStorage.removeItem("token");
   localStorage.removeItem("user");
 });
-
-export const verifyToken = createAsyncThunk(
-  "auth/verify",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No token found");
-      }
-      const response = await apiRequest.get("/auth/verify");
-      return response.data;
-    } catch (error) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      return rejectWithValue("Invalid token");
-    }
-  }
-);
 
 const authSlice = createSlice({
   name: "auth",
@@ -114,15 +95,6 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      .addCase(verifyToken.fulfilled, (state, action) => {
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-      })
-      .addCase(verifyToken.rejected, (state) => {
-        state.isAuthenticated = false;
-        state.token = null;
-        state.user = null;
       });
   },
 });

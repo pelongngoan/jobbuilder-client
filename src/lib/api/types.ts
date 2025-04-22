@@ -2,6 +2,7 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
   status: number;
+  token?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -22,6 +23,11 @@ export interface ApiError {
 export interface LoginCredentials {
   email: string;
   password: string;
+}
+export interface AccountCredentials {
+  email: string;
+  password: string;
+  role: "admin" | "company" | "hr";
 }
 
 export interface AuthResponse {

@@ -1,4 +1,4 @@
-import { Navigate, RouteObject } from "react-router-dom";
+import { RouteObject } from "react-router-dom";
 import { Home } from "../pages/Home";
 import { UserLayout } from "../layout/UserLayout";
 import { Resumes } from "../pages/Resumes";
@@ -11,8 +11,8 @@ import { Register as RegisterUser } from "../pages/users/Register";
 import { Register as RegisterManager } from "../pages/managements/Register";
 import { Search } from "../pages/Search";
 import { Profile } from "../pages/Profile";
-import { ProtectedRoute } from "./ProtectedRoute";
 import { ManagementLayout } from "../layout/ManagementLayout";
+import { Dashboard } from "../pages/managements/Dashboard";
 
 // const authRoutes: RouteObject = {
 //   path: "/users",
@@ -37,7 +37,7 @@ const rootRoute: RouteObject = {
     //   element: <Navigate to="/home" replace />,
     // },
     { path: "login", element: <LoginUser /> },
-    { path: "c", element: <RegisterUser /> },
+    { path: "register", element: <RegisterUser /> },
     { path: "home", element: <Home /> },
     { path: "resumes", element: <Resumes /> },
     { path: "search", element: <Search /> },
@@ -54,6 +54,7 @@ const managementRoute: RouteObject = {
   children: [
     { path: "login", element: <LoginManager /> },
     { path: "signup", element: <RegisterManager /> },
+    { path: "dashboard", element: <Dashboard /> },
   ],
 };
 
