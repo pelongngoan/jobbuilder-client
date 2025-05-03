@@ -8,13 +8,14 @@ import {
 } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
-import { managementService } from "../../lib/api/services/management";
 import { AccountCredentials } from "../../lib/api/types";
+import { signup } from "../../lib/api/services/management";
 
 export const Register = () => {
   const [form, setForm] = useState({
     email: "",
     password: "",
+    role: "company",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -25,10 +26,17 @@ export const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    managementService.signup(form as AccountCredentials).then((response) => {
-      console.log("Registration successful:", response.data);
-      // Handle successful registration (e.g., redirect to login page)
-    });
+    try {
+      signup(form as AccountCredentials)
+        .then((response) => {
+          console.log("Signup successful:", response);
+        })
+        .catch((error) => {
+          console.error("Signup failed:", error);
+        });
+    } catch (error) {
+      console.error("Signup failed:", error);
+    }
   };
 
   return (
@@ -49,7 +57,6 @@ export const Register = () => {
               <Input
                 label="Email Address"
                 name="email"
-                type="email"
                 required
                 value={form.email}
                 onChange={handleChange}

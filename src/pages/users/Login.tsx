@@ -17,9 +17,9 @@ import {
   CardContent,
   CardFooter,
 } from "../../components/ui/Card";
-import { useDispatch, useSelector } from "react-redux";
-import { login, setCredentials } from "../../store/auth/authSlice";
-import { RootState, AppDispatch } from "../../store";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { login } from "../../lib/api/services/auth";
 
 interface LoginResponse {
   token: string;
@@ -34,20 +34,20 @@ export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading } = useSelector((state: RootState) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const result = (await dispatch(
-        login({ email, password })
-      ).unwrap()) as LoginResponse;
-      navigate("/home");
-      dispatch(setCredentials({ token: result.token, user: result.user }));
+      login({ email, password }).then((response: LoginResponse) => {
+        console.log("Login successful:", response);
+        const { token, user } = response;
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        navigate("/home");
+      });
     } catch (error) {
-      // Handle error appropriately
       console.error("Login failed:", error);
     }
   };
@@ -196,7 +196,7 @@ export const Login = () => {
               <p className="text-sm text-slate-600">
                 Don't have an account?{" "}
                 <Link
-                  to="/register"
+                  to="/signup"
                   className="font-medium text-blue-600 hover:text-blue-700"
                 >
                   Sign up

@@ -27,29 +27,27 @@ export interface LoginCredentials {
 export interface AccountCredentials {
   email: string;
   password: string;
-  role: "admin" | "company" | "hr";
+  role?: "admin" | "company" | "hr";
 }
 
 export interface AuthResponse {
   token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
 }
 
 // User types
 export interface User {
   id: string;
-  email: string;
   name: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
+  email: string;
+  isVerified: boolean;
+  savedJobs: Job[];
+  resumes: Resume[];
+  appliedJobs: Job[];
 }
 
+export interface Resume {
+  id: string;
+}
 // Job types
 export interface Job {
   id: string;

@@ -9,46 +9,41 @@ import {
   CardContent,
   CardFooter,
 } from "../../components/ui/Card";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
-import { login, setCredentials } from "../../store/auth/authSlice";
+import { signup } from "../../lib/api/services/auth";
 
 export const Register = () => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { loading } = useSelector((state: RootState) => state.auth);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    //  try {
-    //    const result = (await dispatch(
-    //      si({ email, password })
-    //    ).unwrap()) as LoginResponse;
-    //    navigate("/home");
-    //    dispatch(setCredentials({ token: result.token, user: result.user }));
-    //  } catch (error) {
-    //    // Handle error appropriately
-    //    console.error("Login failed:", error);
-    //  }
+    try {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+    } catch (error) {
+      // Handle error appropriately
+      console.error("Login failed:", error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Handle registration logic here
-      console.log("Registration attempt with:", formData);
-    }, 1000);
+    try {
+      signup(formData)
+        .then((response) => {
+          console.log("Signup successful:", response);
+          navigate("/login");
+        })
+        .catch((error) => {
+          console.error("Signup failed:", error);
+        });
+    } catch (error) {
+      console.error("Signup failed:", error);
+    }
   };
 
   return (
@@ -121,27 +116,15 @@ export const Register = () => {
 
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="First Name"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="John"
-                  />
-                  <Input
-                    label="Last Name"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    placeholder="Doe"
-                  />
-                </div>
-
+                <Input
+                  label="Full Name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John"
+                />
                 <Input
                   label="Email Address"
                   name="email"
@@ -214,7 +197,7 @@ export const Register = () => {
 
                 <Button
                   type="submit"
-                  isLoading={isLoading}
+                  // isLoading={isLoading}
                   leftIcon={<UserPlus className="h-5 w-5" />}
                   className="w-full"
                 >

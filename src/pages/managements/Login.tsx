@@ -9,9 +9,9 @@ import {
   CardContent,
   CardFooter,
 } from "../../components/ui/Card";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../../store";
-import { useManagement } from "../../lib/api/hooks/useManagement";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { login } from "../../lib/api/services/management";
 
 interface LoginResponse {
   token: string;
@@ -24,15 +24,29 @@ interface LoginResponse {
 }
 
 export const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const { handleLogin } = useManagement();
   const { loading } = useSelector((state: RootState) => state.auth);
-
+  const navigate = useNavigate();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleLogin({ email, password });
+    try {
+      login({ ...formData }).then((response: LoginResponse) => {
+        console.log("Login successful:", response);
+        const { token, user } = response;
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        navigate("/management/dashboard");
+      });
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (
@@ -63,20 +77,22 @@ export const Login = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <Input
                   label="Email Address"
+                  name="email"
                   type="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="you@company.com"
                 />
 
                 <Input
                   className="align-middle"
                   label="Password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   rightIcon={
                     <Button

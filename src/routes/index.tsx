@@ -12,7 +12,13 @@ import { Register as RegisterManager } from "../pages/managements/Register";
 import { Search } from "../pages/Search";
 import { Profile } from "../pages/Profile";
 import { ManagementLayout } from "../layout/ManagementLayout";
-import { Dashboard } from "../pages/managements/Dashboard";
+import { DashboardPage } from "../pages/managements/Dashboard";
+import { HrManagementPage } from "../pages/managements/HrManagementPage";
+import { JobPostManagementPage } from "../pages/managements/JobPostManagementPage";
+import App from "../App";
+import { ApplicationsPage } from "../pages/managements/ApplicationsPage";
+import { MessagesPage } from "../pages/managements/MessagesPage";
+import { SettingsPage } from "../pages/managements/SettingsPage";
 
 // const authRoutes: RouteObject = {
 //   path: "/users",
@@ -26,18 +32,10 @@ import { Dashboard } from "../pages/managements/Dashboard";
 // Root route that redirects to login
 const rootRoute: RouteObject = {
   path: "/",
-  element: (
-    // <ProtectedRoute>
-    <UserLayout />
-    // </ProtectedRoute>
-  ),
+  element: <UserLayout />,
   children: [
-    // {
-    //   index: true,
-    //   element: <Navigate to="/home" replace />,
-    // },
     { path: "login", element: <LoginUser /> },
-    { path: "register", element: <RegisterUser /> },
+    { path: "signup", element: <RegisterUser /> },
     { path: "home", element: <Home /> },
     { path: "resumes", element: <Resumes /> },
     { path: "search", element: <Search /> },
@@ -54,7 +52,12 @@ const managementRoute: RouteObject = {
   children: [
     { path: "login", element: <LoginManager /> },
     { path: "signup", element: <RegisterManager /> },
-    { path: "dashboard", element: <Dashboard /> },
+    { path: "dashboard", element: <DashboardPage /> },
+    { path: "hr-management", element: <HrManagementPage /> },
+    { path: "jobpost-management", element: <JobPostManagementPage /> },
+    { path: "applications", element: <ApplicationsPage /> },
+    { path: "messages", element: <MessagesPage /> },
+    { path: "settings", element: <SettingsPage /> },
   ],
 };
 
