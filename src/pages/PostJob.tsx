@@ -12,6 +12,7 @@ import {
   Trash2,
   Upload,
   HelpCircle,
+  Tag,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
@@ -20,50 +21,87 @@ import { Navigation } from "../components/Navigation";
 
 type JobFormStep = "basic" | "details" | "requirements" | "preview";
 
+// Interface aligned with MongoDB schema
 interface JobFormData {
+  // Required fields
   title: string;
-  company: string;
+  companyId: string; // Will be populated from auth context
+  hrId: string; // Will be populated from auth context
   location: string;
-  jobType: string;
-  salary: {
-    min: string;
-    max: string;
-    currency: string;
-    period: string;
-  };
+  jobType: "full-time" | "part-time" | "contract" | "internship" | "remote";
+  salaryCurrency: string;
   description: string;
-  responsibilities: string[];
-  requirements: string[];
+
+  // Optional fields
+  salaryRange: string;
+  salaryType: "hourly" | "monthly" | "yearly";
+  keyResponsibilities: string[];
   benefits: string[];
-  applicationDeadline: string;
+  status: "open" | "closed";
+  deadline: string;
+  requirements: string[];
   contactEmail: string;
   contactPhone: string;
-  website: string;
-  logo: string;
+  logoCompany: string;
+  companyName: string;
+  companyWebsite: string;
+  category: string;
+
+  // Custom 'other' fields
+  other: {
+    title1: string;
+    description1: string;
+    title2: string;
+    description2: string;
+    title3: string;
+    description3: string;
+    title4: string;
+    description4: string;
+    title5: string;
+    description5: string;
+  };
 }
 
 export const PostJob = () => {
   const [currentStep, setCurrentStep] = useState<JobFormStep>("basic");
   const [formData, setFormData] = useState<JobFormData>({
+    // Required fields with initial values
     title: "",
-    company: "",
+    companyId: "placeholder-company-id", // Would be populated from auth context
+    hrId: "placeholder-hr-id", // Would be populated from auth context
     location: "",
     jobType: "full-time",
-    salary: {
-      min: "",
-      max: "",
-      currency: "USD",
-      period: "year",
-    },
+    salaryCurrency: "USD",
     description: "",
-    responsibilities: [""],
-    requirements: [""],
+
+    // Optional fields with initial values
+    salaryRange: "",
+    salaryType: "yearly",
+    keyResponsibilities: [""],
     benefits: [""],
-    applicationDeadline: "",
+    status: "open",
+    deadline: "",
+    requirements: [""],
     contactEmail: "",
     contactPhone: "",
-    website: "",
-    logo: "",
+    logoCompany: "",
+    companyName: "",
+    companyWebsite: "",
+    category: "",
+
+    // Custom 'other' fields
+    other: {
+      title1: "",
+      description1: "",
+      title2: "",
+      description2: "",
+      title3: "",
+      description3: "",
+      title4: "",
+      description4: "",
+      title5: "",
+      description5: "",
+    },
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -73,23 +111,23 @@ export const PostJob = () => {
     }));
   };
 
-  const handleSalaryChange = (field: string, value: string) => {
+  const handleOtherFieldChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      salary: {
-        ...prev.salary,
+      other: {
+        ...prev.other,
         [field]: value,
       },
     }));
   };
 
   const handleArrayItemChange = (
-    field: string,
+    field: keyof JobFormData,
     index: number,
     value: string
   ) => {
     setFormData((prev) => {
-      const newArray = [...(prev[field as keyof JobFormData] as string[])];
+      const newArray = [...(prev[field] as string[])];
       newArray[index] = value;
       return {
         ...prev,
@@ -98,16 +136,16 @@ export const PostJob = () => {
     });
   };
 
-  const addArrayItem = (field: string) => {
+  const addArrayItem = (field: keyof JobFormData) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: [...(prev[field as keyof JobFormData] as string[]), ""],
+      [field]: [...(prev[field] as string[]), ""],
     }));
   };
 
-  const removeArrayItem = (field: string, index: number) => {
+  const removeArrayItem = (field: keyof JobFormData, index: number) => {
     setFormData((prev) => {
-      const newArray = [...(prev[field as keyof JobFormData] as string[])];
+      const newArray = [...(prev[field] as string[])];
       newArray.splice(index, 1);
       return {
         ...prev,
@@ -149,9 +187,26 @@ export const PostJob = () => {
   };
 
   const handleSubmit = () => {
-    // Here you would typically submit the job data to your backend
-    console.log("Submitting job:", formData);
-    // Reset form and redirect to job listings or confirmation page
+    // Prepare data for API submission
+    const jobData = {
+      ...formData,
+      // Clean up empty arrays
+      keyResponsibilities: formData.keyResponsibilities.filter(
+        (item) => item.trim() !== ""
+      ),
+      requirements: formData.requirements.filter((item) => item.trim() !== ""),
+      benefits: formData.benefits.filter((item) => item.trim() !== ""),
+      // Clean up other fields
+      other: Object.fromEntries(
+        Object.entries(formData.other).filter(
+          ([_, value]) => value.trim() !== ""
+        )
+      ),
+    };
+
+    console.log("Submitting job:", jobData);
+    // Here you would submit the job data to your API
+    // e.g., axios.post('/api/jobs', jobData)
   };
 
   const renderBasicInfo = () => (
@@ -188,8 +243,8 @@ export const PostJob = () => {
             Company Name <span className="text-red-500">*</span>
           </label>
           <Input
-            value={formData.company}
-            onChange={(e) => handleInputChange("company", e.target.value)}
+            value={formData.companyName}
+            onChange={(e) => handleInputChange("companyName", e.target.value)}
             placeholder="e.g. TechCorp Inc."
           />
         </div>
@@ -207,27 +262,55 @@ export const PostJob = () => {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
+            Job Category
+          </label>
+          <Input
+            value={formData.category}
+            onChange={(e) => handleInputChange("category", e.target.value)}
+            placeholder="e.g. Technology, Marketing, Finance"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
             Job Type <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {[
-              "full-time",
-              "part-time",
-              "contract",
-              "internship",
-              "temporary",
-              "remote",
-            ].map((type) => (
+            {["full-time", "part-time", "contract", "internship", "remote"].map(
+              (type) => (
+                <button
+                  key={type}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                    formData.jobType === type
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                  onClick={() => handleInputChange("jobType", type as any)}
+                >
+                  {type.charAt(0).toUpperCase() +
+                    type.slice(1).replace("-", " ")}
+                </button>
+              )
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Status
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {["open", "closed"].map((status) => (
               <button
-                key={type}
+                key={status}
                 className={`px-3 py-2 text-sm font-medium rounded-md ${
-                  formData.jobType === type
+                  formData.status === status
                     ? "bg-blue-100 text-blue-800"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
-                onClick={() => handleInputChange("jobType", type)}
+                onClick={() => handleInputChange("status", status as any)}
               >
-                {type.charAt(0).toUpperCase() + type.slice(1).replace("-", " ")}
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
             ))}
           </div>
@@ -235,27 +318,24 @@ export const PostJob = () => {
 
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Salary Range
+            Salary Information
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="relative">
               <Input
-                value={formData.salary.min}
-                onChange={(e) => handleSalaryChange("min", e.target.value)}
-                placeholder="Min"
-              />
-            </div>
-            <div className="relative">
-              <Input
-                value={formData.salary.max}
-                onChange={(e) => handleSalaryChange("max", e.target.value)}
-                placeholder="Max"
+                value={formData.salaryRange}
+                onChange={(e) =>
+                  handleInputChange("salaryRange", e.target.value)
+                }
+                placeholder="e.g. 50000-70000 or Negotiable"
               />
             </div>
             <div>
               <select
-                value={formData.salary.currency}
-                onChange={(e) => handleSalaryChange("currency", e.target.value)}
+                value={formData.salaryCurrency}
+                onChange={(e) =>
+                  handleInputChange("salaryCurrency", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="USD">USD</option>
@@ -267,20 +347,20 @@ export const PostJob = () => {
             </div>
             <div>
               <select
-                value={formData.salary.period}
-                onChange={(e) => handleSalaryChange("period", e.target.value)}
+                value={formData.salaryType}
+                onChange={(e) =>
+                  handleInputChange("salaryType", e.target.value as any)
+                }
                 className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="hour">Per Hour</option>
-                <option value="day">Per Day</option>
-                <option value="week">Per Week</option>
-                <option value="month">Per Month</option>
-                <option value="year">Per Year</option>
+                <option value="hourly">Hourly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
               </select>
             </div>
           </div>
           <p className="mt-1 text-xs text-slate-500">
-            Leave blank if salary is negotiable or not specified
+            Leave salary range blank if salary is negotiable
           </p>
         </div>
       </div>
@@ -329,13 +409,13 @@ export const PostJob = () => {
           Key Responsibilities
         </label>
         <div className="space-y-2">
-          {formData.responsibilities.map((item, index) => (
+          {formData.keyResponsibilities.map((item, index) => (
             <div key={index} className="flex items-center">
               <Input
                 value={item}
                 onChange={(e) =>
                   handleArrayItemChange(
-                    "responsibilities",
+                    "keyResponsibilities",
                     index,
                     e.target.value
                   )
@@ -344,7 +424,7 @@ export const PostJob = () => {
               />
               <button
                 className="ml-2 text-red-500 hover:text-red-700"
-                onClick={() => removeArrayItem("responsibilities", index)}
+                onClick={() => removeArrayItem("keyResponsibilities", index)}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -354,7 +434,7 @@ export const PostJob = () => {
             variant="outline"
             size="sm"
             leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => addArrayItem("responsibilities")}
+            onClick={() => addArrayItem("keyResponsibilities")}
           >
             Add Responsibility
           </Button>
@@ -401,10 +481,8 @@ export const PostJob = () => {
           </label>
           <Input
             type="date"
-            value={formData.applicationDeadline}
-            onChange={(e) =>
-              handleInputChange("applicationDeadline", e.target.value)
-            }
+            value={formData.deadline}
+            onChange={(e) => handleInputChange("deadline", e.target.value)}
           />
         </div>
 
@@ -413,8 +491,10 @@ export const PostJob = () => {
             Company Website
           </label>
           <Input
-            value={formData.website}
-            onChange={(e) => handleInputChange("website", e.target.value)}
+            value={formData.companyWebsite}
+            onChange={(e) =>
+              handleInputChange("companyWebsite", e.target.value)
+            }
             placeholder="https://example.com"
           />
         </div>
@@ -442,7 +522,7 @@ export const PostJob = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-slate-900">
-          Job Requirements
+          Requirements & Contact
         </h2>
         <div className="flex items-center text-sm text-slate-500">
           <span className="mr-2">Step 3 of 4</span>
@@ -457,8 +537,7 @@ export const PostJob = () => {
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
-          Required Skills & Qualifications{" "}
-          <span className="text-red-500">*</span>
+          Requirements
         </label>
         <div className="space-y-2">
           {formData.requirements.map((item, index) => (
@@ -519,16 +598,16 @@ export const PostJob = () => {
           Company Logo
         </label>
         <div className="flex items-center">
-          {formData.logo ? (
+          {formData.logoCompany ? (
             <div className="relative w-24 h-24 mr-4">
               <img
-                src={formData.logo}
+                src={formData.logoCompany}
                 alt="Company logo"
                 className="w-full h-full object-contain border border-slate-200 rounded-md"
               />
               <button
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                onClick={() => handleInputChange("logo", "")}
+                onClick={() => handleInputChange("logoCompany", "")}
               >
                 <X className="h-3 w-3" />
               </button>
@@ -543,6 +622,11 @@ export const PostJob = () => {
               variant="outline"
               size="sm"
               leftIcon={<Upload className="h-4 w-4" />}
+              onClick={() => {
+                // In real implementation, this would open a file picker
+                const mockUrl = "/api/placeholder/200/200";
+                handleInputChange("logoCompany", mockUrl);
+              }}
             >
               Upload Logo
             </Button>
@@ -551,6 +635,56 @@ export const PostJob = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="space-y-4 border-t border-slate-200 pt-4">
+        <h3 className="font-medium text-slate-800">Additional Job Fields</h3>
+        <p className="text-sm text-slate-600">
+          Use these fields for any additional information not covered above.
+        </p>
+
+        {[1, 2, 3, 4, 5].map((num) => (
+          <div key={num} className="border border-slate-200 rounded-md p-4">
+            <div className="flex items-center mb-2">
+              <Tag className="h-4 w-4 mr-2 text-slate-500" />
+              <h4 className="font-medium text-slate-700">Custom Field {num}</h4>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Field Title
+                </label>
+                <Input
+                  value={
+                    formData.other[`title${num}` as keyof typeof formData.other]
+                  }
+                  onChange={(e) =>
+                    handleOtherFieldChange(`title${num}`, e.target.value)
+                  }
+                  placeholder="e.g. Experience Level, Remote Policy"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Field Description
+                </label>
+                <textarea
+                  value={
+                    formData.other[
+                      `description${num}` as keyof typeof formData.other
+                    ]
+                  }
+                  onChange={(e) =>
+                    handleOtherFieldChange(`description${num}`, e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  rows={2}
+                  placeholder="Enter details for this field"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-between">
@@ -570,7 +704,6 @@ export const PostJob = () => {
       </div>
     </div>
   );
-
   const renderPreview = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -591,10 +724,10 @@ export const PostJob = () => {
       <Card variant="bordered" className="overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
           <div className="flex items-center">
-            {formData.logo ? (
+            {formData.logoCompany ? (
               <img
-                src={formData.logo}
-                alt={formData.company}
+                src={formData.logoCompany}
+                alt={formData.companyName}
                 className="w-16 h-16 object-contain bg-white rounded-md p-1 mr-4"
               />
             ) : (
@@ -604,7 +737,13 @@ export const PostJob = () => {
             )}
             <div>
               <h1 className="text-2xl font-bold">{formData.title}</h1>
-              <p className="text-blue-100">{formData.company}</p>
+              <p className="text-blue-100">
+                {formData.companyName || "Company Name"}
+              </p>
+              <span className="inline-block px-2 py-1 text-xs rounded-full bg-blue-900 text-white mt-1">
+                {formData.status.charAt(0).toUpperCase() +
+                  formData.status.slice(1)}
+              </span>
             </div>
           </div>
         </div>
@@ -625,8 +764,8 @@ export const PostJob = () => {
             <div className="flex items-center text-slate-600">
               <DollarSign className="h-4 w-4 mr-2 text-slate-500" />
               <span>
-                {formData.salary.min && formData.salary.max
-                  ? `${formData.salary.currency} ${formData.salary.min} - ${formData.salary.max} ${formData.salary.period}`
+                {formData.salaryRange
+                  ? `${formData.salaryCurrency} ${formData.salaryRange} per ${formData.salaryType}`
                   : "Salary negotiable"}
               </span>
             </div>
@@ -641,14 +780,14 @@ export const PostJob = () => {
             </p>
           </div>
 
-          {formData.responsibilities.length > 0 &&
-            formData.responsibilities[0] !== "" && (
+          {formData.keyResponsibilities.length > 0 &&
+            formData.keyResponsibilities[0] !== "" && (
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-slate-900 mb-2">
                   Key Responsibilities
                 </h2>
                 <ul className="list-disc pl-5 space-y-1 text-slate-700">
-                  {formData.responsibilities.map((item, index) => (
+                  {formData.keyResponsibilities.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
@@ -682,29 +821,77 @@ export const PostJob = () => {
             </div>
           )}
 
-          <div className="border-t border-slate-200 pt-4 mt-6">
+          {/* Display custom fields that have content */}
+          {[1, 2, 3, 4, 5].map((num) => {
+            const titleKey = `title${num}` as keyof typeof formData.other;
+            const descKey = `description${num}` as keyof typeof formData.other;
+
+            if (formData.other[titleKey] && formData.other[descKey]) {
+              return (
+                <div key={num} className="mb-6">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-2">
+                    {formData.other[titleKey]}
+                  </h2>
+                  <p className="text-slate-700 whitespace-pre-line">
+                    {formData.other[descKey]}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })}
+
+          <div className="border-t border-slate-200 pt-6 mt-6">
             <h2 className="text-lg font-semibold text-slate-900 mb-2">
-              How to Apply
+              Contact Information
             </h2>
-            <p className="text-slate-700 mb-2">
-              Please send your resume and cover letter to{" "}
-              <a
-                href={`mailto:${formData.contactEmail}`}
-                className="text-blue-600 hover:underline"
-              >
-                {formData.contactEmail}
-              </a>
-              {formData.contactPhone && ` or call ${formData.contactPhone}`}.
-            </p>
-            {formData.applicationDeadline && (
-              <p className="text-slate-700">
-                <span className="font-medium">Application Deadline:</span>{" "}
-                {new Date(formData.applicationDeadline).toLocaleDateString()}
-              </p>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {formData.contactEmail && (
+                <div className="flex items-center text-slate-600">
+                  <span className="font-medium mr-2">Email:</span>
+                  <span>{formData.contactEmail}</span>
+                </div>
+              )}
+              {formData.contactPhone && (
+                <div className="flex items-center text-slate-600">
+                  <span className="font-medium mr-2">Phone:</span>
+                  <span>{formData.contactPhone}</span>
+                </div>
+              )}
+              {formData.companyWebsite && (
+                <div className="flex items-center text-slate-600">
+                  <span className="font-medium mr-2">Website:</span>
+                  <span>{formData.companyWebsite}</span>
+                </div>
+              )}
+              {formData.deadline && (
+                <div className="flex items-center text-slate-600">
+                  <span className="font-medium mr-2">
+                    Application Deadline:
+                  </span>
+                  <span>
+                    {new Date(formData.deadline).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <HelpCircle className="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-blue-800">Before Publishing</h3>
+            <p className="text-sm text-blue-700 mt-1">
+              Review all information carefully. Once published, your job posting
+              will be visible to all potential candidates. Ensure all
+              requirements and contact information are accurate.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="flex justify-between">
         <Button
@@ -718,13 +905,13 @@ export const PostJob = () => {
           onClick={handleSubmit}
           leftIcon={<CheckCircle className="h-4 w-4" />}
         >
-          Post Job
+          Publish Job Posting
         </Button>
       </div>
     </div>
   );
 
-  const renderContent = () => {
+  const renderCurrentStep = () => {
     switch (currentStep) {
       case "basic":
         return renderBasicInfo();
@@ -740,39 +927,17 @@ export const PostJob = () => {
   };
 
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-slate-50 pt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">Post a Job</h1>
-              <p className="text-slate-600 mt-2">
-                Fill out the form below to create your job listing. Fields
-                marked with <span className="text-red-500">*</span> are
-                required.
-              </p>
-            </div>
-
-            <Card>
-              <CardContent className="p-6">{renderContent()}</CardContent>
-            </Card>
-
-            <div className="mt-6 flex items-center text-sm text-slate-500">
-              <HelpCircle className="h-4 w-4 mr-2" />
-              <p>
-                Need help? Contact our support team at{" "}
-                <a
-                  href="mailto:support@jobbuilder.com"
-                  className="text-blue-600 hover:underline"
-                >
-                  support@jobbuilder.com
-                </a>
-              </p>
-            </div>
-          </div>
+    <div className="bg-slate-50 min-h-screen">
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
+        <h1 className="text-2xl font-bold text-slate-900 mb-6">
+          Post a New Job
+        </h1>
+        <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
+          {renderCurrentStep()}
         </div>
       </div>
-    </>
+    </div>
   );
 };
+
+export default PostJob;
