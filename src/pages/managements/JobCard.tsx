@@ -1,7 +1,6 @@
 import React from "react";
 import {
   MapPin,
-  Award,
   DollarSign,
   Clock,
   ExternalLink,
@@ -10,32 +9,7 @@ import {
   Briefcase,
   Calendar,
 } from "lucide-react";
-
-// Define updated JobPost interface based on the provided data structure
-export interface JobPost {
-  _id: string;
-  title: string;
-  category: string;
-  location: string;
-  jobType: string;
-  status: string;
-  applications: any[];
-  createdAt: string;
-  salaryRange: string;
-  salary: number;
-  salaryCurrency: string;
-  salaryType: string;
-  requirements: string[];
-  benefits: string[];
-  keyResponsibilities: string[];
-  companyName: string;
-  deadline: string;
-  description: string;
-  other?: {
-    title: string;
-    description: string;
-  };
-}
+import { JobPost } from "../../types/job";
 
 interface JobCardProps {
   job: JobPost;

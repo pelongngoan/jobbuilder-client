@@ -1,54 +1,39 @@
 import React, { useEffect, useState } from "react";
 import {
   Plus,
-  Search,
   Grid,
   List,
-  ExternalLink,
-  Edit,
-  Trash2,
   Upload,
   Download,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
-import { PostJob } from "../PostJob";
 import { DataTable, TablePagination } from "../../components/DataTable";
-import { getAllJobs, uploadJobsFromCSV } from "../../lib/api/services/jobs";
+import { uploadJobsFromCSV } from "../../lib/api/services/jobs";
 import { ImportCSVDialog } from "./ImportCSVDialog";
 import { downloadCSVTemplate } from "./csv-helpers";
-import { JobCard, JobPost } from "./JobCard";
-
-// Dialog component for job post creation/editing
-const JobPostDialog = ({ isOpen, onClose, jobPost = null }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div className="fixed inset-0 transition-opacity" onClick={onClose}>
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-        {/* Dialog content */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
-          <PostJob jobToEdit={jobPost} onClose={onClose} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface TableColumn {
-  key: keyof JobPost | "actions";
-  header: string;
-  align?: "left" | "right";
-  render: (job: JobPost) => React.ReactNode;
-}
+import { JobCard } from "./JobCard";
+import JobPostDialog from "../../components/admin/job-posts/JobPostDialog";
+import SearchInput, {
+  SearchFilterState,
+} from "../../components/shared/SearchInput";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchJobs,
+  deleteJob as deleteJobThunk,
+} from "../../store/jobs/jobsSlice";
+import type { RootState, AppDispatch } from "../../store";
+import { JobPost } from "../../types/job";
+import { getJobPostTableColumns } from "../../components/admin/job-posts/jobPostTableColumns";
 
 export const JobPostManagementPage: React.FC = () => {
-  const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const dispatch = useDispatch<AppDispatch>();
+  const { jobs } = useSelector((state: RootState) => state.jobs);
+  const [filters, setFilters] = useState<SearchFilterState>({
+    search: "",
+    status: "all",
+    category: "all",
+  });
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [importDialogOpen, setImportDialogOpen] = useState<boolean>(false);
@@ -62,51 +47,24 @@ export const JobPostManagementPage: React.FC = () => {
   const itemsPerPage: number = 10;
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const response = await getAllJobs();
-        console.log("Job posts fetched successfully:", response);
-        setJobPosts(response.jobs as JobPost[]);
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-      }
-    };
+    dispatch(
+      fetchJobs({
+        page: currentPage,
+        limit: itemsPerPage,
+        title: filters.search || undefined,
+      })
+    );
+  }, [filters, currentPage, dispatch]);
 
-    fetchJobs();
-  }, []);
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(date);
-  };
-
-  // Filter job posts based on search term and filters
-  const filteredJobPosts: JobPost[] = jobPosts?.filter((job) => {
-    const matchesSearch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.companyName.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" ||
-      job.status.toLowerCase() === statusFilter.toLowerCase();
-
-    const matchesCategory =
-      categoryFilter === "all" || job.category === categoryFilter;
-
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
-
-  // Get unique categories for filter dropdown
-  const categories: string[] = [
-    ...new Set(jobPosts?.map((job) => job.category)),
-  ];
+  useEffect(() => {
+    dispatch(
+      fetchJobs({
+        page: currentPage,
+        limit: itemsPerPage,
+        title: filters.search || undefined,
+      })
+    );
+  }, [filters, currentPage, dispatch]);
 
   const handleCreateJobPost = (): void => {
     setCurrentJobPost(null);
@@ -153,12 +111,13 @@ export const JobPostManagementPage: React.FC = () => {
       setImportResults({ success: successCount, failed: failedCount });
 
       // Refresh the job list after successful import
-      try {
-        const jobsResponse = await getAllJobs();
-        setJobPosts(jobsResponse.jobs as JobPost[]);
-      } catch (error) {
-        console.error("Error fetching jobs after import:", error);
-      }
+      dispatch(
+        fetchJobs({
+          page: currentPage,
+          limit: itemsPerPage,
+          title: filters.search || undefined,
+        })
+      );
     } catch (error) {
       console.error("Error importing jobs from CSV:", error);
       // If there's an error with the API call, consider all jobs failed
@@ -168,11 +127,14 @@ export const JobPostManagementPage: React.FC = () => {
     }
   };
 
-  const handleDeleteJobPost = (id: string): void => {
-    // Implement deletion logic here
-    console.log("Delete job post with ID:", id);
-    // After deletion, refresh the job list
-    // You could add a confirmation dialog here
+  const handleDeleteJobPost = async (id: string): Promise<void> => {
+    try {
+      await dispatch(deleteJobThunk(id));
+      // Optionally, show a success notification here
+    } catch (error) {
+      console.error("Error deleting job post:", error);
+      // Optionally, show an error notification here
+    }
   };
 
   const handleViewJobPost = (jobPost: JobPost): void => {
@@ -187,128 +149,16 @@ export const JobPostManagementPage: React.FC = () => {
   };
 
   // Define columns for list view table
-  const tableColumns: TableColumn[] = [
-    {
-      key: "title",
-      header: "Job Title",
-      render: (job) => (
-        <div>
-          <div className="text-sm font-medium text-gray-900">{job.title}</div>
-          <div className="text-xs text-gray-500">{job.companyName}</div>
-        </div>
-      ),
-    },
-    {
-      key: "category",
-      header: "Department",
-      render: (job) => (
-        <span className="text-sm text-gray-500">{job.category}</span>
-      ),
-    },
-    {
-      key: "location",
-      header: "Location",
-      render: (job) => (
-        <span className="text-sm text-gray-500">{job.location}</span>
-      ),
-    },
-    {
-      key: "jobType",
-      header: "Type",
-      render: (job) => (
-        <span className="text-sm text-gray-500">{job.jobType}</span>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (job) => {
-        const statusStyle =
-          job.status.toLowerCase() === "open"
-            ? "bg-green-100 text-green-800"
-            : job.status.toLowerCase() === "draft"
-            ? "bg-yellow-100 text-yellow-800"
-            : "bg-gray-100 text-gray-800";
-
-        return (
-          <span
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyle}`}
-          >
-            {job.status}
-          </span>
-        );
-      },
-    },
-    {
-      key: "applications",
-      header: "Applications",
-      render: (job) => (
-        <span className="text-sm text-gray-500">{job.applications.length}</span>
-      ),
-    },
-    {
-      key: "createdAt",
-      header: "Posted Date",
-      render: (job) => (
-        <span className="text-sm text-gray-500">
-          {formatDate(job.createdAt)}
-        </span>
-      ),
-    },
-    {
-      key: "deadline",
-      header: "Deadline",
-      render: (job) => (
-        <span className="text-sm text-gray-500">
-          {formatDate(job.deadline)}
-        </span>
-      ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      align: "right",
-      render: (job) => (
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
-              handleEditJobPost(job);
-            }}
-            className="p-1 text-blue-600 hover:bg-blue-100 rounded-full"
-          >
-            <Edit className="h-5 w-5" />
-          </button>
-          <button
-            onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
-              handleDeleteJobPost(job._id);
-            }}
-            className="p-1 text-red-600 hover:bg-red-100 rounded-full"
-          >
-            <Trash2 className="h-5 w-5" />
-          </button>
-          <button
-            onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
-              handleViewJobPost(job);
-            }}
-            className="p-1 text-gray-600 hover:bg-gray-100 rounded-full"
-          >
-            <ExternalLink className="h-5 w-5" />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const tableColumns = getJobPostTableColumns(
+    handleEditJobPost,
+    handleDeleteJobPost,
+    handleViewJobPost
+  );
 
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredJobPosts?.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentItems = jobs?.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="space-y-6">
@@ -414,13 +264,13 @@ export const JobPostManagementPage: React.FC = () => {
       {/* Filter and search bar */}
       <div className="bg-white p-4 rounded-lg shadow flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input
-            type="text"
+          <SearchInput
+            value={filters.search}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, search: e.target.value }))
+            }
+            onSearch={(value) => setFilters((f) => ({ ...f, search: value }))}
             placeholder="Search jobs..."
-            className="pl-10 pr-4 py-2 border rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
@@ -428,8 +278,10 @@ export const JobPostManagementPage: React.FC = () => {
           <div>
             <select
               className="border rounded p-2 text-sm"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={filters.status}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, status: e.target.value }))
+              }
             >
               <option value="all">All Status</option>
               <option value="open">Open</option>
@@ -438,11 +290,13 @@ export const JobPostManagementPage: React.FC = () => {
             </select>
           </div>
 
-          <div>
+          {/* <div>
             <select
               className="border rounded p-2 text-sm"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              value={filters.category}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, category: e.target.value }))
+              }
             >
               <option value="all">All Departments</option>
               {categories.map((category, index) => (
@@ -451,7 +305,7 @@ export const JobPostManagementPage: React.FC = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           <div className="flex border rounded">
             <button
@@ -481,7 +335,7 @@ export const JobPostManagementPage: React.FC = () => {
             currentItems.map((job) => (
               <JobCard
                 key={job._id}
-                job={job}
+                job={job as unknown as JobPost}
                 onEdit={handleEditJobPost}
                 onDelete={handleDeleteJobPost}
                 onView={handleViewJobPost}
@@ -499,7 +353,7 @@ export const JobPostManagementPage: React.FC = () => {
       ) : (
         <DataTable<JobPost>
           columns={tableColumns}
-          data={currentItems || []}
+          data={(currentItems as unknown as JobPost[]) || []}
           onRowClick={handleViewJobPost}
           emptyMessage="No job posts found matching your filters."
         />
@@ -507,7 +361,7 @@ export const JobPostManagementPage: React.FC = () => {
 
       {/* Pagination */}
       <TablePagination
-        totalItems={filteredJobPosts?.length || 0}
+        totalItems={jobs?.length || 0}
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
         onPageChange={setCurrentPage}

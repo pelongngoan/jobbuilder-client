@@ -1,15 +1,57 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { apiRequest } from "../../lib/api/axios";
+import * as jobService from "../../lib/api/services/jobs";
+import { JobPost } from "../../types/job";
+import { PaginatedResponse } from "../../types/api";
+
+enum JobType {
+  FullTime = "full-time",
+  PartTime = "part-time",
+  Contract = "contract",
+  Internship = "internship",
+  Remote = "remote",
+}
+
+enum SalaryType {
+  Hourly = "hourly",
+  Monthly = "monthly",
+  Yearly = "yearly",
+}
+
+enum Status {
+  Open = "open",
+  Closed = "closed",
+}
+
+interface JobOther {
+  title?: string;
+  description?: string;
+  [key: string]: unknown;
+}
 
 interface Job {
-  id: string;
+  _id: string;
+  companyId: string;
+  hrId: string;
   title: string;
-  description: string;
-  company: string;
   location: string;
-  salary: string;
-  requirements: string[];
-  skills: string[];
+  jobType: JobType;
+  salaryRange?: string;
+  salaryCurrency: string;
+  salaryType?: SalaryType;
+  description: string;
+  keyResponsibilities?: string[];
+  benefits?: string[];
+  category?: string;
+  status?: Status;
+  deadline?: string;
+  requirements?: string[];
+  contactEmail?: string;
+  contactPhone?: string;
+  logoCompany?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  applications: string[];
+  other?: JobOther;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,11 +72,19 @@ const initialState: JobsState = {
 
 // Async thunks
 export const fetchJobs = createAsyncThunk(
-  "jobs/fetchJobs",
-  async (_, { rejectWithValue }) => {
+  "job/",
+  async (
+    params: {
+      page?: number;
+      limit?: number;
+      title?: string;
+      location?: string;
+    } = {},
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await apiRequest.get("/jobs");
-      return response.data;
+      const data = await jobService.getAllJobs(params);
+      return data;
     } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
@@ -46,10 +96,10 @@ export const fetchJobs = createAsyncThunk(
 
 export const fetchJobById = createAsyncThunk(
   "jobs/fetchJobById",
-  async (id: string, { rejectWithValue }) => {
+  async (_id: string, { rejectWithValue }) => {
     try {
-      const response = await apiRequest.get(`/jobs/${id}`);
-      return response.data;
+      const data = await jobService.getJobById(_id);
+      return data;
     } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
@@ -61,13 +111,10 @@ export const fetchJobById = createAsyncThunk(
 
 export const createJob = createAsyncThunk(
   "jobs/createJob",
-  async (
-    jobData: Omit<Job, "id" | "createdAt" | "updatedAt">,
-    { rejectWithValue }
-  ) => {
+  async (jobData: JobPost, { rejectWithValue }) => {
     try {
-      const response = await apiRequest.post("/jobs", jobData);
-      return response.data;
+      const data = await jobService.createJob(jobData);
+      return data;
     } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
@@ -80,12 +127,12 @@ export const createJob = createAsyncThunk(
 export const updateJob = createAsyncThunk(
   "jobs/updateJob",
   async (
-    { id, jobData }: { id: string; jobData: Partial<Job> },
+    { _id, jobData }: { _id: string; jobData: Partial<JobPost> },
     { rejectWithValue }
   ) => {
     try {
-      const response = await apiRequest.put(`/jobs/${id}`, jobData);
-      return response.data;
+      const data = await jobService.updateJob(_id, jobData);
+      return data;
     } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
@@ -97,10 +144,10 @@ export const updateJob = createAsyncThunk(
 
 export const deleteJob = createAsyncThunk(
   "jobs/deleteJob",
-  async (id: string, { rejectWithValue }) => {
+  async (_id: string, { rejectWithValue }) => {
     try {
-      await apiRequest.delete(`/jobs/${id}`);
-      return id;
+      await jobService.deleteJob(_id);
+      return _id;
     } catch (error) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
@@ -125,10 +172,63 @@ const jobsSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchJobs.fulfilled, (state, action: PayloadAction<Job[]>) => {
-        state.loading = false;
-        state.jobs = action.payload;
-      })
+      .addCase(
+        fetchJobs.fulfilled,
+        (state, action: PayloadAction<PaginatedResponse<JobPost>>) => {
+          state.loading = false;
+          console.log(action.payload);
+          state.jobs = action.payload.data.map((jobPost) => ({
+            _id: jobPost._id,
+            companyId: jobPost.companyId?.toString() ?? "",
+            hrId: jobPost.hrId?.toString() ?? "",
+            title: jobPost.title,
+            location: jobPost.location,
+            jobType: Object.values(JobType).includes(jobPost.jobType as JobType)
+              ? (jobPost.jobType as JobType)
+              : JobType.FullTime,
+            salaryRange: jobPost.salaryRange ?? "",
+            salaryCurrency: jobPost.salaryCurrency ?? "",
+            salaryType: Object.values(SalaryType).includes(
+              jobPost.salaryType as SalaryType
+            )
+              ? (jobPost.salaryType as SalaryType)
+              : SalaryType.Monthly,
+            description: jobPost.description,
+            keyResponsibilities: jobPost.keyResponsibilities ?? [],
+            benefits: jobPost.benefits ?? [],
+            category: jobPost.category ?? "",
+            status: Object.values(Status).includes(jobPost.status as Status)
+              ? (jobPost.status as Status)
+              : Status.Open,
+            deadline: jobPost.deadline ? jobPost.deadline.toString() : "",
+            requirements: jobPost.requirements ?? [],
+            contactEmail:
+              typeof jobPost.contactEmail === "string"
+                ? jobPost.contactEmail
+                : "",
+            contactPhone:
+              typeof jobPost.contactPhone === "string"
+                ? jobPost.contactPhone
+                : "",
+            logoCompany:
+              typeof jobPost.logoCompany === "string"
+                ? jobPost.logoCompany
+                : "",
+            companyName: jobPost.companyName ?? "",
+            companyWebsite:
+              typeof jobPost.companyWebsite === "string"
+                ? jobPost.companyWebsite
+                : "",
+            applications: jobPost.applications?.map(String) ?? [],
+            other: (jobPost.other as JobOther) ?? undefined,
+            createdAt: jobPost.createdAt?.toString() ?? "",
+            updatedAt:
+              jobPost.updatedAt?.toString() ??
+              jobPost.createdAt?.toString() ??
+              "",
+          }));
+        }
+      )
       .addCase(fetchJobs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -167,12 +267,12 @@ const jobsSlice = createSlice({
       .addCase(updateJob.fulfilled, (state, action: PayloadAction<Job>) => {
         state.loading = false;
         const index = state.jobs.findIndex(
-          (job) => job.id === action.payload.id
+          (job) => job._id === action.payload._id
         );
         if (index !== -1) {
           state.jobs[index] = action.payload;
         }
-        if (state.currentJob?.id === action.payload.id) {
+        if (state.currentJob?._id === action.payload._id) {
           state.currentJob = action.payload;
         }
       })
@@ -187,8 +287,8 @@ const jobsSlice = createSlice({
       })
       .addCase(deleteJob.fulfilled, (state, action: PayloadAction<string>) => {
         state.loading = false;
-        state.jobs = state.jobs.filter((job) => job.id !== action.payload);
-        if (state.currentJob?.id === action.payload) {
+        state.jobs = state.jobs.filter((job) => job._id !== action.payload);
+        if (state.currentJob?._id === action.payload) {
           state.currentJob = null;
         }
       })
