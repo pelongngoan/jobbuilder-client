@@ -82,7 +82,7 @@ export const deleteJob = async (id: string) => {
  */
 export const searchJobs = async (query: string, page = 1, limit = 10) => {
   const response = await apiRequest.get("/job/search", {
-    params: { query, page, limit },
+    params: { title: query, page, limit },
   });
   return response.data;
 };

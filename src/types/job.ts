@@ -11,13 +11,14 @@ export interface JobPost {
   salaryRange: string;
   salary: number;
   salaryCurrency: string;
-  salaryType: string;
+  salaryType: "hourly" | "monthly" | "yearly";
   requirements: string[];
   benefits: string[];
   keyResponsibilities: string[];
   companyName: string;
   deadline: string;
   description: string;
+  experienceLevel?: "Entry" | "Mid" | "Senior" | "Executive";
   other?: {
     title: string;
     description: string;

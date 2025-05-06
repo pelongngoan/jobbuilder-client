@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
-  Filter,
-  ChevronDown,
   Eye,
   Check,
   X,
@@ -12,109 +10,42 @@ import {
   Calendar,
   Download,
 } from "lucide-react";
-
-// Mock data for applications
-const initialApplications = [
-  {
-    id: 1,
-    applicantName: "John Smith",
-    email: "john.smith@example.com",
-    phone: "(555) 123-4567",
-    jobTitle: "Frontend Developer",
-    status: "New",
-    appliedDate: "May 1, 2025",
-    resumeUrl: "#",
-    rating: 4,
-    stage: "Screening",
-    hrAssigned: "Sarah Johnson",
-    notes: "Strong portfolio, 5 years of React experience.",
-  },
-  {
-    id: 2,
-    applicantName: "Emily Chen",
-    email: "emily.chen@example.com",
-    phone: "(555) 987-6543",
-    jobTitle: "UX Designer",
-    status: "In Review",
-    appliedDate: "Apr 29, 2025",
-    resumeUrl: "#",
-    rating: 5,
-    stage: "Interview",
-    hrAssigned: "Mike Chen",
-    notes: "Excellent design portfolio, scheduled for interview on May 5.",
-  },
-  {
-    id: 3,
-    applicantName: "Michael Rodriguez",
-    email: "mike.r@example.com",
-    phone: "(555) 234-5678",
-    jobTitle: "Product Manager",
-    status: "Rejected",
-    appliedDate: "Apr 22, 2025",
-    resumeUrl: "#",
-    rating: 2,
-    stage: "Rejected",
-    hrAssigned: "Priya Patel",
-    notes: "Not enough experience in product management.",
-  },
-  {
-    id: 4,
-    applicantName: "Sarah Johnson",
-    email: "sarah.j@example.com",
-    phone: "(555) 345-6789",
-    jobTitle: "Frontend Developer",
-    status: "Shortlisted",
-    appliedDate: "Apr 28, 2025",
-    resumeUrl: "#",
-    rating: 5,
-    stage: "Technical Test",
-    hrAssigned: "Sarah Johnson",
-    notes: "Great technical skills, sent coding test on Apr 30.",
-  },
-  {
-    id: 5,
-    applicantName: "David Lee",
-    email: "david.l@example.com",
-    phone: "(555) 456-7890",
-    jobTitle: "Backend Developer",
-    status: "In Review",
-    appliedDate: "Apr 25, 2025",
-    resumeUrl: "#",
-    rating: 3,
-    stage: "Screening",
-    hrAssigned: "Lisa Taylor",
-    notes: "Good backend experience, need to check references.",
-  },
-  {
-    id: 6,
-    applicantName: "Jessica Williams",
-    email: "jessica.w@example.com",
-    phone: "(555) 567-8901",
-    jobTitle: "Marketing Specialist",
-    status: "Offer Extended",
-    appliedDate: "Apr 15, 2025",
-    resumeUrl: "#",
-    rating: 5,
-    stage: "Offer",
-    hrAssigned: "David Kim",
-    notes: "Excellent candidate, offer sent on May 2.",
-  },
-];
+import {
+  fetchApplications,
+  updateApplicationStatus,
+} from "../../lib/api/services/applications";
+import { Application } from "../../types/application";
 
 export const ApplicationsPage = () => {
-  const [applications, setApplications] = useState(initialApplications);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [jobFilter, setJobFilter] = useState("all");
-  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<Application | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const loadApplications = async () => {
+      try {
+        const data = await fetchApplications();
+        setApplications(data);
+      } catch {
+        // Handle error (show toast, etc.)
+      }
+    };
+    loadApplications();
+  }, []);
 
   // Filter applications based on search term and filters
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
-      app.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.email.toLowerCase().includes(searchTerm.toLowerCase());
+      app.applicantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      "" ||
+      app.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      "" ||
+      app.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      "";
 
     const matchesStatus = statusFilter === "all" || app.status === statusFilter;
     const matchesJob = jobFilter === "all" || app.jobTitle === jobFilter;
@@ -123,15 +54,17 @@ export const ApplicationsPage = () => {
   });
 
   // Get unique job titles and statuses for filter dropdowns
-  const jobTitles = [...new Set(applications.map((app) => app.jobTitle))];
+  const jobTitles = [
+    ...new Set(applications.map((app) => app.jobTitle)),
+  ].filter(Boolean) as string[];
   const statuses = [...new Set(applications.map((app) => app.status))];
 
-  const handleViewApplication = (application) => {
+  const handleViewApplication = (application: Application) => {
     setSelectedApplication(application);
     setIsDrawerOpen(true);
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "New":
         return "bg-blue-100 text-blue-800";
@@ -148,16 +81,27 @@ export const ApplicationsPage = () => {
     }
   };
 
-  const getRatingStars = (rating) => {
+  const getRatingStars = (rating: number = 0) => {
     return "★".repeat(rating) + "☆".repeat(5 - rating);
   };
 
-  const updateApplicationStatus = (id, newStatus) => {
-    setApplications(
-      applications.map((app) =>
-        app.id === id ? { ...app, status: newStatus } : app
-      )
-    );
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    try {
+      const updated = await updateApplicationStatus(id, newStatus);
+      setApplications((prev) =>
+        prev.map((app) =>
+          app._id === updated._id ? { ...app, status: updated.status } : app
+        )
+      );
+      if (selectedApplication && selectedApplication._id === updated._id) {
+        setSelectedApplication({
+          ...selectedApplication,
+          status: updated.status,
+        });
+      }
+    } catch {
+      // Handle error (show toast, etc.)
+    }
   };
 
   return (
@@ -245,15 +189,17 @@ export const ApplicationsPage = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredApplications.map((application) => (
-              <tr key={application.id} className="hover:bg-gray-50">
+              <tr key={application._id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
                         {application.applicantName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
+                          ? application.applicantName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                          : "NA"}
                       </div>
                     </div>
                     <div className="ml-4">
@@ -284,7 +230,7 @@ export const ApplicationsPage = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {application.appliedDate}
+                  {application.appliedAt}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-yellow-500">
@@ -302,7 +248,7 @@ export const ApplicationsPage = () => {
                     </button>
                     <button
                       onClick={() =>
-                        updateApplicationStatus(application.id, "Shortlisted")
+                        handleUpdateStatus(application._id, "Shortlisted")
                       }
                       className="p-1 text-green-600 hover:bg-green-100 rounded-full"
                       title="Shortlist applicant"
@@ -311,7 +257,7 @@ export const ApplicationsPage = () => {
                     </button>
                     <button
                       onClick={() =>
-                        updateApplicationStatus(application.id, "Rejected")
+                        handleUpdateStatus(application._id, "Rejected")
                       }
                       className="p-1 text-red-600 hover:bg-red-100 rounded-full"
                       title="Reject applicant"
@@ -374,9 +320,11 @@ export const ApplicationsPage = () => {
                 <div className="flex items-center justify-center flex-col">
                   <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-2xl font-semibold">
                     {selectedApplication.applicantName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                      ? selectedApplication.applicantName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                      : "NA"}
                   </div>
                   <h3 className="text-xl font-semibold mt-2">
                     {selectedApplication.applicantName}
@@ -414,7 +362,7 @@ export const ApplicationsPage = () => {
                       <div>
                         <div className="text-xs text-gray-500">Applied On</div>
                         <div className="text-sm font-medium">
-                          {selectedApplication.appliedDate}
+                          {selectedApplication.appliedAt}
                         </div>
                       </div>
                     </div>
@@ -469,14 +417,10 @@ export const ApplicationsPage = () => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => {
-                        updateApplicationStatus(
-                          selectedApplication.id,
+                        handleUpdateStatus(
+                          selectedApplication._id,
                           "Shortlisted"
                         );
-                        setSelectedApplication({
-                          ...selectedApplication,
-                          status: "Shortlisted",
-                        });
                       }}
                       className="bg-green-600 text-white px-3 py-1 rounded text-sm"
                     >
@@ -484,14 +428,7 @@ export const ApplicationsPage = () => {
                     </button>
                     <button
                       onClick={() => {
-                        updateApplicationStatus(
-                          selectedApplication.id,
-                          "Rejected"
-                        );
-                        setSelectedApplication({
-                          ...selectedApplication,
-                          status: "Rejected",
-                        });
+                        handleUpdateStatus(selectedApplication._id, "Rejected");
                       }}
                       className="bg-red-600 text-white px-3 py-1 rounded text-sm"
                     >
@@ -499,14 +436,10 @@ export const ApplicationsPage = () => {
                     </button>
                     <button
                       onClick={() => {
-                        updateApplicationStatus(
-                          selectedApplication.id,
+                        handleUpdateStatus(
+                          selectedApplication._id,
                           "Offer Extended"
                         );
-                        setSelectedApplication({
-                          ...selectedApplication,
-                          status: "Offer Extended",
-                        });
                       }}
                       className="bg-purple-600 text-white px-3 py-1 rounded text-sm"
                     >

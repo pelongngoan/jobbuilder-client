@@ -3,7 +3,6 @@ import { Home } from "../pages/Home";
 import { UserLayout } from "../layout/UserLayout";
 import { Resumes } from "../pages/Resumes";
 import { CreateResume } from "../pages/CreateResume";
-import { PostJob } from "../pages/PostJob";
 import { ResumeEditor } from "../pages/ResumeEditor";
 import { Login as LoginUser } from "../pages/users/Login";
 import { Login as LoginManager } from "../pages/managements/Login";
@@ -15,10 +14,11 @@ import { ManagementLayout } from "../layout/ManagementLayout";
 import { DashboardPage } from "../pages/managements/Dashboard";
 import { HrManagementPage } from "../pages/managements/HrManagementPage";
 import { JobPostManagementPage } from "../pages/managements/JobPostManagementPage";
-import App from "../App";
 import { ApplicationsPage } from "../pages/managements/ApplicationsPage";
 import { MessagesPage } from "../pages/managements/MessagesPage";
 import { SettingsPage } from "../pages/managements/SettingsPage";
+import JobDetail from "../pages/JobDetail";
+import JobsPage from "../pages/JobsPage";
 
 // const authRoutes: RouteObject = {
 //   path: "/users",
@@ -38,9 +38,16 @@ const rootRoute: RouteObject = {
     { path: "signup", element: <RegisterUser /> },
     { path: "home", element: <Home /> },
     { path: "resumes", element: <Resumes /> },
-    { path: "search", element: <Search /> },
+    {
+      path: "search",
+      element: <Search />,
+    },
+    { path: "search/job-detail/:id", element: <JobDetail /> },
+    {
+      path: "job",
+      element: <JobsPage />,
+    },
     { path: "profile", element: <Profile /> },
-    { path: "post-job", element: <PostJob /> },
     { path: "create-resume", element: <CreateResume /> },
     { path: "resume-editor/:templateId", element: <ResumeEditor /> },
   ],

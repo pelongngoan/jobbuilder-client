@@ -1,111 +1,125 @@
-import { useState } from "react";
-import {
-  MapPin,
-  Briefcase,
-  DollarSign,
-  Clock,
-  Filter,
-  ChevronDown,
-  ChevronRight,
-  Building,
-  Bookmark,
-  Share2,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Filter, ChevronDown } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Card, CardContent } from "../components/ui/Card";
-import { Navigation } from "../components/Navigation";
+import { getAllJobs } from "../lib/api/services/jobs";
+import { JobPost } from "../types/job";
+import { SearchJobCard } from "../components/shared/SearchJobCard";
+import { JobDetailPanel } from "../components/shared/JobDetailPanel";
 
-type FilterState = {
-  jobType: string[];
-  location: string[];
-  experience: string[];
-  salary: string[];
+// Filter state and options
+const filterOptions: Record<string, string[]> = {
+  jobType: [
+    "full-time",
+    "part-time",
+    "contract",
+    "internship",
+    "remote",
+    "Other",
+  ],
+  location: ["New York", "San Francisco", "London", "Remote", "Other"],
+  experienceLevel: ["Entry", "Mid", "Senior", "Executive", "Other"],
+  salaryType: ["hourly", "monthly", "yearly", "Other"],
+  benefits: [
+    "Health Insurance",
+    "Remote Work",
+    "Paid Time Off",
+    "Stock Options",
+    "Other",
+  ],
 };
 
-type FilterCategory = keyof FilterState;
+type FilterState = Record<string, string[]>;
 
 const initialFilters: FilterState = {
   jobType: [],
   location: [],
-  experience: [],
-  salary: [],
+  experienceLevel: [],
+  salaryType: [],
+  benefits: [],
 };
 
 export const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [location, setLocation] = useState("");
   const [selectedFilters, setSelectedFilters] =
     useState<FilterState>(initialFilters);
+  const [jobs, setJobs] = useState<JobPost[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [customFilterInputs, setCustomFilterInputs] = useState<
+    Record<string, string>
+  >({});
+  const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
 
-  // Mock jobs data
-  const jobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: "TechCorp Inc.",
-      location: "San Francisco, CA",
-      type: "Full-time",
-      salary: "$120k - $150k",
-      posted: "2 days ago",
-      description:
-        "We are seeking an experienced Frontend Developer to join our team...",
-      logo: "https://ui-avatars.com/api/?name=TC&background=6366f1&color=fff",
-      requirements: ["5+ years of experience", "React", "TypeScript", "CSS"],
-    },
-    {
-      id: 2,
-      title: "Product Manager",
-      company: "InnovateLabs",
-      location: "New York, NY",
-      type: "Full-time",
-      salary: "$130k - $160k",
-      posted: "3 days ago",
-      description:
-        "Looking for a Product Manager to lead our product development...",
-      logo: "https://ui-avatars.com/api/?name=IL&background=06b6d4&color=fff",
-      requirements: [
-        "4+ years of experience",
-        "Agile",
-        "Product Strategy",
-        "Analytics",
-      ],
-    },
-    {
-      id: 3,
-      title: "DevOps Engineer",
-      company: "CloudTech Solutions",
-      location: "Remote",
-      type: "Full-time",
-      salary: "$115k - $145k",
-      posted: "1 day ago",
-      description:
-        "Join our DevOps team to build and maintain cloud infrastructure...",
-      logo: "https://ui-avatars.com/api/?name=CS&background=8b5cf6&color=fff",
-      requirements: ["AWS", "Docker", "Kubernetes", "CI/CD"],
-    },
-  ];
-
-  // Filter options
-  const filterOptions: Record<keyof FilterState, string[]> = {
-    jobType: ["Full-time", "Part-time", "Contract", "Remote"],
-    location: ["New York", "San Francisco", "London", "Remote"],
-    experience: ["Entry Level", "Mid Level", "Senior Level", "Executive"],
-    salary: ["$0-50k", "$50k-100k", "$100k-150k", "$150k+"],
+  // Fetch jobs from backend
+  const fetchJobs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params: Record<string, unknown> = {
+        page,
+        title: searchQuery,
+      };
+      if ((selectedFilters.jobType as string[]).length)
+        params.jobType = selectedFilters.jobType.join(",");
+      if ((selectedFilters.location as string[]).length)
+        params.location = selectedFilters.location.join(",");
+      if ((selectedFilters.experienceLevel as string[]).length)
+        params.experienceLevel = selectedFilters.experienceLevel.join(",");
+      if ((selectedFilters.salaryType as string[]).length)
+        params.salaryType = selectedFilters.salaryType.join(",");
+      if ((selectedFilters.benefits as string[]).length)
+        params.benefits = selectedFilters.benefits;
+      const res = await getAllJobs(params);
+      setJobs(res.data);
+      setTotal(res.total);
+    } catch {
+      setError("Failed to load jobs. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleFilter = (category: FilterCategory, value: string) => {
+  useEffect(() => {
+    fetchJobs();
+    // eslint-disable-next-line
+  }, [searchQuery, selectedFilters, page]);
+
+  const toggleFilter = (category: string, value: string) => {
     setSelectedFilters((prev) => {
-      const currentFilters = prev[category];
+      const currentFilters = prev[category] || [];
       const newFilters = currentFilters.includes(value)
         ? currentFilters.filter((filter) => filter !== value)
         : [...currentFilters, value];
-
       return {
         ...prev,
         [category]: newFilters,
-      } as FilterState;
+      };
     });
+  };
+
+  const clearAllFilters = () => setSelectedFilters(initialFilters);
+
+  const handleCustomFilterInput = (category: string, value: string) => {
+    setCustomFilterInputs((prev) => ({ ...prev, [category]: value }));
+  };
+
+  const addCustomFilter = (category: string) => {
+    const value = customFilterInputs[category]?.trim();
+    if (value) {
+      setSelectedFilters((prev) => {
+        // Remove 'Other' and add the custom value
+        const filtered = (prev[category] || []).filter((v) => v !== "Other");
+        return {
+          ...prev,
+          [category]: [...filtered, value],
+        };
+      });
+      setCustomFilterInputs((prev) => ({ ...prev, [category]: "" }));
+    }
   };
 
   return (
@@ -119,11 +133,6 @@ export const Search = () => {
                 placeholder="Job title, keywords, or company"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Input
-                placeholder="Location or 'Remote'"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
               />
             </div>
           </div>
@@ -141,11 +150,11 @@ export const Search = () => {
                       variant="ghost"
                       size="sm"
                       className="text-blue-600 hover:text-blue-700"
+                      onClick={clearAllFilters}
                     >
                       Clear all
                     </Button>
                   </div>
-
                   {/* Filter Sections */}
                   {Object.entries(filterOptions).map(([category, options]) => (
                     <div key={category} className="mb-6">
@@ -162,29 +171,52 @@ export const Search = () => {
                             <input
                               type="checkbox"
                               className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              checked={selectedFilters[
-                                category as FilterCategory
-                              ].includes(option)}
-                              onChange={() =>
-                                toggleFilter(category as FilterCategory, option)
-                              }
+                              checked={(
+                                selectedFilters[category] || []
+                              ).includes(option)}
+                              onChange={() => toggleFilter(category, option)}
                             />
                             <span>{option}</span>
                           </label>
                         ))}
+                        {/* Show input if 'Other' is checked */}
+                        {(selectedFilters[category] || []).includes(
+                          "Other"
+                        ) && (
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Input
+                              placeholder={`Enter other ${category}`}
+                              value={customFilterInputs[category] || ""}
+                              onChange={(e) =>
+                                handleCustomFilterInput(
+                                  category,
+                                  e.target.value
+                                )
+                              }
+                              onBlur={() => addCustomFilter(category)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter")
+                                  addCustomFilter(category);
+                              }}
+                              className="w-full border-blue-400"
+                              autoFocus
+                            />
+                            <span className="text-xs text-slate-400">
+                              Press Enter
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </CardContent>
               </Card>
             </div>
-
             {/* Job Listings */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-slate-600">
-                  Showing <span className="font-medium">{jobs.length}</span>{" "}
-                  results
+                  Showing <span className="font-medium">{total}</span> results
                 </p>
                 <Button
                   variant="outline"
@@ -194,108 +226,47 @@ export const Search = () => {
                   Sort by: Newest
                 </Button>
               </div>
-
               <div className="space-y-4">
-                {jobs.map((job) => (
-                  <Card
-                    key={job.id}
-                    variant="bordered"
-                    className="group hover:border-blue-500"
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <img
-                          src={job.logo}
-                          alt={job.company}
-                          className="w-12 h-12 rounded-lg"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-slate-900">
-                                {job.title}
-                              </h3>
-                              <div className="flex items-center gap-2 text-slate-600 mt-1">
-                                <Building className="h-4 w-4" />
-                                <span>{job.company}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-slate-600 hover:text-blue-600"
-                                leftIcon={<Bookmark className="h-4 w-4" />}
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-slate-600 hover:text-blue-600"
-                                leftIcon={<Share2 className="h-4 w-4" />}
-                              >
-                                Share
-                              </Button>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                            <div className="flex items-center text-slate-600">
-                              <MapPin className="h-4 w-4 mr-2" />
-                              <span className="text-sm">{job.location}</span>
-                            </div>
-                            <div className="flex items-center text-slate-600">
-                              <Briefcase className="h-4 w-4 mr-2" />
-                              <span className="text-sm">{job.type}</span>
-                            </div>
-                            <div className="flex items-center text-slate-600">
-                              <DollarSign className="h-4 w-4 mr-2" />
-                              <span className="text-sm">{job.salary}</span>
-                            </div>
-                            <div className="flex items-center text-slate-600">
-                              <Clock className="h-4 w-4 mr-2" />
-                              <span className="text-sm">{job.posted}</span>
-                            </div>
-                          </div>
-
-                          <p className="text-slate-600 mt-4 line-clamp-2">
-                            {job.description}
-                          </p>
-
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {job.requirements.map((req) => (
-                              <span
-                                key={req}
-                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                              >
-                                {req}
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="mt-4">
-                            <Button
-                              variant="outline"
-                              className="group-hover:border-blue-500 group-hover:bg-blue-50"
-                              rightIcon={<ChevronRight className="h-4 w-4" />}
-                            >
-                              View Details
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {loading ? (
+                  <div>Loading...</div>
+                ) : error ? (
+                  <div className="text-red-500">{error}</div>
+                ) : jobs.length === 0 ? (
+                  <div>No jobs found.</div>
+                ) : (
+                  jobs.map((job) => (
+                    <SearchJobCard
+                      key={job._id}
+                      job={job}
+                      onClick={() => setSelectedJob(job)}
+                    />
+                  ))
+                )}
               </div>
-
               {/* Load More */}
               <div className="mt-6 text-center">
-                <Button variant="outline" size="lg">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={jobs.length >= total}
+                >
                   Load More Jobs
                 </Button>
               </div>
+            </div>
+            {/* Job Detail Panel */}
+            <div className="lg:col-span-1">
+              {selectedJob ? (
+                <JobDetailPanel
+                  job={selectedJob}
+                  onClose={() => setSelectedJob(null)}
+                />
+              ) : (
+                <div className="text-slate-400 p-4">
+                  Select a job to see details
+                </div>
+              )}
             </div>
           </div>
         </div>
