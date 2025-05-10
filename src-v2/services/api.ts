@@ -2,7 +2,7 @@ import axios from "axios";
 
 // API Base URL - using a direct value for now to avoid TypeScript issues with import.meta.env
 // This should be configured properly in a real environment
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:3000";
 
 // Create axios instance with default config
 const apiClient = axios.create({
