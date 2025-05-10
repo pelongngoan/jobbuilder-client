@@ -1,0 +1,242 @@
+@import "tailwindcss";
+@import "./styles/theme.css";
+
+/* Base styles */
+body {
+  font-family: var(--font-family-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme variables */
+:root {
+  /* Default theme values */
+  --primary: hsl(222, 47%, 31%);
+  --radius: 0.5rem;
+
+  /* Career theme specific */
+  --accent: hsl(199, 89%, 48%);
+  --success: hsl(142, 76%, 36%);
+  --warning: hsl(45, 93%, 47%);
+  --error: hsl(0, 84%, 60%);
+  --info: hsl(199, 89%, 48%);
+}
+
+/* Light theme (default) */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --border-color: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus: var(--primary);
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --hover-bg: #f3f4f6;
+  --active-bg: #e5e7eb;
+  --link-color: var(--primary);
+  --link-hover: var(--accent);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --input-bg: #1f2937;
+  --input-border: #4b5563;
+  --input-focus: var(--primary);
+  --card-bg: #1f2937;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --hover-bg: #374151;
+  --active-bg: #4b5563;
+  --link-color: var(--accent);
+  --link-hover: #60a5fa;
+}
+
+/* Theme variants */
+[data-variant="professional"] {
+  --font-weight-heading: 700;
+  --font-weight-body: 400;
+  --spacing-base: 1rem;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5;
+}
+
+[data-variant="modern"] {
+  --font-weight-heading: 800;
+  --font-weight-body: 400;
+  --spacing-base: 1.25rem;
+  --font-size-base: 1rem;
+  --line-height-base: 1.6;
+}
+
+[data-variant="minimal"] {
+  --font-weight-heading: 600;
+  --font-weight-body: 300;
+  --spacing-base: 0.75rem;
+  --font-size-base: 0.95rem;
+  --line-height-base: 1.4;
+}
+
+[data-variant="career"] {
+  --font-weight-heading: 700;
+  --font-weight-body: 400;
+  --spacing-base: 1rem;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5;
+  --border-radius: 0.5rem;
+  --transition-speed: 0.2s;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Utility classes for theme */
+.bg-theme-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-theme-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.border-theme {
+  border-color: var(--border-color);
+}
+
+.card-theme {
+  background-color: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius);
+}
+
+.input-theme {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+.input-theme:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
+}
+
+/* Career theme specific utility classes */
+.bg-accent {
+  background-color: var(--accent);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.bg-success {
+  background-color: var(--success);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.bg-warning {
+  background-color: var(--warning);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.bg-error {
+  background-color: var(--error);
+}
+
+.text-error {
+  color: var(--error);
+}
+
+.bg-info {
+  background-color: var(--info);
+}
+
+.text-info {
+  color: var(--info);
+}
+
+.hover-theme:hover {
+  background-color: var(--hover-bg);
+}
+
+.active-theme:active {
+  background-color: var(--active-bg);
+}
+
+.link-theme {
+  color: var(--link-color);
+}
+
+.link-theme:hover {
+  color: var(--link-hover);
+}
+
+/* Career theme specific components */
+.resume-card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+  transition: box-shadow var(--transition-speed) ease;
+}
+
+.resume-card:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.job-card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+  transition: transform var(--transition-speed) ease,
+    box-shadow var(--transition-speed) ease;
+}
+
+.job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.chat-bubble {
+  border-radius: var(--radius);
+  padding: var(--spacing-base);
+  margin-bottom: var(--spacing-base);
+}
+
+.chat-bubble-user {
+  background-color: var(--primary);
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 0;
+}
+
+.chat-bubble-assistant {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  margin-right: auto;
+  border-bottom-left-radius: 0;
+}
+
+/* Additional global styles can be added here */

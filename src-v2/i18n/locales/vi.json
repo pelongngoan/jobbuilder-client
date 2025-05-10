@@ -1,0 +1,34 @@
+{
+  "common": {
+    "welcome": "Chào mừng đến với JobBuilder",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "search": "Tìm kiếm",
+    "submit": "Xác nhận",
+    "cancel": "Hủy bỏ"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "alreadyHaveAccount": "Đã có tài khoản?",
+    "dontHaveAccount": "Chưa có tài khoản?"
+  },
+  "dashboard": {
+    "overview": "Tổng quan",
+    "applications": "Đơn ứng tuyển",
+    "savedJobs": "Công việc đã lưu",
+    "profile": "Hồ sơ"
+  },
+  "jobs": {
+    "search": "Tìm kiếm công việc",
+    "filter": "Lọc",
+    "location": "Địa điểm",
+    "category": "Danh mục",
+    "salary": "Lương",
+    "applyNow": "Ứng tuyển ngay",
+    "saveJob": "Lưu công việc"
+  }
+}

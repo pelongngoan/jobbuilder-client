@@ -1,0 +1,34 @@
+{
+  "common": {
+    "welcome": "Welcome to JobBuilder",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "search": "Search",
+    "submit": "Submit",
+    "cancel": "Cancel"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "confirmPassword": "Confirm Password",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "applications": "Applications",
+    "savedJobs": "Saved Jobs",
+    "profile": "Profile"
+  },
+  "jobs": {
+    "search": "Search Jobs",
+    "filter": "Filter",
+    "location": "Location",
+    "category": "Category",
+    "salary": "Salary",
+    "applyNow": "Apply Now",
+    "saveJob": "Save Job"
+  }
+}
