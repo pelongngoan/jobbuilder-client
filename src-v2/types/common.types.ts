@@ -5,6 +5,11 @@ export type ObjectId = string;
 
 // Response format for API calls
 export interface ApiResponse<T = any> {
+  pagination: {
+    pages: number;
+    total: number;
+    limit: number;
+  };
   success: boolean;
   data?: T;
   error?: string;

@@ -17,7 +17,7 @@ const applicationService = {
   ) => {
     const response = await apiClient.get<
       ApiResponse<PaginatedResponse<Application>>
-    >("/applications/my", {
+    >("/applications", {
       params: {
         ...filters,
         page,
@@ -36,9 +36,8 @@ const applicationService = {
   ) => {
     const response = await apiClient.get<
       ApiResponse<PaginatedResponse<Application>>
-    >("/applications", {
+    >(`/applications/job/${jobId}`, {
       params: {
-        jobId,
         ...filters,
         page,
         limit,
@@ -56,22 +55,26 @@ const applicationService = {
   },
 
   // Create new application
-  applyForJob: async (applicationData: ApplicationRequest) => {
+  applyForJob: async (jobId: string, applicationData: ApplicationRequest) => {
     const response = await apiClient.post<ApiResponse<Application>>(
-      "/applications",
+      `/applications/${jobId}/apply`,
       applicationData
     );
     return response.data;
   },
 
   // Update application status (HR/Admin)
-  updateApplication: async (
+  updateApplicationStatus: async (
     id: string,
-    updateData: ApplicationUpdateRequest
+    statusData: {
+      status: string;
+      feedback?: string;
+      interviewDate?: Date | string;
+    }
   ) => {
     const response = await apiClient.put<ApiResponse<Application>>(
-      `/applications/${id}`,
-      updateData
+      `/applications/${id}/status`,
+      statusData
     );
     return response.data;
   },
@@ -102,25 +105,48 @@ const applicationService = {
     return response.data;
   },
 
-  // Schedule interview
-  scheduleInterview: async (
-    id: string,
-    interviewData: {
-      scheduledFor: Date | string;
-      location?: string;
-      isOnline?: boolean;
-      meetingLink?: string;
-      interviewers?: string[];
-      notes?: string;
-      interviewType?: "phone" | "technical" | "behavioral" | "final";
-      round?: number;
+  // For backward compatibility with existing code
+  getUserApplications: async (page = 1, limit = 10) => {
+    return applicationService.getMyApplications({}, page, limit);
+  },
+
+  createApplication: async (applicationData: ApplicationRequest) => {
+    // Ensure jobId is provided
+    if (!applicationData.jobId) {
+      throw new Error("Job ID is required for application");
     }
+    return applicationService.applyForJob(
+      applicationData.jobId,
+      applicationData
+    );
+  },
+
+  updateApplication: async (
+    id: string,
+    updateData: ApplicationUpdateRequest
   ) => {
+    if (updateData && "status" in updateData && updateData.status) {
+      return applicationService.updateApplicationStatus(id, {
+        status: updateData.status,
+        feedback: updateData.feedback,
+        interviewDate: updateData.interview?.scheduledFor,
+      });
+    }
+    // If it's not a status update, this is a fallback that might need to be implemented
+    // based on the actual API requirements
     const response = await apiClient.put<ApiResponse<Application>>(
-      `/applications/${id}/interview`,
-      interviewData
+      `/applications/${id}`,
+      updateData
     );
     return response.data;
+  },
+
+  deleteApplication: async (id: string) => {
+    return applicationService.withdrawApplication(id);
+  },
+
+  getJobApplications: async (jobId: string, page = 1, limit = 10) => {
+    return applicationService.getApplicationsByJob(jobId, {}, page, limit);
   },
 };
 

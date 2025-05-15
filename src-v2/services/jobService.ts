@@ -93,6 +93,40 @@ const jobService = {
     >("/job-categories");
     return response.data;
   },
+
+  // Import jobs from CSV file
+  importJobsFromCSV: async (file: File, companyId: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("companyId", companyId);
+
+    const response = await apiClient.post<
+      ApiResponse<{
+        successCount: number;
+        failedCount: number;
+        jobs: Job[];
+      }>
+    >("/jobs/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  // Get manager's jobs
+  getManagerJobs: async (page = 1, limit = 10) => {
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<Job>>>(
+      "companies/jobs",
+      {
+        params: {
+          page,
+          limit,
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 export default jobService;

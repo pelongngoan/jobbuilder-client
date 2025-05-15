@@ -5,60 +5,37 @@ import { clearUserProfile } from "../redux/slices/userSlice";
 import { clearAllLoading } from "../redux/slices/loadingSlice";
 import { resetJobs } from "../redux/slices/jobsSlice";
 import authService from "../services/authService";
-import useApiCall from "./useApiCall";
-import {
-  LoginRequest,
-  RegisterRequest,
-  PasswordResetRequest,
-  PasswordUpdateRequest,
-} from "../types";
+import { LoginRequest, RegisterRequest } from "../types";
+import { setToast } from "../redux/slices/toastSlice";
 
-/**
- * Hook for handling authentication
- */
 export function useAuth() {
   const dispatch = useAppDispatch();
-  const { user, token, isAuthenticated, role } = useAppSelector(
-    (state) => state.auth
-  );
+  const { token } = useAppSelector((state) => state.auth);
 
-  // API loading states
-  const loginApi = useApiCall("login");
-  const registerApi = useApiCall("register");
-  const forgotPasswordApi = useApiCall("forgotPassword");
-  const resetPasswordApi = useApiCall("resetPassword");
-  const verifyEmailApi = useApiCall("verifyEmail");
-
-  // Login user
   const login = useCallback(
     async (credentials: LoginRequest) => {
-      const result = await loginApi.execute(
-        () => authService.login(credentials),
-        (data) => {
-          if (data.user && data.token) {
-            dispatch(setAuth({ user: data.user, token: data.token }));
-          }
-        }
-      );
+      const result = await authService.login(credentials);
+      if (result && result.success && result.token) {
+        dispatch(setAuth({ token: result.token }));
+        localStorage.setItem("token", result.token);
+        dispatch(setToast({ message: "Login successful", type: "success" }));
+      }
       return result;
     },
-    [dispatch, loginApi]
+    [dispatch]
   );
 
   // Register user
   const register = useCallback(
     async (userData: RegisterRequest) => {
-      const result = await registerApi.execute(
-        () => authService.register(userData),
-        (data) => {
-          if (data.user && data.token) {
-            dispatch(setAuth({ user: data.user, token: data.token }));
-          }
-        }
-      );
+      const result = await authService.register(userData);
+      if (result && result.success && result.token) {
+        dispatch(setAuth({ token: result.token }));
+        dispatch(setToast({ message: "Register successful", type: "success" }));
+      }
       return result;
     },
-    [dispatch, registerApi]
+    [dispatch]
   );
 
   // Logout
@@ -69,78 +46,89 @@ export function useAuth() {
     dispatch(resetJobs());
     dispatch(clearAllLoading());
   }, [dispatch]);
+  // Verify email
+  const verifyEmail = useCallback(
+    async (token: string) => {
+      const result = await authService.verifyEmail(token);
+      if (result && result.success) {
+        dispatch(setToast({ message: "Email verified", type: "success" }));
+      } else {
+        dispatch(
+          setToast({ message: "Email verification failed", type: "error" })
+        );
+      }
+      return result;
+    },
+    [dispatch]
+  );
 
-  // Get current user
-  const getCurrentUser = useCallback(() => {
-    return authService.getCurrentUser();
-  }, []);
+  // Resend email verification
+  const resendEmailVerification = useCallback(
+    async (email: string) => {
+      const result = await authService.resendEmailVerification({ email });
+      if (result && result.success) {
+        dispatch(
+          setToast({ message: "Email verification resent", type: "success" })
+        );
+      } else {
+        dispatch(
+          setToast({
+            message: "Email verification resend failed",
+            type: "error",
+          })
+        );
+      }
+      return result;
+    },
+    [dispatch]
+  );
 
   // Request password reset
   const requestPasswordReset = useCallback(
-    async (email: PasswordResetRequest) => {
-      const result = await forgotPasswordApi.execute(() =>
-        authService.requestPasswordReset(email)
-      );
+    async (email: string) => {
+      const result = await authService.requestPasswordReset({ email });
+      if (result && result.success) {
+        dispatch(
+          setToast({ message: "Password reset request sent", type: "success" })
+        );
+      } else {
+        dispatch(
+          setToast({ message: "Password reset request failed", type: "error" })
+        );
+      }
       return result;
     },
-    [forgotPasswordApi]
+    [dispatch]
   );
 
   // Reset password
   const resetPassword = useCallback(
-    async (data: PasswordUpdateRequest) => {
-      const result = await resetPasswordApi.execute(() =>
-        authService.resetPassword(data)
-      );
+    async (data: { token: string; password: string }) => {
+      const result = await authService.resetPassword(data);
+      if (result && result.success) {
+        dispatch(
+          setToast({ message: "Password reset successful", type: "success" })
+        );
+      } else {
+        dispatch(setToast({ message: "Password reset failed", type: "error" }));
+      }
       return result;
     },
-    [resetPasswordApi]
-  );
-
-  // Verify email
-  const verifyEmail = useCallback(
-    async (token: string) => {
-      const result = await verifyEmailApi.execute(() =>
-        authService.verifyEmail(token)
-      );
-      return result;
-    },
-    [verifyEmailApi]
+    [dispatch]
   );
 
   return {
-    // State
-    user,
     token,
-    isAuthenticated,
-    role,
-
-    // Loading states
-    loading: {
-      login: loginApi.error !== null,
-      register: registerApi.error !== null,
-      forgotPassword: forgotPasswordApi.error !== null,
-      resetPassword: resetPasswordApi.error !== null,
-      verifyEmail: verifyEmailApi.error !== null,
-    },
-
-    // Error states
-    error: {
-      login: loginApi.error,
-      register: registerApi.error,
-      forgotPassword: forgotPasswordApi.error,
-      resetPassword: resetPasswordApi.error,
-      verifyEmail: verifyEmailApi.error,
-    },
-
-    // Methods
     login,
     register,
     logout: logoutUser,
-    getCurrentUser,
     requestPasswordReset,
     resetPassword,
     verifyEmail,
+    resendEmailVerification,
+    setToast,
+    logoutUser,
+    dispatch,
   };
 }
 

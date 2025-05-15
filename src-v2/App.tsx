@@ -1,16 +1,32 @@
-import React from "react";
-import { Provider } from "react-redux";
-import { store } from "./redux/store";
-import AppRoutes from "./routes";
+import { useEffect } from "react";
 import "./index.css";
-// Global styles would be imported here
-// import './styles/global.css';
-
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "./redux/store";
+import toast, { Toaster } from "react-hot-toast";
 export const App = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { message } = useSelector((state: RootState) => state.toast);
+  useEffect(() => {
+    if (location.pathname === "/") {
+      navigate("/user");
+    }
+  });
+  if (message) {
+    toast.success(message);
+  }
   return (
-    <Provider store={store}>
-      <AppRoutes />
-    </Provider>
+    <>
+      <Outlet />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          success: { duration: 3000 },
+          error: { duration: 3000 },
+        }}
+      />
+    </>
   );
 };
 

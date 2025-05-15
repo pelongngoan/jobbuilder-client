@@ -15,7 +15,6 @@ import {
   UserSocialMedia,
   JobSearchPreferences,
 } from "../types";
-import useApiCall from "./useApiCall";
 
 /**
  * Hook for managing user profile data and API calls

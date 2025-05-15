@@ -11,11 +11,31 @@ const jobCategoryService = {
   // Get all job categories
   getJobCategories: async () => {
     const response = await apiClient.get<ApiResponse<JobCategory[]>>(
-      "/job-categories"
+      "/job-categories/all"
     );
     return response.data;
   },
 
+  // Get all job categories with pagination
+  getJobCategoriesWithPagination: async (
+    page: number,
+    limit: number,
+    search?: string
+  ) => {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (search) {
+      queryParams.append("search", search);
+    }
+
+    const response = await apiClient.get<ApiResponse<JobCategory[]>>(
+      `/job-categories?${queryParams.toString()}`
+    );
+    return response.data;
+  },
   // Get job category by ID
   getJobCategoryById: async (id: string) => {
     const response = await apiClient.get<ApiResponse<JobCategory>>(
@@ -58,6 +78,22 @@ const jobCategoryService = {
     const response = await apiClient.get<ApiResponse<JobCategoryHierarchy[]>>(
       "/job-categories/hierarchy"
     );
+    return response.data;
+  },
+
+  // Import job categories from CSV file
+  importCategoriesFromCSV: async (formData: FormData) => {
+    const response = await apiClient.post<
+      ApiResponse<{
+        successCount: number;
+        failedCount: number;
+        categories: JobCategory[];
+      }>
+    >("/job-categories/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 };

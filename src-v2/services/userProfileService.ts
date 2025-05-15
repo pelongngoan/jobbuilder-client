@@ -16,7 +16,7 @@ const userProfileService = {
   // Get current user profile
   getMyUserProfile: async () => {
     const response = await apiClient.get<ApiResponse<UserProfileWithDetails>>(
-      "/user/profile"
+      "/users/profile"
     );
     return response.data;
   },

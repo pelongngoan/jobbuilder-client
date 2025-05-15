@@ -17,8 +17,7 @@ const savedJobService = {
   // Save a job
   saveJob: async (jobId: string) => {
     const response = await apiClient.post<ApiResponse<SavedJob>>(
-      "/saved-jobs",
-      { jobId }
+      `/saved-jobs/${jobId}`
     );
     return response.data;
   },
@@ -26,7 +25,7 @@ const savedJobService = {
   // Check if a job is saved
   isJobSaved: async (jobId: string) => {
     const response = await apiClient.get<ApiResponse<{ isSaved: boolean }>>(
-      `/saved-jobs/check/${jobId}`
+      `/saved-jobs/${jobId}/check`
     );
     return response.data;
   },

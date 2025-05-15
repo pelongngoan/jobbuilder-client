@@ -18,7 +18,6 @@ import jobService from "../services/jobService";
 import jobCategoryService from "../services/jobCategoryService";
 import skillService from "../services/skillService";
 import savedJobService from "../services/savedJobService";
-import useApiCall from "./useApiCall";
 import { Job, JobSearchFilters, JobType } from "../types";
 
 /**

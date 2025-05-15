@@ -4,6 +4,8 @@ import {
   CompanyProfileRequest,
   CompanyProfileWithDetails,
   CompanySearchFilters,
+  User,
+  UserProfile,
 } from "../types";
 import { ApiResponse, PaginatedResponse } from "../types/common.types";
 
@@ -21,7 +23,7 @@ const companyProfileService = {
   getCompanyProfileById: async (id: string) => {
     const response = await apiClient.get<
       ApiResponse<CompanyProfileWithDetails>
-    >(`/company/profile/${id}`);
+    >(`/companies/id/${id}`);
     return response.data;
   },
 
@@ -41,7 +43,7 @@ const companyProfileService = {
   ) => {
     const response = await apiClient.get<
       ApiResponse<PaginatedResponse<CompanyProfile>>
-    >("/companies", {
+    >("/companies/all", {
       params: {
         ...filters,
         page,
@@ -115,16 +117,12 @@ const companyProfileService = {
   getCompanyHRMembers: async (companyId: string) => {
     const response = await apiClient.get<
       ApiResponse<
-        Array<{
-          _id: string;
-          name: string;
-          email: string;
-          profilePicture?: string;
-          position?: string;
-          department?: string;
-        }>
+        {
+          user: User;
+          profile: UserProfile;
+        }[]
       >
-    >(`/company/${companyId}/hr-members`);
+    >(`/hr/company/${companyId}`);
     return response.data;
   },
 
