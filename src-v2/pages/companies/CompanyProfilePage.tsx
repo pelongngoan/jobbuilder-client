@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Button } from "../../components/common";
 import useApiCall from "../../hooks/useApiCall";
-import companyProfileService from "../../services/companyProfileService";
+import companyProfileService from "../../services/company";
 import { CompanyProfileWithDetails, User } from "../../types";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";

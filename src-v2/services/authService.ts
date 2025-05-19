@@ -6,8 +6,11 @@ interface AuthResponse {
   success?: boolean;
   message?: string;
   token?: string;
+  id?: string;
+  useProfileId?: string;
+  role?: "user" | "admin" | "staff" | "company";
 }
-interface MessageResponse {
+export interface MessageResponse {
   success: boolean;
   message: string;
 }

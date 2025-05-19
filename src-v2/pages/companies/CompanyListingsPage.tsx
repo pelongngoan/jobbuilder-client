@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, Button, Input } from "../../components/common";
-import companyProfileService from "../../services/companyProfileService";
+import companyProfileService from "../../services/company";
 import { CompanyProfile } from "../../types";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";

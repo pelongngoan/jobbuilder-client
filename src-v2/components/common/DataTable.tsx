@@ -4,6 +4,7 @@ export interface Column<T> {
   id: string;
   header: string | ReactNode;
   accessor: keyof T | ((row: T) => ReactNode);
+  render?: (value: any, row: T) => ReactNode;
   className?: string;
 }
 
@@ -43,17 +44,25 @@ const DataTable = <T extends Record<string, unknown>>({
   }
 
   const getCellValue = (item: T, column: Column<T>): ReactNode => {
+    // First get the raw value
+    let value;
     if (typeof column.accessor === "function") {
-      return column.accessor(item);
+      value = column.accessor(item);
+    } else {
+      value = item[column.accessor as keyof T];
     }
 
-    const value = item[column.accessor as keyof T];
+    // Then apply render function if it exists
+    if (column.render) {
+      return column.render(value, item);
+    }
 
-    // Convert value to string for display if it's not already a ReactNode
+    // Handle null/undefined
     if (value === null || value === undefined) {
       return "";
     }
 
+    // Handle objects
     if (typeof value === "object" && !React.isValidElement(value)) {
       return JSON.stringify(value);
     }

@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/store";
-import { setAuth, logout } from "../redux/slices/authSlice";
-import { clearUserProfile } from "../redux/slices/userSlice";
+import { setAuth, logout, setId, setRole } from "../redux/slices/authSlice";
 import { clearAllLoading } from "../redux/slices/loadingSlice";
 import { resetJobs } from "../redux/slices/jobsSlice";
 import authService from "../services/authService";
@@ -10,14 +9,27 @@ import { setToast } from "../redux/slices/toastSlice";
 
 export function useAuth() {
   const dispatch = useAppDispatch();
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, id, role, useProfileId } = useAppSelector(
+    (state) => state.auth
+  );
 
   const login = useCallback(
     async (credentials: LoginRequest) => {
       const result = await authService.login(credentials);
-      if (result && result.success && result.token) {
+      if (
+        result &&
+        result.success &&
+        result.token &&
+        result.id &&
+        result.role
+      ) {
         dispatch(setAuth({ token: result.token }));
+        dispatch(setId({ id: result.id }));
+        dispatch(setRole({ role: result.role }));
         localStorage.setItem("token", result.token);
+        localStorage.setItem("id", result.id);
+        localStorage.setItem("role", result.role);
+        localStorage.setItem("useProfileId", result.useProfileId || "");
         dispatch(setToast({ message: "Login successful", type: "success" }));
       }
       return result;
@@ -42,9 +54,12 @@ export function useAuth() {
   const logoutUser = useCallback(() => {
     authService.logout();
     dispatch(logout());
-    dispatch(clearUserProfile());
     dispatch(resetJobs());
     dispatch(clearAllLoading());
+    localStorage.removeItem("token");
+    localStorage.removeItem("id");
+    localStorage.removeItem("role");
+    localStorage.removeItem("useProfileId");
   }, [dispatch]);
   // Verify email
   const verifyEmail = useCallback(
@@ -119,6 +134,9 @@ export function useAuth() {
 
   return {
     token,
+    id,
+    role,
+    useProfileId,
     login,
     register,
     logout: logoutUser,

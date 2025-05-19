@@ -5,7 +5,7 @@ import {
   updateUserProfile,
   clearUserProfile,
 } from "../redux/slices/userSlice";
-import userProfileService from "../services/userProfileService";
+import userProfileService from "../services/profile";
 import {
   UserProfileUpdateRequest,
   UserExperience,

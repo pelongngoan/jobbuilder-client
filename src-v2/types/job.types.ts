@@ -1,4 +1,6 @@
 import { ObjectId } from "./common.types";
+import { CompanyProfile, CompanyStaff } from "./company.types";
+import { Profile } from "./profile.types";
 
 // Job type definitions matching backend models
 export type JobType =
@@ -50,67 +52,40 @@ export interface Job {
   updatedAt: Date | string;
 }
 
-// Job with populated references
-export interface JobWithReferences extends Job {
-  company?: {
-    _id: ObjectId;
-    name: string;
-    logo?: string;
-    website?: string;
-  };
-  categoryDetails?: {
-    _id: ObjectId;
-    name: string;
-  };
-  skillDetails?: Array<{
-    _id: ObjectId;
-    name: string;
-  }>;
+export interface JobCategory {
+  name: string;
+  description: string;
+  parentCategory?: JobCategory;
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
-
 // Job creation/update request
-export interface JobRequest {
+export interface JobPost {
+  companyId: CompanyProfile;
   title: string;
   location: string;
-  jobType: JobType;
-  salaryRange?: string;
-  salaryCurrency: string;
-  salaryType?: SalaryType;
+  jobType: "full-time" | "part-time" | "contract" | "internship" | "remote";
   description: string;
-  keyResponsibilities?: string[];
+  salaryFrom: number;
+  salaryTo: number;
+  salaryCurrency: string;
   benefits?: string[];
-  category?: ObjectId;
-  skills?: ObjectId[];
-  status?: JobStatus;
-  deadline?: Date | string;
+  category?: JobCategory;
+  skills?: string[];
+  status?: "open" | "closed" | "draft";
+  deadline?: Date;
   requirements?: string[];
-  contactEmail?: string;
-  contactPhone?: string;
-  logoCompany?: string;
-  companyName?: string;
-  companyWebsite?: string;
-  experienceLevel?: ExperienceLevel;
-  isFeatured?: boolean;
-  other?: { [key: string]: any };
-}
-
-// Job search filters
-export interface JobSearchFilters {
-  query?: string;
-  location?: string;
-  jobType?: JobType[];
-  experienceLevel?: ExperienceLevel[];
-  category?: ObjectId;
-  skills?: ObjectId[];
-  salaryRange?: {
-    min?: number;
-    max?: number;
-  };
-  datePosted?: {
-    startDate?: Date | string;
-    endDate?: Date | string;
-  };
-  status?: JobStatus[];
-  companyId?: ObjectId;
-  isFeatured?: boolean;
+  contacterId: CompanyStaff;
+  profile?: Profile;
+  keyResponsibilities?: string[];
+  applications: Profile[];
+  experienceLevel?: "Entry" | "Mid" | "Senior" | "Executive";
+  other?: { title?: string; description?: string; [key: string]: any };
+  viewCount: number;
+  applicationCount: number;
+  isFeatured: boolean;
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

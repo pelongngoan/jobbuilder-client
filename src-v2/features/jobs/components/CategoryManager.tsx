@@ -7,7 +7,7 @@ import {
   Pagination,
 } from "../../../components/common";
 import useApiCall from "../../../hooks/useApiCall";
-import jobCategoryService from "../../../services/jobCategoryService";
+import jobCategoryService from "../../../services/category";
 import { JobCategory, JobCategoryRequest } from "../../../types";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";

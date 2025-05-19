@@ -1,30 +1,26 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User, UserProfile } from "../../types";
-interface HrCompany {
-  user: User;
-  profile: UserProfile;
-}
+import { CompanyProfile } from "../../types";
 
 interface CompanyState {
-  hrCompanies: HrCompany[];
+  company: CompanyProfile | null;
 }
 
 const initialState: CompanyState = {
-  hrCompanies: [],
+  company: null,
 };
 
 const companySlice = createSlice({
   name: "company",
   initialState,
   reducers: {
-    setHrCompanies: (state, action: PayloadAction<HrCompany[]>) => {
-      state.hrCompanies = action.payload;
+    setCompany: (state, action: PayloadAction<CompanyProfile>) => {
+      state.company = action.payload;
     },
-    clearHrCompanies: (state) => {
-      state.hrCompanies = [];
+    clearCompany: (state) => {
+      state.company = null;
     },
   },
 });
 
-export const { setHrCompanies } = companySlice.actions;
+export const { setCompany, clearCompany } = companySlice.actions;
 export default companySlice.reducer;

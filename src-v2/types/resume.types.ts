@@ -1,9 +1,7 @@
 import { ObjectId } from "./common.types";
 
-// Resume type
 export type ResumeType = "generated" | "uploaded";
 
-// Resume interface matching the backend model
 export interface Resume {
   _id: ObjectId;
   userId: ObjectId;
@@ -74,31 +72,4 @@ export interface Resume {
   };
   createdAt: Date | string;
   updatedAt: Date | string;
-}
-
-// Resume with populated skills
-export interface ResumeWithSkills extends Resume {
-  skillDetails?: Array<{
-    _id: ObjectId;
-    name: string;
-    category?: string;
-  }>;
-}
-
-// Resume creation request
-export interface ResumeRequest {
-  title: string;
-  type: ResumeType;
-  fileUrl?: string;
-  isDefault?: boolean;
-  skills?: ObjectId[];
-  content?: Resume["content"];
-}
-
-// Resume update request
-export interface ResumeUpdateRequest {
-  title?: string;
-  isDefault?: boolean;
-  skills?: ObjectId[];
-  content?: Partial<Resume["content"]>;
 }

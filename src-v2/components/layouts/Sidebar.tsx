@@ -1,63 +1,52 @@
 import React, { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import {
+  DashboardIcon,
+  UsersIcon,
+  JobsIcon,
+  ApplicationsIcon,
+  SettingsIcon,
+  CategoriesIcon,
+  TeamIcon,
+} from "./SidebarIcons";
 
 export interface SidebarSection {
   title: string;
   items: SidebarItem[];
 }
 
+export interface VisibleTo {
+  admin: boolean;
+  company: boolean;
+  hr: boolean;
+  interviewer: boolean;
+  all: boolean;
+}
+
 export interface SidebarItem {
   to: string;
   label: string;
   icon: ReactNode;
+  visibleTo?: VisibleTo;
   visible?: boolean;
 }
 
-const items: SidebarItem[] = [
-  {
-    to: "/manager/dashboard",
-    label: "Dashboard",
-    icon: <HomeIcon />,
-  },
-  {
-    to: "/manager/profile",
-    label: "Profile",
-    icon: <UserIcon />,
-  },
-  {
-    to: "/manager/staffs",
-    label: "Staffs",
-    icon: <UserIcon />,
-  },
-  {
-    to: "/manager/users",
-    label: "Users",
-    icon: <UserIcon />,
-  },
-  {
-    to: "/manager/jobs",
-    label: "Jobs",
-    icon: <SettingsIcon />,
-  },
-  {
-    to: "/manager/applications",
-    label: "Applications",
-    icon: <SettingsIcon />,
-  },
-  {
-    to: "/manager/categories",
-    label: "Categories",
-    icon: <SettingsIcon />,
-  },
-  {
-    to: "/manager/settings",
-    label: "Settings",
-    icon: <SettingsIcon />,
-  },
-  
-];
+interface SidebarProps {
+  title?: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  activeColor?: string;
+  hoverColor?: string;
+  userRole?: "admin" | "company" | "hr" | "interviewer" | string;
+}
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({
+  title = "Dashboard",
+  isOpen = true,
+  onToggle,
+  activeColor = "bg-blue-700",
+  hoverColor = "hover:bg-gray-700",
+}) => {
   const location = useLocation();
 
   // Check if the current path matches the link
@@ -67,9 +56,92 @@ const Sidebar: React.FC = () => {
     );
   };
 
+  // Define sections with items
+  const sections: SidebarSection[] = [
+    {
+      title: "Main",
+      items: [
+        {
+          to: "/manager/dashboard",
+          label: "Dashboard",
+          icon: <DashboardIcon />,
+          visible: true,
+        },
+        {
+          to: "/manager/profile",
+          label: "Profile",
+          icon: <UsersIcon />,
+          visible: true,
+        },
+        {
+          to: "/manager/staffs",
+          label: "Staffs",
+          icon: <TeamIcon />,
+          visibleTo: {
+            admin: false,
+            company: true,
+            hr: false,
+            interviewer: false,
+            all: false,
+          },
+          visible: true,
+        },
+        {
+          to: "/manager/users",
+          label: "Users",
+          icon: <UsersIcon />,
+          visibleTo: {
+            admin: true,
+            company: false,
+            hr: false,
+            interviewer: false,
+            all: false,
+          },
+          visible: true,
+        },
+      ],
+    },
+    {
+      title: "Management",
+      items: [
+        {
+          to: "/manager/jobs",
+          label: "Jobs",
+          icon: <JobsIcon />,
+          visibleTo: {
+            admin: true,
+            company: true,
+            hr: true,
+            interviewer: false,
+            all: true,
+          },
+          visible: true,
+        },
+        {
+          to: "/manager/applications",
+          label: "Applications",
+          icon: <ApplicationsIcon />,
+          visible: true,
+        },
+        {
+          to: "/manager/categories",
+          label: "Categories",
+          icon: <CategoriesIcon />,
+          visible: true,
+        },
+        {
+          to: "/manager/settings",
+          label: "Settings",
+          icon: <SettingsIcon />,
+          visible: true,
+        },
+      ],
+    },
+  ];
+
   return (
     <aside
-      className={`bg-gray-800 text-white transition-all duration-300 ${ 
+      className={`bg-gray-800 text-white transition-all duration-300 ${
         isOpen ? "w-64" : "w-20"
       } fixed left-0 h-full z-10 pt-4 shadow-lg overflow-y-auto`}
     >

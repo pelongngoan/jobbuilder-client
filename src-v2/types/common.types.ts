@@ -1,5 +1,3 @@
-// Common types shared across different modules
-
 // MongoDB ObjectId type
 export type ObjectId = string;
 
@@ -18,25 +16,23 @@ export interface ApiResponse<T = any> {
 
 // Pagination response
 export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasMore: boolean;
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+//New types
+export interface CUDResponse {
+  success: boolean;
+  message: string;
 }
 
-// Common date range filter
-export interface DateRangeFilter {
-  startDate?: Date | string;
-  endDate?: Date | string;
-}
-
-// Sort direction options
-export type SortDirection = "asc" | "desc";
-
-// Sort options
-export interface SortOptions {
-  field: string;
-  direction: SortDirection;
+export interface GetResponse<T = any> {
+  success: boolean;
+  message: string;
+  data: T;
 }

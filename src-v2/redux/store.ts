@@ -8,29 +8,24 @@ import userReducer from "./slices/userSlice";
 import loadingReducer from "./slices/loadingSlice";
 import resumeReducer from "./slices/resumeSlice";
 import applicationReducer from "./slices/applicationSlice";
-import jobCategoryReducer from "./slices/jobCategorySlice";
-import skillReducer from "./slices/skillSlice";
-import notificationReducer from "./slices/notificationSlice";
-import chatReducer from "./slices/chatSlice";
 import savedJobReducer from "./slices/savedJobSlice";
-import settingsReducer from "./slices/settingsSlice";
 import profileReducer from "./slices/profileSlice";
 import companyReducer from "./slices/companySlice";
 import toastReducer from "./slices/toastSlice";
+import staffReducer from "./slices/staffSlice";
+import categoryReducer from "./slices/categorySlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     jobs: jobsReducer,
     user: userReducer,
     loading: loadingReducer,
+    staff: staffReducer,
     resume: resumeReducer,
     application: applicationReducer,
-    jobCategory: jobCategoryReducer,
+    category: categoryReducer,
     toast: toastReducer,
-    notification: notificationReducer,
-    chat: chatReducer,
     savedJob: savedJobReducer,
-    settings: settingsReducer,
     profile: profileReducer,
     company: companyReducer,
   },
