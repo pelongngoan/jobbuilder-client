@@ -1,7 +1,11 @@
+import { Application } from "./application.types";
 import { ObjectId } from "./common.types";
+import { JobPost } from "./job.types";
+import { Profile } from "./profile.types";
+import { Resume } from "./resume.types";
 
 // User role type from backend
-export type UserRole = "user" | "admin" | "hr" | "company";
+export type UserRole = "user" | "admin" | "staff" | "company";
 
 // Login request payload
 export interface LoginRequest {
@@ -26,4 +30,14 @@ export interface User {
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   lastLogin?: Date;
+}
+export interface UserProfile {
+  _id: ObjectId;
+  userId: User | string;
+  profile?: Profile | string;
+  savedJobs?: JobPost[] | string[];
+  applications?: Application[] | string[];
+  resumes?: Resume[] | string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }

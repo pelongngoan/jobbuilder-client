@@ -1,5 +1,5 @@
 import apiClient from "./api";
-import { Job, JobPost } from "../types";
+import { JobPost } from "../types";
 import {
   ApiResponse,
   CUDResponse,
@@ -9,7 +9,6 @@ import {
 
 // Job service
 const jobService = {
-  // Get job by ID
   getJobById: async (id: string) => {
     const response = await apiClient.get<ApiResponse<GetResponse>>(
       `/jobs/${id}`
@@ -18,26 +17,24 @@ const jobService = {
   },
 
   // Get jobs by company ID
-  getCompanyJobs: async (companyId: string, page = 1, limit = 10) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Job>>>(
-      "/jobs/company",
-      {
-        params: {
-          companyId,
-          page,
-          limit,
-        },
-      }
-    );
+  getCompanyJobs: async (companyId: string, page: number, limit: number) => {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<JobPost>>
+    >("/jobs/company", {
+      params: {
+        companyId,
+        page,
+        limit,
+      },
+    });
     return response.data;
   },
-  getHrJobs: async (hrId: string, page = 1, limit = 10) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Job>>>(
-      "/jobs/hr",
-      {
-        params: { hrId, page, limit },
-      }
-    );
+  getHrJobs: async (hrId: string, page: number, limit: number) => {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<JobPost>>
+    >("/jobs/hr", {
+      params: { hrId, page, limit },
+    });
     return response.data;
   },
   createJob: async (jobData: JobPost) => {
@@ -46,6 +43,14 @@ const jobService = {
       jobData
     );
 
+    return response.data;
+  },
+
+  updateJob: async (jobId: string, jobData: Partial<JobPost>) => {
+    const response = await apiClient.put<ApiResponse<CUDResponse>>(
+      `/jobs/${jobId}`,
+      jobData
+    );
     return response.data;
   },
 
@@ -59,13 +64,47 @@ const jobService = {
       ApiResponse<{
         successCount: number;
         failedCount: number;
-        jobs: Job[];
+        jobs: JobPost[];
       }>
     >("/jobs/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+    return response.data;
+  },
+  getFeaturedJobs: async () => {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<JobPost>>
+    >("/jobs/featured");
+    return response.data;
+  },
+
+  // Get jobs by category
+  getJobsByCategory: async (categoryId: string) => {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<JobPost>>
+    >(`/jobs/categories/${categoryId}`);
+    return response.data;
+  },
+  deleteJob: async (jobId: string) => {
+    const response = await apiClient.delete<ApiResponse<CUDResponse>>(
+      `/jobs/${jobId}`
+    );
+    return response.data;
+  },
+  searchJobs: async (
+    name: string,
+    location: string,
+    category: string,
+    page: number,
+    limit: number
+  ) => {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<JobPost>>
+    >(
+      `/jobs/search?name=${name}&location=${location}&category=${category}&page=${page}&limit=${limit}`
+    );
     return response.data;
   },
 };

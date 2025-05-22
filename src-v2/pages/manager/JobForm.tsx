@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { JobPost, CompanyStaff } from "../../types";
+import { JobPost, CompanyStaff, Profile } from "../../types";
 import {
   Button,
   Modal,
@@ -10,21 +10,22 @@ import {
 import ArrayInput from "../../components/common/ArrayInput";
 import Stepper from "../../components/common/Stepper";
 import { useStaff } from "../../hooks/useStaff";
+import { useCategory } from "../../hooks/useCategory";
+import { useJobs } from "../../hooks/useJobs";
+import { Category } from "../../types/category.types";
+import { ObjectId } from "../../types/common.types";
+import { StaffProfile } from "../../types/staff.types";
 
-interface StaffMember extends CompanyStaff {
-  id: string;
-  firstName: string;
-  lastName: string;
+interface Option {
+  value: string;
+  label: string;
 }
 
 interface JobFormProps {
   isOpen: boolean;
   onClose: () => void;
-  job?: JobPost;
-  onSubmit: (job: JobPost) => void;
   contacterId: string;
   isCompanyUser: boolean;
-  staffList?: StaffMember[];
 }
 
 interface ValidationErrors {
@@ -53,8 +54,6 @@ const getSteps = (isCompanyUser: boolean) => {
 export const JobForm = ({
   isOpen,
   onClose,
-  job,
-  onSubmit,
   contacterId,
   isCompanyUser,
 }: JobFormProps) => {
@@ -62,30 +61,77 @@ export const JobForm = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const { staffs, getStaffs } = useStaff();
+  const { currentJob, updateJob, createJob } = useJobs();
+
   useEffect(() => {
-    getStaffs();
-    console.log(staffs);
+    getStaffs(1, 100);
   }, []);
+
+  const { categories, getCategories } = useCategory();
+  useEffect(() => {
+    getCategories(1, 100);
+  }, []);
+
   const [formData, setFormData] = useState<Partial<JobPost>>(() => ({
-    ...job,
-    title: job?.title || "",
-    location: job?.location || "",
-    jobType: job?.jobType || "full-time",
-    description: job?.description || "",
-    salaryFrom: job?.salaryFrom || 0,
-    salaryTo: job?.salaryTo || 0,
-    salaryCurrency: job?.salaryCurrency || "USD",
-    benefits: job?.benefits || [],
-    skills: job?.skills || [],
-    status: job?.status || "draft",
-    requirements: job?.requirements || [],
-    keyResponsibilities: job?.keyResponsibilities || [],
-    experienceLevel: job?.experienceLevel || "Entry",
-    isFeatured: job?.isFeatured || false,
+    title: "",
+    location: "",
+    jobType: "full-time",
+    description: "",
+    salaryFrom: 0,
+    salaryTo: 0,
+    salaryCurrency: "USD",
+    benefits: [],
+    skills: [],
+    status: "draft",
+    requirements: [],
+    keyResponsibilities: [],
+    experienceLevel: "Entry",
+    isFeatured: false,
+    category: "" as unknown as ObjectId,
     contacterId: isCompanyUser
       ? undefined
       : (contacterId as unknown as CompanyStaff),
   }));
+
+  // Reset form when modal is opened/closed
+  useEffect(() => {
+    if (isOpen) {
+      if (currentJob) {
+        // If editing an existing job
+        setFormData({
+          ...currentJob,
+          category: (currentJob.category as Category)?._id || "",
+          contacterId: (currentJob.contacterId as CompanyStaff)._id as
+            | CompanyStaff
+            | undefined,
+        });
+      } else {
+        // If creating a new job
+        setFormData({
+          title: "",
+          location: "",
+          jobType: "full-time",
+          description: "",
+          salaryFrom: 0,
+          salaryTo: 0,
+          salaryCurrency: "USD",
+          benefits: [],
+          skills: [],
+          status: "draft",
+          requirements: [],
+          keyResponsibilities: [],
+          experienceLevel: "Entry",
+          isFeatured: false,
+          category: "" as unknown as ObjectId,
+          contacterId: isCompanyUser
+            ? undefined
+            : (contacterId as unknown as CompanyStaff),
+        });
+      }
+      setCurrentStep(0);
+      setErrors({});
+    }
+  }, [isOpen, currentJob, isCompanyUser, contacterId]);
 
   const handleChange = (
     name: keyof JobPost,
@@ -111,11 +157,13 @@ export const JobForm = ({
   };
 
   const handleSubmit = () => {
-    // Final validation before submission
-    const finalData = {
-      ...formData,
-    } as JobPost;
-    onSubmit(finalData);
+    if (currentJob) {
+      updateJob(currentJob._id, formData as JobPost);
+    } else {
+      createJob(formData as JobPost);
+    }
+    setFormData({});
+    onClose();
   };
 
   const renderError = (field: string) => {
@@ -133,15 +181,31 @@ export const JobForm = ({
             value={(formData.contacterId as unknown as string) || ""}
             onChange={(e) => handleChange("contacterId", e.target.value)}
             options={staffs
-              .filter((staff) => staff.role === "hr")
-              .map((staff) => ({
-                value: staff._id,
-                label: `${staff.profile.email}`,
+              .filter((staff: StaffProfile) => staff.role === "hr")
+              .map((staff: StaffProfile) => ({
+                value: staff._id as string,
+                label: (staff.profile as Profile)?.email || "No email",
               }))}
             error={errors.contacterId}
             fullWidth
           />
           {renderError("contacterId")}
+
+          <Select
+            label="Job Category"
+            value={(formData.category as unknown as string) || ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              handleChange("category", value as unknown as ObjectId);
+            }}
+            options={
+              categories.map((category) => ({
+                value: category._id,
+                label: category.name,
+              })) as Option[]
+            }
+            fullWidth
+          />
 
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between">
@@ -345,30 +409,6 @@ export const JobForm = ({
               min={new Date().toISOString().split("T")[0]}
               fullWidth
             />
-
-            {isCompanyUser && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label htmlFor="isFeatured" className="font-medium">
-                      Featured Status
-                    </label>
-                    <p className="text-sm text-gray-500">
-                      Currently:{" "}
-                      {formData.isFeatured ? "Featured" : "Not Featured"}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      handleChange("isFeatured", !formData.isFeatured)
-                    }
-                  >
-                    {formData.isFeatured ? "Remove Featured" : "Make Featured"}
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         );
       default:
@@ -380,7 +420,7 @@ export const JobForm = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${job ? "Edit" : "Create"} Job Post`}
+      title={`${currentJob ? "Edit" : "Create"} Job Post`}
       size="lg"
       footer={
         <div className="flex justify-between w-full">

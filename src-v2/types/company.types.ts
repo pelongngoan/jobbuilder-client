@@ -15,6 +15,7 @@ export interface CompanyProfile {
 }
 
 export interface CompanyStaff {
+  _id?: string;
   fullName?: string;
   password: string;
   role: string;

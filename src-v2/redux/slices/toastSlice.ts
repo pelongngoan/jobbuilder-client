@@ -16,7 +16,11 @@ const toastSlice = createSlice({
       state.message = action.payload.message;
       state.type = action.payload.type;
     },
+    clearToast: (state) => {
+      state.message = null;
+      state.type = "success";
+    },
   },
 });
-export const { setToast } = toastSlice.actions;
+export const { setToast, clearToast } = toastSlice.actions;
 export default toastSlice.reducer;

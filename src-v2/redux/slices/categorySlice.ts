@@ -23,10 +23,21 @@ const categorySlice = createSlice({
     setCurrentCategory: (state, action: PayloadAction<Category>) => {
       state.currentCategory = action.payload;
     },
+    clearCurrentCategory: (state) => {
+      state.currentCategory = null;
+    },
+    clearCategories: (state) => {
+      state.categories = [];
+    },
   },
 });
 
 // Export actions and reducer
-export const { setCategories, setCurrentCategory } = categorySlice.actions;
+export const {
+  setCategories,
+  setCurrentCategory,
+  clearCurrentCategory,
+  clearCategories,
+} = categorySlice.actions;
 
 export default categorySlice.reducer;

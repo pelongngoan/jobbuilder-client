@@ -70,10 +70,9 @@ const companyService = {
 
     return response.data;
   },
-  //Get company by slug
-  getCompanyBySlug: async (slug: string) => {
+  getCompanyById: async (id: string) => {
     const response = await apiClient.get<ApiResponse<GetResponse>>(
-      `/companies/slug/${slug}`
+      `/companies/${id}`
     );
     return response.data;
   },

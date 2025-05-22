@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Define authentication state structure
 interface AuthState {
   token: string | null;
   id: string | null;

@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Define loading state structure
 interface LoadingState {
   [key: string]: boolean;
 }

@@ -3,10 +3,12 @@ import { useCallback } from "react";
 import companyService from "../services/company";
 import { CompanyProfile } from "../types";
 import { setToast } from "../redux/slices/toastSlice";
-import { setCompany } from "../redux/slices/companySlice";
+import { setCompanies, setCurrentCompany } from "../redux/slices/companySlice";
 export const useCompany = () => {
   const dispatch = useAppDispatch();
-  const { company } = useAppSelector((state) => state.company);
+  const { companies, currentCompany } = useAppSelector(
+    (state) => state.company
+  );
   const updateCompanyProfile = useCallback(
     async (
       profileData: CompanyProfile,
@@ -27,12 +29,34 @@ export const useCompany = () => {
   const getCompanyByProfile = useCallback(async () => {
     const response = await companyService.getCompanyByProfile();
     if (response.success && response.data) {
-      dispatch(setCompany(response.data as unknown as CompanyProfile));
+      dispatch(setCurrentCompany(response.data as unknown as CompanyProfile));
       return response.data;
     }
   }, [dispatch]);
 
-  return { company, updateCompanyProfile, getCompanyByProfile };
+  const getAllCompanies = useCallback(async (page: number, limit: number) => {
+    const response = await companyService.getAllCompanies(page, limit);
+    if (response.success && response.data) {
+      dispatch(setCompanies(response.data as unknown as CompanyProfile[]));
+      return response.data;
+    }
+  }, []);
+  const getCompanyById = useCallback(async (id: string) => {
+    const response = await companyService.getCompanyById(id);
+    if (response.success && response.data) {
+      dispatch(setCurrentCompany(response.data as unknown as CompanyProfile));
+      return response.data;
+    }
+  }, []);
+
+  return {
+    updateCompanyProfile,
+    getCompanyByProfile,
+    getAllCompanies,
+    companies,
+    currentCompany,
+    getCompanyById,
+  };
 };
 
 export default useCompany;

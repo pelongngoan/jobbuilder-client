@@ -1,9 +1,17 @@
 import { Outlet } from "react-router-dom";
 import NavBar from "./NavBar";
 import { useAuth } from "../../hooks/useAuth";
-
+import { useSaveJob } from "../../hooks/useSaveJob";
+import { useEffect } from "react";
 const UserLayout = () => {
   const { token } = useAuth();
+  const { getSavedJobs } = useSaveJob();
+  useEffect(() => {
+    if (token) {
+      getSavedJobs();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
   return (
     <div className="user-layout flex flex-col min-h-screen">
       {token ? <NavBar variant="light" /> : <></>}

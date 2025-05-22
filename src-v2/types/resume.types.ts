@@ -1,15 +1,15 @@
-import { ObjectId } from "./common.types";
+import { UserProfile } from "./user.types";
 
 export type ResumeType = "generated" | "uploaded";
 
 export interface Resume {
-  _id: ObjectId;
-  userId: ObjectId;
+  _id: string;
+  userId: UserProfile | string;
   title: string;
   type: ResumeType;
   fileUrl?: string;
   isDefault?: boolean;
-  skills?: ObjectId[];
+  skills?: string[];
   content?: {
     personalInfo?: {
       fullName: string;
@@ -70,6 +70,6 @@ export interface Resume {
       phone?: string;
     }[];
   };
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }

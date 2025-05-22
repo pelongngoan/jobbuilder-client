@@ -35,4 +35,10 @@ export interface GetResponse<T = any> {
   success: boolean;
   message: string;
   data: T;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }

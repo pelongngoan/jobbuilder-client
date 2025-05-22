@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import { setAuth, logout, setId, setRole } from "../redux/slices/authSlice";
 import { clearAllLoading } from "../redux/slices/loadingSlice";
-import { resetJobs } from "../redux/slices/jobsSlice";
 import authService from "../services/authService";
 import { LoginRequest, RegisterRequest } from "../types";
 import { setToast } from "../redux/slices/toastSlice";
@@ -54,7 +53,6 @@ export function useAuth() {
   const logoutUser = useCallback(() => {
     authService.logout();
     dispatch(logout());
-    dispatch(resetJobs());
     dispatch(clearAllLoading());
     localStorage.removeItem("token");
     localStorage.removeItem("id");

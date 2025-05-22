@@ -14,6 +14,18 @@ import { ManageJobs } from "../pages/manager/ManageJobs";
 import { ManageCategories } from "../pages/manager/ManageCategories";
 import { ManageApplications } from "../pages/manager/ManageApplications";
 import { ManageUsers } from "../pages/manager/ManageUsers";
+import { HomePage } from "../pages/users/HomePage";
+import { JobListPage } from "../pages/users/JobListPage";
+import JobDetails from "../pages/users/JobDetails";
+import JobByCategory from "../pages/users/JobByCategory";
+import { ResumeBuilder } from "../pages/users/ResumeBuilder";
+import { ResumeListPage } from "../pages/users/ResumeListPage";
+import { CompanyList } from "../pages/users/CompanyList";
+import { CompanyDetail } from "../pages/users/CompanyDetail";
+import { ProfilePage } from "../pages/users/ProfilePage";
+import { ApplicationListPage } from "../pages/users/ApplicationListPage";
+import { SaveJobsPage } from "../pages/users/SaveJobsPage";
+import { JobSearchPage } from "../pages/users/JobSearchPage";
 export const routes = createBrowserRouter([
   {
     path: "/",
@@ -21,11 +33,12 @@ export const routes = createBrowserRouter([
     children: [
       {
         path: "user",
+        element: <UserLayout />,
         children: [
           {
             path: "",
             index: true,
-            element: <UserLayout />,
+            element: <HomePage />,
           },
           {
             path: "login",
@@ -38,6 +51,54 @@ export const routes = createBrowserRouter([
           {
             path: "forgot-password",
             element: <ForgotPasswordPage variant="user" />,
+          },
+          {
+            path: "jobs",
+            element: <JobListPage />,
+          },
+          {
+            path: "jobs/:jobId",
+            element: <JobDetails />,
+          },
+          {
+            path: "jobs/category/:categoryId",
+            element: <JobByCategory />,
+          },
+          {
+            path: "resumes",
+            element: <ResumeListPage />,
+          },
+          {
+            path: "resumes/create",
+            element: <ResumeBuilder />,
+          },
+          {
+            path: "resumes/edit/:resumeId",
+            element: <ResumeBuilder />,
+          },
+          {
+            path: "companies",
+            element: <CompanyList />,
+          },
+          {
+            path: "companies/:companyId",
+            element: <CompanyDetail />,
+          },
+          {
+            path: "profile",
+            element: <ProfilePage />,
+          },
+          {
+            path: "applications",
+            element: <ApplicationListPage />,
+          },
+          {
+            path: "saved-jobs",
+            element: <SaveJobsPage />,
+          },
+          {
+            path: "jobs/search",
+            element: <JobSearchPage />,
           },
         ],
       },

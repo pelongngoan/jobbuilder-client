@@ -4,7 +4,8 @@ import apiClient from "./api";
 // Staff service
 const staffService = {
   createStaff: async (data: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     password: string;
     role: string;
     active: boolean;
@@ -15,8 +16,10 @@ const staffService = {
     );
     return response.data;
   },
-  getStaffs: async () => {
-    const response = await apiClient.get<ApiResponse<GetResponse>>(`/staffs`);
+  getStaffs: async (page: number, limit: number) => {
+    const response = await apiClient.get<ApiResponse<GetResponse>>(
+      `/staffs?page=${page}&limit=${limit}`
+    );
     return response.data;
   },
   getStaff: async (id: string) => {
@@ -25,19 +28,54 @@ const staffService = {
     );
     return response.data;
   },
-  updateStaffProfile: async (
+  updateStaff: async (
     id: string,
     data: {
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      phone?: string;
-      address?: string;
+      password?: string;
+      role?: string;
+      active?: boolean;
     }
   ) => {
     const response = await apiClient.put<ApiResponse<CUDResponse>>(
-      `/staffs/${id}/profile`,
+      `/staffs/${id}`,
       data
+    );
+    return response.data;
+  },
+  deleteStaff: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<CUDResponse>>(
+      `/staffs/${id}`
+    );
+    return response.data;
+  },
+  importStaffs: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post<ApiResponse<CUDResponse>>(
+      `/staffs/import`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  searchStaffs: async ({
+    page,
+    limit,
+    email,
+    role,
+  }: {
+    page: number;
+    limit: number;
+    email: string;
+    role: string;
+  }) => {
+    const response = await apiClient.get<ApiResponse<GetResponse>>(
+      `/staffs/search?page=${page}&limit=${limit}&email=${email}&role=${role}`
     );
     return response.data;
   },

@@ -1,50 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Modal, Select } from "../../components/common";
 import { Input } from "../../components/common";
 import { Switch } from "@mui/material";
-
+import { useStaff } from "../../hooks/useStaff";
+import { clearCurrentStaff } from "../../redux/slices/staffSlice";
+import { useAppDispatch } from "../../redux/store";
 interface StaffFormProps {
-  staff?: any;
-  status: "add" | "edit" | "view";
+  status: "add" | "edit";
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (
-    formData: {
-      fullName: string;
-      active: boolean;
-      password: string;
-      role: string;
-    },
-    staffId?: string
-  ) => void;
 }
 
-export const StaffForm = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  staff,
-  status,
-}: StaffFormProps) => {
+export const StaffForm = ({ isOpen, onClose, status }: StaffFormProps) => {
+  const dispatch = useAppDispatch();
+  const { currentStaff, updateStaff, createStaff } = useStaff();
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     active: false,
     password: "",
     role: "",
   });
+  useEffect(() => {
+    if (currentStaff) {
+      setFormData({
+        firstName: currentStaff?.profile?.firstName || "",
+        lastName: currentStaff?.profile?.lastName || "",
+        active: currentStaff?.active || false,
+        password: "",
+        role: currentStaff?.role || "",
+      });
+    } else {
+      setFormData({
+        firstName: "",
+        lastName: "",
+        active: false,
+        password: "",
+        role: "",
+      });
+    }
+  }, [currentStaff]);
 
   const handleSubmit = () => {
     if (status === "add") {
-      onSubmit(formData);
+      createStaff(formData);
     } else if (status === "edit") {
-      onSubmit(formData, staff.id);
+      updateStaff(currentStaff?._id as string, formData);
     }
-    setFormData({
-      fullName: "",
-      active: false,
-      password: "",
-      role: "",
-    });
+    dispatch(clearCurrentStaff());
     onClose();
   };
 
@@ -60,7 +63,7 @@ export const StaffForm = ({
         <div className="flex gap-2">
           <Button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+            className="px-4 py-2 text-gray-700 bg-gray-500 hover:bg-gray-600 rounded-md"
           >
             Cancel
           </Button>
@@ -78,35 +81,52 @@ export const StaffForm = ({
       }
     >
       <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Full Name
-          </label>
-          <Input
-            placeholder="Enter staff full name"
-            value={formData.fullName}
-            disabled={status === "view" || status === "edit"}
-            onChange={(e) =>
-              setFormData({ ...formData, fullName: e.target.value })
-            }
-            className="w-full"
-          />
-        </div>
+        {status === "add" && (
+          <div className="flex gap-2 w-full">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                First Name
+              </label>
+              <Input
+                placeholder="Enter staff first name"
+                value={formData.firstName}
+                onChange={(e) =>
+                  setFormData({ ...formData, firstName: e.target.value })
+                }
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Last Name
+              </label>
+              <Input
+                placeholder="Enter staff last name"
+                value={formData.lastName}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
+              />
+            </div>
+          </div>
+        )}
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <Input
-            type="password"
-            placeholder="Enter password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-            className="w-full"
-          />
-        </div>
+        {status === "add" && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              className="w-full"
+            />
+          </div>
+        )}
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">

@@ -1,12 +1,14 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { JobPost } from "../../types";
 
 interface JobSatate {
   jobs: JobPost[];
+  currentJob: JobPost | null;
 }
 
 const initialState: JobSatate = {
   jobs: [],
+  currentJob: null,
 };
 
 const jobsSlice = createSlice({
@@ -16,12 +18,19 @@ const jobsSlice = createSlice({
     setJobs: (state, action) => {
       state.jobs = action.payload;
     },
-    // Reset jobs state
-    resetJobs: () => initialState,
+    setCurrentJob: (state, action) => {
+      state.currentJob = action.payload;
+    },
+    clearCurrentJob: (state) => {
+      state.currentJob = null;
+    },
+    clearJobs: (state) => {
+      state.jobs = [];
+    },
   },
 });
 
-// Export actions and reducer
-export const { setJobs, resetJobs } = jobsSlice.actions;
+export const { setJobs, setCurrentJob, clearCurrentJob, clearJobs } =
+  jobsSlice.actions;
 
 export default jobsSlice.reducer;

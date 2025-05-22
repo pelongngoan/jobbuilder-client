@@ -2,7 +2,7 @@ import { toast } from "react-hot-toast";
 
 export const useToast = () => {
   const success = (message: string) => {
-    toast.success(message);
+    // toast.success(message);
   };
 
   const error = (message: string) => {

@@ -7,8 +7,9 @@ import { Profile } from "../../types/profile.types";
 import { CompanyProfile } from "../../types/company.types";
 
 export const ManageProfile = () => {
-  const { getStaff, currentStaff, updateStaffProfile } = useStaff();
-  const { getCompanyByProfile, company, updateCompanyProfile } = useCompany();
+  const { currentStaff } = useStaff();
+  const { getCompanyByProfile, currentCompany, updateCompanyProfile } =
+    useCompany();
   const { id, role } = useAppSelector((state) => state.auth);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
@@ -42,7 +43,7 @@ export const ManageProfile = () => {
 
   useEffect(() => {
     if (id && role === "staff") {
-      getStaff(id);
+      // getStaff(id);
     }
     if (id && role === "company") {
       getCompanyByProfile();
@@ -51,34 +52,32 @@ export const ManageProfile = () => {
 
   useEffect(() => {
     if (currentStaff) {
-      console.log(currentStaff.profile.email);
-
       setFormValues({
-        firstName: currentStaff.profile.firstName || "",
-        lastName: currentStaff.profile.lastName || "",
-        email: currentStaff.profile.email || "",
-        profilePicture: currentStaff.profile.profilePicture || "",
-        phone: currentStaff.profile.phone || "",
-        address: currentStaff.profile.address || "",
+        firstName: currentStaff.profile?.firstName || "",
+        lastName: currentStaff.profile?.lastName || "",
+        email: currentStaff.profile?.email || "",
+        profilePicture: currentStaff.profile?.profilePicture || "",
+        phone: currentStaff.profile?.phone || "",
+        address: currentStaff.profile?.address || "",
       });
     }
   }, [currentStaff]);
 
   useEffect(() => {
-    if (company) {
+    if (currentCompany) {
       setCompanyFormValues({
-        companyName: company.companyName || "",
-        email: company.email || "",
-        website: company.website || "",
-        phone: company.phone || "",
-        logo: company.logo || "",
-        wallPaper: company.wallPaper || "",
-        description: company.description || "",
-        address: company.address || "",
-        domain: company.domain || "",
+        companyName: currentCompany.companyName || "",
+        email: currentCompany.email || "",
+        website: currentCompany.website || "",
+        phone: currentCompany.phone || "",
+        logo: currentCompany.logo || "",
+        wallPaper: currentCompany.wallPaper || "",
+        description: currentCompany.description || "",
+        address: currentCompany.address || "",
+        domain: currentCompany.domain || "",
       });
     }
-  }, [company]);
+  }, [currentCompany]);
 
   const handleFileChange = (
     event: ChangeEvent<HTMLInputElement>,
@@ -131,13 +130,10 @@ export const ManageProfile = () => {
         if (selectedProfilePicture) {
           formData.append("profilePicture", selectedProfilePicture);
         }
-
-        await updateStaffProfile(id, profileData);
       } else if (role === "company") {
         const companyData: CompanyProfile = {
           ...companyFormValues,
         };
-        console.log(companyData);
         await updateCompanyProfile(
           companyData,
           selectedLogo || undefined,

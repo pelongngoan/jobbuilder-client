@@ -1,44 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, Badge } from "../../../components/common";
-
-interface JobCardProps {
-  id: string;
-  title: string;
-  company: string;
-  companyLogo?: string;
-  location: string;
-  jobType: string;
-  salary?: {
-    min: number;
-    max: number;
-    currency: string;
-  };
-  skills?: string[];
-  postedDate: string;
-  deadline?: string;
-  className?: string;
-  showActions?: boolean;
-  isSaved?: boolean;
-  onSave?: () => void;
-}
-
-const JobCard: React.FC<JobCardProps> = ({
-  id,
-  title,
-  company,
-  companyLogo,
-  location,
-  jobType,
-  salary,
-  skills = [],
-  postedDate,
-  deadline,
-  className = "",
-  showActions = true,
-  isSaved = false,
-  onSave,
-}) => {
+import { JobPost } from "../../../types";
+const JobCard = ({}: JobPost) => {
   // Format salary if provided
   const formattedSalary = salary
     ? `${salary.currency}${salary.min.toLocaleString()} - ${

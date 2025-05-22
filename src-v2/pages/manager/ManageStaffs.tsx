@@ -1,43 +1,42 @@
 import { Button, Input, Select } from "../../components/common";
-import DataTable from "../../components/common/DataTable";
+import DataTable, { Column } from "../../components/common/DataTable";
 import { useEffect, useState } from "react";
 import { useStaff } from "../../hooks/useStaff";
-import { RootState, useAppSelector } from "../../redux/store";
-import staffService from "../../services/staff";
 import companyService from "../../services/company";
 import { StaffForm } from "./StaffForm";
-
+import { User } from "../../types/user.types";
+import { ImportCsv } from "../../components/common/ImportCsv";
+import { Pagination } from "@mui/material";
+import { setPage } from "../../redux/slices/paginationSlice";
+import { useAppDispatch } from "../../redux/store";
+import { useAppSelector } from "../../redux/store";
+import { setCurrentStaff } from "../../redux/slices/staffSlice";
+import Papa from "papaparse";
 interface CompanyStaff extends Record<string, unknown> {
   email: string;
   role: string;
   active: boolean;
-  createdAt: string;
+  createdAt: Date;
   id: string;
 }
 
 export const ManageStaffs = () => {
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [isImportStaffModalOpen, setIsImportStaffModalOpen] = useState(false);
-  const [isEditStaffModalOpen, setIsEditStaffModalOpen] = useState(false);
-  const [isDeleteStaffModalOpen, setIsDeleteStaffModalOpen] = useState(false);
-  const [isViewStaffModalOpen, setIsViewStaffModalOpen] = useState(false);
-  const { staffs, getStaffs, createStaff } = useStaff();
-  const { staffs: companyStaffs } = useAppSelector(
-    (state: RootState) => state.staff
+  const { staffs, getStaffs, deleteStaff, importStaffs, searchStaffs } =
+    useStaff();
+  const { page, limit, totalPages } = useAppSelector(
+    (state) => state.pagination
   );
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const [status, setStatus] = useState<"add" | "edit">("add");
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    getStaffs();
-  }, []);
-
-  const handleAddStaff = async (formData: {
-    fullName: string;
-    active: boolean;
-    password: string;
-    role: string;
-  }) => {
-    await createStaff(formData);
-  };
+    getStaffs(page, limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit]);
 
   const handleToggleActive = async (
     staffId: string,
@@ -48,10 +47,36 @@ export const ManageStaffs = () => {
         ids: [staffId],
         active: !currentActive,
       });
-      getStaffs();
+      getStaffs(page, limit);
     } catch (error) {
       console.error("Failed to toggle staff status:", error);
     }
+  };
+
+  const handleImportStaff = async (file: File) => {
+    importStaffs(file);
+  };
+
+  const handleDownloadTemplate = () => {
+    const template = [
+      {
+        firstName: "Dũng",
+        lastName: "Nguyễn Tiến",
+        role: "hr",
+        active: true,
+      },
+    ];
+    const csv = Papa.unparse(template);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", "staffs_template.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const columns = [
@@ -81,27 +106,64 @@ export const ManageStaffs = () => {
       ),
     },
     {
+      id: "jobPosts",
+      header: "Number Of Job Posts",
+      accessor: "jobPosts",
+      render: (jobPosts: any) => {
+        return 0;
+      },
+    },
+    {
+      id: "applications",
+      header: "Number Of Applications",
+      accessor: "applications",
+      render: (applications: any) => {
+        return 0;
+      },
+    },
+    {
       id: "createdAt",
       header: "Created At",
       accessor: "createdAt",
       render: (value: string) => new Date(value).toLocaleDateString(),
     },
+    {},
     {
       id: "actions",
       header: "Actions",
       accessor: "id",
       render: (value: string, row: CompanyStaff) => (
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggleActive(value, row.active);
-          }}
-          className={`${
-            row.active ? "bg-red-500" : "bg-green-500"
-          } text-white px-3 py-1 rounded`}
-        >
-          {row.active ? "Deactivate" : "Activate"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              dispatch(setCurrentStaff(row));
+              setStatus("edit");
+              setIsAddStaffModalOpen(true);
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleActive(value, row.active);
+            }}
+            className={`${
+              row.active ? "bg-red-500" : "bg-green-500"
+            } text-white px-3 py-1 rounded`}
+          >
+            {row.active ? "Deactivate" : "Activate"}
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteStaff(value);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
       ),
     },
   ];
@@ -110,44 +172,79 @@ export const ManageStaffs = () => {
     <>
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <Input placeholder="Search" />
-          <Button>Search</Button>
+          <Input
+            placeholder="Search"
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setTimeout(() => {
+                searchStaffs(e.target.value, role, page, limit);
+              }, 1000);
+            }}
+          />
           <Select
             options={[
               { label: "All", value: "all" },
               { label: "HR", value: "hr" },
               { label: "Interviewer", value: "interviewer" },
             ]}
-            onChange={(value) => {
-              console.log(value);
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+              const value = e.target.value;
+              if (value === "all") {
+                searchStaffs(email, "", page, limit);
+              } else {
+                setRole(value);
+                searchStaffs(email, value, page, limit);
+              }
             }}
           />
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsAddStaffModalOpen(true)}>
+          <Button
+            onClick={() => {
+              setStatus("add");
+              dispatch(setCurrentStaff(null));
+              setIsAddStaffModalOpen(true);
+            }}
+          >
             Add Staff
           </Button>
-          <Button>Import Staff</Button>
+          <Button
+            onClick={() => {
+              setIsImportStaffModalOpen(true);
+            }}
+          >
+            Import Staff
+          </Button>
         </div>
       </div>
       <DataTable<CompanyStaff>
-        columns={columns}
-        data={companyStaffs.map((staff) => ({
-          email: staff.userId.email,
-          role: staff.role,
-          active: staff.active,
-          createdAt: staff.createdAt,
-          id: staff.id,
-        }))}
-        keyExtractor={(item) => item.email}
-        onRowClick={() => {}}
-        isLoading={false}
+        columns={columns as Column<CompanyStaff>[]}
+        data={staffs.map((staff) => {
+          return {
+            email: (staff.userId as User).email,
+            role: staff.role,
+            active: staff.active || false,
+            createdAt: staff.createdAt || new Date(),
+            id: staff._id,
+          };
+        })}
+      />
+      <Pagination
+        count={totalPages}
+        page={page}
+        onChange={(_, newPage) => dispatch(setPage(newPage))}
       />
       <StaffForm
         isOpen={isAddStaffModalOpen}
         onClose={() => setIsAddStaffModalOpen(false)}
-        onSubmit={handleAddStaff}
-        status="add"
+        status={status}
+      />
+      <ImportCsv
+        isOpen={isImportStaffModalOpen}
+        onClose={() => setIsImportStaffModalOpen(false)}
+        onSubmit={handleImportStaff}
+        onDownloadTemplate={handleDownloadTemplate}
+        title="Staff"
       />
     </>
   );

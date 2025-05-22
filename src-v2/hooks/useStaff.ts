@@ -10,48 +10,79 @@ export const useStaff = () => {
     (state: RootState) => state.staff
   );
 
-  const getStaffs = async () => {
-    const response = await staffService.getStaffs();
+  const getStaffs = async (page: number, limit: number) => {
+    const response = await staffService.getStaffs(page, limit);
     if (response.success) {
       dispatch(setStaffs(response.data));
     }
   };
 
   const createStaff = async (data: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     password: string;
     role: string;
     active: boolean;
   }) => {
     const response = await staffService.createStaff(data);
     if (response.success) {
-      getStaffs();
+      dispatch(setToast({ message: response.message, type: "success" }));
     }
+    return response;
   };
 
-  const getStaff = async (id: string) => {
+  const getStaffById = async (id: string) => {
     const response = await staffService.getStaff(id);
     if (response.success) {
       dispatch(setCurrentStaff(response.data));
     }
   };
 
-  const updateStaffProfile = async (
+  const updateStaff = async (
     id: string,
     data: {
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      phone?: string;
-      address?: string;
+      password?: string;
+      role?: string;
+      active?: boolean;
     }
   ) => {
-    const response = await staffService.updateStaffProfile(id, data);
+    const response = await staffService.updateStaff(id, data);
     if (response.success) {
       dispatch(setToast({ message: response.message, type: "success" }));
-      await getStaff(id);
     }
     return response;
+  };
+
+  const importStaffs = async (file: File) => {
+    const response = await staffService.importStaffs(file);
+    if (response.success) {
+      dispatch(setToast({ message: response.message, type: "success" }));
+    }
+    return response;
+  };
+  const searchStaffs = async (
+    email: string,
+    role: string,
+    page: number,
+    limit: number
+  ) => {
+    const response = await staffService.searchStaffs({
+      page,
+      limit,
+      email,
+      role,
+    });
+    if (response.success && response.data) {
+      dispatch(setStaffs(response.data));
+    }
+    return response;
+  };
+
+  const deleteStaff = async (id: string) => {
+    const response = await staffService.deleteStaff(id);
+    if (response.success) {
+      dispatch(setToast({ message: response.message, type: "success" }));
+    }
   };
 
   return {
@@ -59,7 +90,10 @@ export const useStaff = () => {
     currentStaff,
     getStaffs,
     createStaff,
-    getStaff,
-    updateStaffProfile,
+    getStaffById,
+    updateStaff,
+    importStaffs,
+    searchStaffs,
+    deleteStaff,
   };
 };

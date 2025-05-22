@@ -1,26 +1,29 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { CompanyProfile } from "../../types";
 
 interface CompanyState {
-  company: CompanyProfile | null;
+  companies: CompanyProfile[] | null;
+  currentCompany: CompanyProfile | null;
 }
 
 const initialState: CompanyState = {
-  company: null,
+  companies: null,
+  currentCompany: null,
 };
 
 const companySlice = createSlice({
   name: "company",
   initialState,
   reducers: {
-    setCompany: (state, action: PayloadAction<CompanyProfile>) => {
-      state.company = action.payload;
+    setCompanies: (state, action) => {
+      state.companies = action.payload;
     },
-    clearCompany: (state) => {
-      state.company = null;
+
+    setCurrentCompany: (state, action) => {
+      state.currentCompany = action.payload;
     },
   },
 });
 
-export const { setCompany, clearCompany } = companySlice.actions;
+export const { setCompanies, setCurrentCompany } = companySlice.actions;
 export default companySlice.reducer;

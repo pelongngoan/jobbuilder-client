@@ -8,12 +8,13 @@ import userReducer from "./slices/userSlice";
 import loadingReducer from "./slices/loadingSlice";
 import resumeReducer from "./slices/resumeSlice";
 import applicationReducer from "./slices/applicationSlice";
-import savedJobReducer from "./slices/savedJobSlice";
 import profileReducer from "./slices/profileSlice";
 import companyReducer from "./slices/companySlice";
 import toastReducer from "./slices/toastSlice";
 import staffReducer from "./slices/staffSlice";
 import categoryReducer from "./slices/categorySlice";
+import paginationReducer from "./slices/paginationSlice";
+import saveJobReducer from "./slices/saveJobSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -25,9 +26,10 @@ export const store = configureStore({
     application: applicationReducer,
     category: categoryReducer,
     toast: toastReducer,
-    savedJob: savedJobReducer,
     profile: profileReducer,
     company: companyReducer,
+    saveJob: saveJobReducer,
+    pagination: paginationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

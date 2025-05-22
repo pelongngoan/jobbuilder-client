@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
+import { useCategory } from "../../../hooks/useCategory";
 
 interface JobsDropdownProps {
   isOpen: boolean;
@@ -7,22 +8,12 @@ interface JobsDropdownProps {
   variant?: "light" | "dark";
 }
 
-const JOB_CATEGORIES = [
-  { id: "it", name: "IT & Software Development" },
-  { id: "marketing", name: "Marketing" },
-  { id: "finance", name: "Finance & Accounting" },
-  { id: "hr", name: "Human Resources" },
-  { id: "sales", name: "Sales" },
-  { id: "engineering", name: "Engineering" },
-  { id: "healthcare", name: "Healthcare" },
-  { id: "education", name: "Education" },
-];
-
 const JobsDropdown: React.FC<JobsDropdownProps> = ({
   isOpen,
   toggleDropdown,
   variant = "light",
 }) => {
+  const { categories } = useCategory();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const linkColor =
@@ -59,10 +50,10 @@ const JobsDropdown: React.FC<JobsDropdownProps> = ({
               JOBS BY CATEGORY
             </div>
 
-            {JOB_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <Link
-                key={category.id}
-                to={`/jobs?category=${category.id}`}
+                key={category._id}
+                to={`/jobs?category=${category._id}`}
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 {category.name}

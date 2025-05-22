@@ -1,16 +1,26 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Profile, User } from "../../types";
+import { User, UserProfile } from "../../types";
 
 // Define user state structure
 interface UserState {
   user: User | null;
-  profile: Profile | null;
+  profile: UserProfile | null;
 }
-
-const initialState: UserState = {
-  user: null,
-  profile: null,
+const getInitialState = (): UserState => {
+  if (typeof window !== "undefined") {
+    const user = localStorage.getItem("user");
+    const profile = localStorage.getItem("profile");
+    return {
+      user: user as User | null,
+      profile: profile as UserProfile | null,
+    };
+  }
+  return {
+    user: null,
+    profile: null,
+  };
 };
+const initialState: UserState = getInitialState();
 
 // Create the user slice
 const userSlice = createSlice({
@@ -23,7 +33,7 @@ const userSlice = createSlice({
     clearUser: (state) => {
       state.user = null;
     },
-    setProfile: (state, action: PayloadAction<Profile>) => {
+    setProfile: (state, action: PayloadAction<UserProfile>) => {
       state.profile = action.payload;
     },
     clearProfile: (state) => {
@@ -32,7 +42,6 @@ const userSlice = createSlice({
   },
 });
 
-// Export actions and reducer
 export const { setUser, clearUser, setProfile, clearProfile } =
   userSlice.actions;
 

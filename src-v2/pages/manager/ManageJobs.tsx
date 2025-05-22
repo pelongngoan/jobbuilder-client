@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { DataTable, Modal } from "../../components/common";
+import { useCallback, useEffect, useState } from "react";
+import { DataTable } from "../../components/common";
 import { Button } from "../../components/common";
 import { Input } from "../../components/common";
 import { JobPost } from "../../types/job.types";
@@ -7,25 +7,36 @@ import { JobForm } from "./JobForm";
 import { useJobs } from "../../hooks/useJobs";
 import { useAuth } from "../../hooks/useAuth";
 import jobService from "../../services/jobService";
-
+import { Category } from "../../types/category.types";
+import { ImportCsv } from "../../components/common/ImportCsv";
+import { useAppSelector } from "../../redux/store";
+import { setPage } from "../../redux/slices/paginationSlice";
+import { Pagination } from "@mui/material";
+import { useDispatch } from "react-redux";
 export const ManageJobs = () => {
-  const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const dispatch = useDispatch();
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const { id, role, useProfileId } = useAuth();
-  const { getCompanyJobs, getHrJobs, jobs } = useJobs();
-  useEffect(() => {
-    if (role === "company" && useProfileId) {
-      getCompanyJobs(useProfileId);
-    } else if (role === "staff" && useProfileId) {
-      getHrJobs(useProfileId);
-    }
-  }, [getCompanyJobs, getHrJobs, role, useProfileId]);
+  const { getCompanyJobs, getHrJobs, jobs, getJobById, deleteJob, searchJobs } =
+    useJobs();
+  const { page, limit, totalPages } = useAppSelector(
+    (state) => state.pagination
+  );
+
   const columns = [
     {
       id: "title",
       header: "Title",
       accessor: "title",
+    },
+    {
+      id: "category",
+      header: "Category",
+      accessor: "category",
+      render: (category: Category) => {
+        return category?.name;
+      },
     },
     {
       id: "salaryFrom",
@@ -66,38 +77,57 @@ export const ManageJobs = () => {
       accessor: "createdAt",
     },
     {
-      id: "actions",
+      id: "_id",
       header: "Actions",
-      accessor: "actions",
+      accessor: "_id",
+      render: (row: string) => {
+        return (
+          <div className="flex gap-2">
+            <Button onClick={() => handleEditJob(row)} size="sm">
+              Edit
+            </Button>
+            <Button
+              onClick={() => handleDeleteJob(row)}
+              size="sm"
+              variant="danger"
+            >
+              Delete
+            </Button>
+          </div>
+        );
+      },
     },
   ];
-  const { createJob } = useJobs();
-  const handleAddJob = (job: JobPost) => {
-    createJob({
-      ...job,
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+  const handleDeleteJob = useCallback(
+    async (job: string) => {
+      deleteJob(job);
+    },
+    [deleteJob]
+  );
+  useEffect(() => {
+    if (role === "company" && useProfileId) {
+      getCompanyJobs(useProfileId, page, limit);
+    } else if (role === "staff" && useProfileId) {
+      getHrJobs(useProfileId, page, limit);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getCompanyJobs, getHrJobs, role, useProfileId, page, limit]);
+  const handleEditJob = async (job: string) => {
+    getJobById(job);
+    setIsJobModalOpen(true);
   };
 
-  const handleImportJobs = async () => {
-    if (!selectedFile || !useProfileId) return;
+  const handleImportJobs = async (file: File) => {
+    if (!file || !useProfileId) return;
 
     try {
-      const response = await jobService.importJobsFromCSV(
-        selectedFile,
-        useProfileId
-      );
+      const response = await jobService.importJobsFromCSV(file, useProfileId);
 
       if (response.success) {
         if (role === "company") {
-          getCompanyJobs(useProfileId);
+          getCompanyJobs(useProfileId, page, limit);
         } else if (role === "staff") {
-          getHrJobs(useProfileId);
+          getHrJobs(useProfileId, page, limit);
         }
       }
     } catch (error) {
@@ -107,7 +137,6 @@ export const ManageJobs = () => {
         "csvFileInput"
       ) as HTMLInputElement;
       if (fileInput) fileInput.value = "";
-      setSelectedFile(null);
     }
   };
 
@@ -170,12 +199,14 @@ export const ManageJobs = () => {
     <>
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <Input placeholder="Search" />
+          <Input
+            placeholder="Search"
+            onChange={(e) => searchJobs(e.target.value, page, limit)}
+          />
           <Button>Search</Button>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsAddJobModalOpen(true)}>Add Job</Button>
-          <Button onClick={downloadTemplate}>Template</Button>
+          <Button onClick={() => setIsJobModalOpen(true)}>Add Job</Button>
           <Button onClick={() => setShowImportModal(true)}>Import Job</Button>
         </div>
       </div>
@@ -185,50 +216,26 @@ export const ManageJobs = () => {
         onRowClick={() => {}}
         isLoading={false}
       />
+      <Pagination
+        count={totalPages}
+        page={page}
+        onChange={(_, value) => dispatch(setPage(value))}
+      />
       <JobForm
-        isOpen={isAddJobModalOpen}
-        onClose={() => setIsAddJobModalOpen(false)}
-        onSubmit={handleAddJob}
+        isOpen={isJobModalOpen}
+        onClose={() => setIsJobModalOpen(false)}
         contacterId={id as string}
-        isCompanyUser={true}
+        isCompanyUser={role === "company"}
       />
 
       {/* Import Modal */}
-      <Modal
+      <ImportCsv
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
-        title={`Import Jobs from CSV`}
-        size="md"
-        footer={
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setShowImportModal(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-400  hover:bg-gray-500 rounded-md"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleImportJobs}
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md"
-            >
-              Import
-            </Button>
-          </div>
-        }
-      >
-        <input
-          type="file"
-          id="csvFileInput"
-          accept=".csv"
-          onChange={handleFileChange}
-          className="block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-md file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100"
-        />
-      </Modal>
+        onSubmit={handleImportJobs}
+        onDownloadTemplate={downloadTemplate}
+        title="Jobs"
+      />
     </>
   );
 };

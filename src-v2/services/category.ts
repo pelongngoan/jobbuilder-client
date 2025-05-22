@@ -6,6 +6,7 @@ import { Category } from "../types/category.types";
 const categoryService = {
   // Get all categories
   getCategories: async ({ page, limit }: { page: number; limit: number }) => {
+    console.log("getCategories", page, limit);
     const response = await apiClient.get<ApiResponse<GetResponse>>(
       "/categories/",
       {
@@ -64,6 +65,21 @@ const categoryService = {
         "Content-Type": "multipart/form-data",
       },
     });
+    return response.data;
+  },
+  //Search categories
+  searchCategories: async ({
+    page,
+    limit,
+    query,
+  }: {
+    page: number;
+    limit: number;
+    query: string;
+  }) => {
+    const response = await apiClient.get<ApiResponse<GetResponse>>(
+      `/categories/search?page=${page}&limit=${limit}&query=${query}`
+    );
     return response.data;
   },
 };

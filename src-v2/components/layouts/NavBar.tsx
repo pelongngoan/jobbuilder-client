@@ -1,22 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Button } from "../common";
-
+import { Link, useLocation } from "react-router-dom";
+import { useCategory } from "../../hooks/useCategory";
+import { useUser } from "../../hooks/useUser";
+import { getImageUrl } from "../../pages/users/CompanyCard";
+import { useAppSelector } from "../../redux/store";
 interface NavBarProps {
   variant?: "light" | "dark";
 }
 
 const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const { categories, getCategories } = useCategory();
+  const { user, profile, getUserProfile } = useUser();
+  // const { page, limit } = useAppSelector((state) => state.pagination);
+  useEffect(() => {
+    getCategories(1, 100);
+    getUserProfile();
+  }, []);
   const [isScrolled, setIsScrolled] = useState(false);
   const [jobsDropdownOpen, setJobsDropdownOpen] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const jobsDropdownRef = useRef<HTMLDivElement>(null);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   // Handle scroll effect for transparent to solid navbar
   useEffect(() => {
@@ -43,6 +51,12 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
       ) {
         setToolsDropdownOpen(false);
       }
+      if (
+        userDropdownRef.current &&
+        !userDropdownRef.current.contains(event.target as Node)
+      ) {
+        setUserDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -51,26 +65,29 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
     };
   }, []);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
   const toggleJobsDropdown = () => {
     setJobsDropdownOpen(!jobsDropdownOpen);
     if (toolsDropdownOpen) setToolsDropdownOpen(false);
+    if (userDropdownOpen) setUserDropdownOpen(false);
   };
 
   const toggleToolsDropdown = () => {
     setToolsDropdownOpen(!toolsDropdownOpen);
     if (jobsDropdownOpen) setJobsDropdownOpen(false);
+    if (userDropdownOpen) setUserDropdownOpen(false);
+  };
+
+  const toggleUserDropdown = () => {
+    setUserDropdownOpen(!userDropdownOpen);
+    if (jobsDropdownOpen) setJobsDropdownOpen(false);
+    if (toolsDropdownOpen) setToolsDropdownOpen(false);
   };
 
   // Close mobile menu and dropdowns when route changes
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsProfileMenuOpen(false);
     setJobsDropdownOpen(false);
     setToolsDropdownOpen(false);
+    setUserDropdownOpen(false);
   }, [location.pathname]);
 
   // Styles based on variant
@@ -85,6 +102,22 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
     variant === "light"
       ? "text-gray-600 hover:text-blue-600"
       : "text-gray-200 hover:text-white";
+
+  // Get user's first name or username for display
+  const displayName = profile?.firstName || user?.email || "User";
+
+  // Get user's initials for avatar fallback
+  const getInitials = () => {
+    if (profile?.profile && profile?.profile?.firstName) {
+      return `${profile.profile.firstName.charAt(
+        0
+      )}${profile.profile.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
 
   return (
     <nav
@@ -131,61 +164,65 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                       <div className="px-4 py-2 font-medium text-sm text-gray-700 bg-gray-50">
                         JOBS BY CATEGORY
                       </div>
-                      <Link
-                        to="/jobs?category=it"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        IT & Software Development
-                      </Link>
-                      <Link
-                        to="/jobs?category=marketing"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Marketing
-                      </Link>
-                      <Link
-                        to="/jobs?category=finance"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Finance & Accounting
-                      </Link>
-                      <Link
-                        to="/jobs?category=hr"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Human Resources
-                      </Link>
-                      <Link
-                        to="/jobs?category=sales"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Sales
-                      </Link>
-                      <Link
-                        to="/jobs?category=engineering"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Engineering
-                      </Link>
-                      <Link
-                        to="/jobs?category=healthcare"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Healthcare
-                      </Link>
-                      <Link
-                        to="/jobs?category=education"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Education
-                      </Link>
+                      {categories
+                        .filter((category) => category.parentCategory === null)
+                        .map((category) => {
+                          const hasChildren = categories.some(
+                            (subcategory) =>
+                              category._id === subcategory.parentCategory
+                          );
+                          return (
+                            <div
+                              key={category._id}
+                              className="relative group block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span>{category.name}</span>
+                                {hasChildren && (
+                                  <svg
+                                    className="h-4 w-4 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                              {hasChildren && (
+                                <div className="absolute left-full top-0 w-48 bg-white shadow-lg rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                  {categories
+                                    .filter(
+                                      (subcategory) =>
+                                        category._id ===
+                                        subcategory.parentCategory
+                                    )
+                                    .map((subcategory) => (
+                                      <Link
+                                        key={subcategory._id}
+                                        to={`/user/jobs/category/${subcategory._id}`}
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                                      >
+                                        {subcategory.name}
+                                      </Link>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 )}
               </div>
 
               <Link
-                to="/companies"
+                to="/user/companies"
                 className={`px-3 py-2 rounded-md text-sm font-medium ${linkColor}`}
               >
                 Companies
@@ -220,28 +257,10 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                         CAREER TOOLS
                       </div>
                       <Link
-                        to="/resume-builder"
+                        to="/user/resumes"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Resume Builder
-                      </Link>
-                      <Link
-                        to="/cover-letter"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Cover Letter Generator
-                      </Link>
-                      <Link
-                        to="/salary-calculator"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Salary Calculator
-                      </Link>
-                      <Link
-                        to="/career-advice"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Career Advice
                       </Link>
                     </div>
                   </div>
@@ -250,112 +269,173 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
             </div>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden">
-            <button
-              onClick={toggleMobileMenu}
-              className={`inline-flex items-center justify-center p-2 rounded-md ${linkColor}`}
-              aria-expanded="false"
-            >
-              <span className="sr-only">Open main menu</span>
-              {/* Icon when menu is closed */}
-              <svg
-                className={`${isMobileMenuOpen ? "hidden" : "block"} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {/* Icon when menu is open */}
-              <svg
-                className={`${isMobileMenuOpen ? "block" : "hidden"} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
+          {/* Right side with user profile */}
+          <div className="hidden md:flex items-center">
+            {profile ? (
+              <div className="relative" ref={userDropdownRef}>
+                <button
+                  onClick={toggleUserDropdown}
+                  className="flex items-center space-x-2 focus:outline-none"
+                >
+                  <div className="flex items-center space-x-3">
+                    {profile?.profile?.profilePicture ? (
+                      <img
+                        src={getImageUrl(
+                          `/uploads/${profile.profile.profilePicture}`
+                        )}
+                        alt="Profile"
+                        className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <div
+                        className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                          variant === "light"
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-blue-600 text-white"
+                        }`}
+                      >
+                        {getInitials()}
+                      </div>
+                    )}
+                    <span className={`text-sm font-medium ${linkColor}`}>
+                      {displayName}
+                    </span>
+                    <svg
+                      className={`h-4 w-4 ${linkColor}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d={
+                          userDropdownOpen ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"
+                        }
+                      />
+                    </svg>
+                  </div>
+                </button>
 
-      {/* Mobile menu, show/hide based on menu state */}
-      <div
-        className={`${isMobileMenuOpen ? "block" : "hidden"} md:hidden ${
-          variant === "light" ? "bg-white" : "bg-gray-800"
-        }`}
-      >
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <div className="px-3 py-2 font-medium text-base text-gray-500">
-            JOBS BY CATEGORY
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                      <div className="px-4 py-2 font-medium text-sm text-gray-700 bg-gray-50 border-b">
+                        My Account
+                      </div>
+                      <Link
+                        to="/user/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            ></path>
+                          </svg>
+                          Profile
+                        </div>
+                      </Link>
+                      <Link
+                        to="/user/applications"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                            ></path>
+                          </svg>
+                          Applications
+                        </div>
+                      </Link>
+                      <Link
+                        to="/user/saved-jobs"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                            ></path>
+                          </svg>
+                          Saved Jobs
+                        </div>
+                      </Link>
+                      <div className="border-t border-gray-100"></div>
+                      <button
+                        onClick={() => {
+                          /* Add your logout handler here */
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            ></path>
+                          </svg>
+                          Logout
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex space-x-4">
+                <Link
+                  to="/login"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${linkColor}`}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
-          <Link
-            to="/jobs"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            All Jobs
-          </Link>
-          <Link
-            to="/jobs?category=it"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            IT & Software Development
-          </Link>
-          <Link
-            to="/jobs?category=marketing"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            Marketing
-          </Link>
-          <Link
-            to="/jobs?category=finance"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            Finance & Accounting
-          </Link>
-          <Link
-            to="/jobs?category=hr"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            Human Resources
-          </Link>
-        </div>
-
-        <div className="border-t border-gray-200 px-2 pt-2 pb-3">
-          <Link
-            to="/companies"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            Companies
-          </Link>
-          <Link
-            to="/resume-builder"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            Resume Builder
-          </Link>
-          <Link
-            to="/career-advice"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${linkColor}`}
-          >
-            Career Advice
-          </Link>
         </div>
       </div>
     </nav>
