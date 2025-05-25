@@ -52,7 +52,6 @@ const ADMIN_OPTIONS = [
     name: "Job Categories",
   },
   { id: "applications", path: "/admin/applications", name: "All Applications" },
-  { id: "settings", path: "/admin/settings", name: "System Settings" },
 ];
 
 const UserProfileMenu: React.FC<UserProfileMenuProps> = ({

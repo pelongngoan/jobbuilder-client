@@ -29,16 +29,64 @@ const applicationService = {
     );
     return response.data;
   },
-  updateApplicationStatus: async (applicationId: string, status: string) => {
-    const response = await apiClient.put<ApiResponse<CUDResponse>>(
-      `/applications/${applicationId}/status`,
-      { status }
+  updateApplicationStatus: async (
+    applicationId: string,
+    status: string,
+    interviewerId?: string
+  ) => {
+    const response = await apiClient.put<ApiResponse<GetResponse>>(
+      `/applications/${applicationId}`,
+      { status, interviewerId }
     );
     return response.data;
   },
   getJobApplications: async (jobId: string) => {
     const response = await apiClient.get<ApiResponse<GetResponse>>(
       `/applications/job/${jobId}`
+    );
+    return response.data;
+  },
+  // Manager-specific methods
+  getCompanyApplications: async (
+    companyId: string,
+    page = 1,
+    limit = 10,
+    search = ""
+  ) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(search && { search }),
+    });
+    const response = await apiClient.get<ApiResponse<GetResponse>>(
+      `/applications/company/${companyId}?${params}`
+    );
+    return response.data;
+  },
+  getStaffApplications: async (
+    staffId: string,
+    page = 1,
+    limit = 10,
+    search = ""
+  ) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(search && { search }),
+    });
+    const response = await apiClient.get<ApiResponse<GetResponse>>(
+      `/applications/staff/${staffId}?${params}`
+    );
+    return response.data;
+  },
+  searchApplications: async (query: string, page = 1, limit = 10) => {
+    const params = new URLSearchParams({
+      q: query,
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await apiClient.get<ApiResponse<GetResponse>>(
+      `/applications/search?${params}`
     );
     return response.data;
   },

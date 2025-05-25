@@ -3,6 +3,7 @@ import { RootState } from "../redux/store";
 import { setStaffs, setCurrentStaff } from "../redux/slices/staffSlice";
 import staffService from "../services/staff";
 import { setToast } from "../redux/slices/toastSlice";
+import { setTotalPages } from "../redux/slices/paginationSlice";
 
 export const useStaff = () => {
   const dispatch = useAppDispatch();
@@ -14,6 +15,7 @@ export const useStaff = () => {
     const response = await staffService.getStaffs(page, limit);
     if (response.success) {
       dispatch(setStaffs(response.data));
+      dispatch(setTotalPages(response.pagination || 0));
     }
   };
 

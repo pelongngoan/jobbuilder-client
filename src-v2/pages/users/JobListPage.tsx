@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useJobs } from "../../hooks/useJobs";
 import { Container, Box, Typography } from "@mui/material";
 import { FilterList } from "@mui/icons-material";
@@ -8,26 +8,24 @@ import { JobPost } from "../../types/job.types";
 import JobCard from "./JobCard";
 import { setCurrentJob } from "../../redux/slices/jobsSlice";
 import { useAppDispatch } from "../../redux/store";
+import { useTranslation } from "react-i18next";
+
 export const JobListPage = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { categoryId } = useParams();
   const { jobs, getFeaturedJobs, getCategoryJobs } = useJobs();
+  const [categoryName] = useState<string>("");
 
   useEffect(() => {
-    getFeaturedJobs();
-  }, []);
-
-  const handleSearch = (query: string, location: string) => {
-    const searchParams = new URLSearchParams();
-    if (query) searchParams.append("q", query);
-    if (location) searchParams.append("location", location);
-    navigate(`/jobs/search?${searchParams.toString()}`);
-  };
-
-  const handleJobClick = (jobId: string) => {
-    dispatch(setCurrentJob(jobId));
-    navigate(`/jobs/${jobId}`);
-  };
+    if (categoryId) {
+      getCategoryJobs(categoryId);
+      // You might want to fetch category name here
+    } else {
+      getFeaturedJobs();
+    }
+  }, [categoryId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -42,7 +40,9 @@ export const JobListPage = () => {
           }}
         >
           <Typography variant="h4" component="h1">
-            {categoryName ? `Jobs in ${categoryName}` : "Featured Jobs"}
+            {categoryName
+              ? t("jobList.jobsInCategory", { category: categoryName })
+              : t("jobList.featuredJobs")}
           </Typography>
           <Button
             variant="outline"
@@ -50,13 +50,13 @@ export const JobListPage = () => {
             startIcon={<FilterList />}
             onClick={() => {}}
           >
-            Filter
+            {t("jobList.filter")}
           </Button>
         </Box>
 
         <div className="space-y-4 py-4">
           {jobs.map((job: JobPost) => (
-            <JobCard key={job._id} job={job} onClick={handleJobClick} />
+            <JobCard key={job._id} job={job} />
           ))}
         </div>
       </Container>

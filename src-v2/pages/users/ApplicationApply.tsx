@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { Modal } from "../../components/common";
 import { useApplication } from "../../hooks/useApplication";
 import { useJobs } from "../../hooks/useJobs";
-import { useUser } from "../../hooks/useUser";
 import { useResume } from "../../hooks/useResume";
-import { Resume } from "../../types";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationApplyProps {
   isOpen: boolean;
@@ -14,10 +13,20 @@ interface ApplicationApplyProps {
 /**
  * Resume radio selection component
  */
-const ResumeRadioCheck = ({ resumes, selectedId, setSelectedId }) => {
+const ResumeRadioCheck = ({
+  resumes,
+  selectedId,
+  setSelectedId,
+}: {
+  resumes: any[];
+  selectedId: string | null;
+  setSelectedId: (id: string) => void;
+}) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col gap-3">
-      {resumes.map((resume) => (
+      {resumes.map((resume: any) => (
         <div
           key={resume._id}
           className={`p-3 border rounded-md cursor-pointer hover:bg-gray-50 ${
@@ -49,7 +58,9 @@ const ResumeRadioCheck = ({ resumes, selectedId, setSelectedId }) => {
                 </span>
               )}
               <span className="text-xs text-gray-400">
-                Last updated: {new Date(resume.updatedAt).toLocaleDateString()}
+                {t("applicationApply.lastUpdated", {
+                  date: new Date(resume.updatedAt).toLocaleDateString(),
+                })}
               </span>
             </div>
           </div>
@@ -63,10 +74,10 @@ export const ApplicationApply = ({
   isOpen,
   onClose,
 }: ApplicationApplyProps) => {
+  const { t } = useTranslation();
   const { applyForJob } = useApplication();
   const { currentJob } = useJobs();
   const { resumes, fetchResumes } = useResume();
-  const { profile } = useUser();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -98,11 +109,17 @@ export const ApplicationApply = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Apply for Job">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("applicationApply.applyForJob")}
+    >
       <div className="flex flex-col gap-4">
         {resumes.length > 0 ? (
           <>
-            <p className="text-gray-700">Select a resume to apply with:</p>
+            <p className="text-gray-700">
+              {t("applicationApply.selectResume")}
+            </p>
             <ResumeRadioCheck
               resumes={resumes}
               selectedId={selectedId}
@@ -114,18 +131,22 @@ export const ApplicationApply = ({
                 disabled={!selectedId || isSubmitting}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Applying..." : "Apply Now"}
+                {isSubmitting
+                  ? t("applicationApply.applying")
+                  : t("jobs.applyNow")}
               </button>
             </div>
           </>
         ) : (
           <div className="text-center py-6">
-            <p className="text-gray-500">You don't have any resumes yet.</p>
+            <p className="text-gray-500">
+              {t("applicationApply.noResumesMessage")}
+            </p>
             <button
               onClick={onClose}
               className="mt-3 text-blue-600 hover:underline"
             >
-              Create a resume first
+              {t("applicationApply.createResumeFirst")}
             </button>
           </div>
         )}

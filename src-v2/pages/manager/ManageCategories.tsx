@@ -101,40 +101,49 @@ export const ManageCategories = () => {
       id: "parentCategory",
       header: "Parent",
       accessor: "parentCategory",
-      render: (record: Category | string | null) => {
-        if (record === null) return "";
-        const parent = categories.find((cat) => cat._id === record);
-        return parent ? parent.name : "";
+      render: (row: Category | null) => {
+        if (row === null) return "";
+        return row.name as unknown as string;
       },
     },
     {
-      id: "actions",
+      id: "_id",
       header: "Actions",
-      accessor: "actions",
-      render: (record: Category) => (
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={(e) => {
-              e.stopPropagation();
-              dispatch(setCurrentCategory(record));
-              setIsModalOpen(true);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="danger"
-            onClick={(e) => {
-              e.stopPropagation();
-              dispatch(setCurrentCategory(record));
-              setShowDeleteConfirm(true);
-            }}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
+      accessor: "_id",
+      render: (record: string) => {
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(
+                  setCurrentCategory(
+                    categories.find((c) => c._id === record) as Category
+                  )
+                );
+                setIsModalOpen(true);
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="danger"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(
+                  setCurrentCategory(
+                    categories.find((c) => c._id === record) as Category
+                  )
+                );
+                setShowDeleteConfirm(true);
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 

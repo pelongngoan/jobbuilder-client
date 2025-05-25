@@ -70,6 +70,7 @@ const authSlice = createSlice({
         localStorage.setItem("useProfileId", useProfileId);
       }
     },
+
     logout: (state) => {
       state.token = null;
       state.id = null;
@@ -85,5 +86,6 @@ const authSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { setAuth, setId, setRole, logout } = authSlice.actions;
+export const { setAuth, setId, setRole, setUseProfileId, logout } =
+  authSlice.actions;
 export default authSlice.reducer;

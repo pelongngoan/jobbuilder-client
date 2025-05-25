@@ -3,13 +3,21 @@ import { Link, useLocation } from "react-router-dom";
 import { useCategory } from "../../hooks/useCategory";
 import { useUser } from "../../hooks/useUser";
 import { getImageUrl } from "../../pages/users/CompanyCard";
-import { useAppSelector } from "../../redux/store";
+import { useAppDispatch } from "../../redux/store";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../../redux/slices/authSlice";
+import { LanguageSwitcher } from "../common";
+import { useTranslation } from "react-i18next";
+
 interface NavBarProps {
   variant?: "light" | "dark";
 }
 
 const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const { categories, getCategories } = useCategory();
   const { user, profile, getUserProfile } = useUser();
   // const { page, limit } = useAppSelector((state) => state.pagination);
@@ -142,7 +150,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                   onClick={toggleJobsDropdown}
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${linkColor}`}
                 >
-                  <span>Jobs</span>
+                  <span>{t("navigation.jobs")}</span>
                   <svg
                     className="ml-1 h-4 w-4"
                     fill="none"
@@ -162,7 +170,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                   <div className="absolute left-0 mt-2 w-60 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <div className="px-4 py-2 font-medium text-sm text-gray-700 bg-gray-50">
-                        JOBS BY CATEGORY
+                        {t("navigation.jobsByCategory")}
                       </div>
                       {categories
                         .filter((category) => category.parentCategory === null)
@@ -225,7 +233,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                 to="/user/companies"
                 className={`px-3 py-2 rounded-md text-sm font-medium ${linkColor}`}
               >
-                Companies
+                {t("navigation.companies")}
               </Link>
 
               {/* Tools Dropdown */}
@@ -234,7 +242,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                   onClick={toggleToolsDropdown}
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${linkColor}`}
                 >
-                  <span>Tools</span>
+                  <span>{t("navigation.tools")}</span>
                   <svg
                     className="ml-1 h-4 w-4"
                     fill="none"
@@ -254,13 +262,13 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                   <div className="absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <div className="px-4 py-2 font-medium text-sm text-gray-700 bg-gray-50">
-                        CAREER TOOLS
+                        {t("navigation.careerTools")}
                       </div>
                       <Link
                         to="/user/resumes"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Resume Builder
+                        {t("navigation.resumeBuilder")}
                       </Link>
                     </div>
                   </div>
@@ -270,7 +278,10 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
           </div>
 
           {/* Right side with user profile */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Language Switcher */}
+            <LanguageSwitcher variant="button" className="mr-2" />
+
             {profile ? (
               <div className="relative" ref={userDropdownRef}>
                 <button
@@ -322,7 +333,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                   <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                       <div className="px-4 py-2 font-medium text-sm text-gray-700 bg-gray-50 border-b">
-                        My Account
+                        {t("navigation.myAccount")}
                       </div>
                       <Link
                         to="/user/profile"
@@ -343,7 +354,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             ></path>
                           </svg>
-                          Profile
+                          {t("dashboard.profile")}
                         </div>
                       </Link>
                       <Link
@@ -365,7 +376,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                             ></path>
                           </svg>
-                          Applications
+                          {t("dashboard.applications")}
                         </div>
                       </Link>
                       <Link
@@ -387,13 +398,14 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                               d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                             ></path>
                           </svg>
-                          Saved Jobs
+                          {t("dashboard.savedJobs")}
                         </div>
                       </Link>
                       <div className="border-t border-gray-100"></div>
                       <button
                         onClick={() => {
-                          /* Add your logout handler here */
+                          dispatch(logout());
+                          navigate("/user/login");
                         }}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
@@ -412,7 +424,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                             ></path>
                           </svg>
-                          Logout
+                          {t("common.logout")}
                         </div>
                       </button>
                     </div>
@@ -422,16 +434,16 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
             ) : (
               <div className="flex space-x-4">
                 <Link
-                  to="/login"
+                  to="/user/login"
                   className={`px-3 py-2 rounded-md text-sm font-medium ${linkColor}`}
                 >
-                  Login
+                  {t("common.login")}
                 </Link>
                 <Link
-                  to="/register"
+                  to="/user/register"
                   className="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  Register
+                  {t("common.register")}
                 </Link>
               </div>
             )}

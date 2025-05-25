@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useJobs } from "../../hooks/useJobs";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../redux/store";
+import { useCategory } from "../../hooks/useCategory";
+import { useTranslation } from "react-i18next";
 
 export const JobSearchPage = () => {
+  const { t } = useTranslation();
   const { jobs, searchJobs, loading, error } = useJobs();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -23,7 +26,7 @@ export const JobSearchPage = () => {
   const { page, limit, totalPages } = useAppSelector(
     (state) => state.pagination
   );
-
+  const { categories } = useCategory();
   // Job categories for dropdown
   const jobCategories = [
     "Danh mục Nghề",
@@ -45,14 +48,14 @@ export const JobSearchPage = () => {
 
   // Experience levels
   const experienceLevels = [
-    "Tất cả",
-    "Dưới 1 năm",
-    "1 năm",
-    "2 năm",
-    "3 năm",
-    "4 năm",
-    "5 năm",
-    "Trên 5 năm",
+    t("jobSearch.allExperience"),
+    t("jobSearch.under1Year"),
+    `1 ${t("jobSearch.years")}`,
+    `2 ${t("jobSearch.years")}`,
+    `3 ${t("jobSearch.years")}`,
+    `4 ${t("jobSearch.years")}`,
+    `5 ${t("jobSearch.years")}`,
+    t("jobSearch.over5Years"),
   ];
 
   // Search jobs when URL parameters change
@@ -113,9 +116,9 @@ export const JobSearchPage = () => {
                   onChange={handleInputChange}
                   className="border-none outline-none bg-transparent text-gray-700 font-medium min-w-[120px]"
                 >
-                  {jobCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
@@ -132,7 +135,7 @@ export const JobSearchPage = () => {
                   name="jobName"
                   value={searchForm.jobName}
                   onChange={handleInputChange}
-                  placeholder="remote job"
+                  placeholder={t("jobSearch.searchPlaceholder")}
                   className="flex-1 border-none outline-none text-gray-700 placeholder-gray-400"
                 />
                 {searchForm.jobName && (
@@ -158,7 +161,7 @@ export const JobSearchPage = () => {
                   name="location"
                   value={searchForm.location}
                   onChange={handleInputChange}
-                  placeholder="Địa điểm"
+                  placeholder={t("jobSearch.locationPlaceholder")}
                   className="border-none outline-none text-gray-700 placeholder-gray-400 min-w-[100px]"
                 />
                 <span className="text-gray-400 ml-1">▼</span>
@@ -169,7 +172,7 @@ export const JobSearchPage = () => {
                 type="submit"
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-medium transition-colors"
               >
-                Tìm kiếm
+                {t("jobSearch.searchButton")}
               </button>
             </form>
           </div>
@@ -185,9 +188,9 @@ export const JobSearchPage = () => {
             {new Date().toLocaleDateString("vi-VN")}]
           </div>
           <div className="flex items-center text-sm text-gray-600 gap-2">
-            <span className="text-green-600">Trang chủ</span>
+            <span className="text-green-600">{t("jobSearch.homepage")}</span>
             <span>›</span>
-            <span>Việc làm</span>
+            <span>{t("jobSearch.jobs")}</span>
             <span>›</span>
             <span>Remote Job</span>
           </div>
@@ -195,7 +198,9 @@ export const JobSearchPage = () => {
 
         {/* Job Tags */}
         <div className="mb-6">
-          <span className="text-gray-600 mr-2">Từ khóa gợi ý:</span>
+          <span className="text-gray-600 mr-2">
+            {t("jobSearch.suggestedKeywords")}
+          </span>
           <div className="inline-flex flex-wrap gap-2">
             {[
               "part-time",

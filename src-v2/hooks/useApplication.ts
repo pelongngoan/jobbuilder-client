@@ -3,6 +3,8 @@ import {
   setApplications,
   setCurrentApplication,
 } from "../redux/slices/applicationSlice";
+import { setToast } from "../redux/slices/toastSlice";
+import { ApplicationStatus } from "../types/application.types";
 import applicationService from "../services/application";
 
 export const useApplication = () => {
@@ -33,18 +35,66 @@ export const useApplication = () => {
 
   const updateApplicationStatus = async (
     applicationId: string,
-    status: string
+    status: ApplicationStatus,
+    interviewerId?: string
   ) => {
     const response = await applicationService.updateApplicationStatus(
       applicationId,
-      status
+      status,
+      interviewerId
     );
-    dispatch(setCurrentApplication(response.data));
+    if (response.success) {
+      dispatch(setToast({ message: response.message, type: "success" }));
+    }
+    return response;
   };
 
   const getJobApplications = async (jobId: string) => {
     const response = await applicationService.getJobApplications(jobId);
     dispatch(setApplications(response.data));
+  };
+
+  // Manager-specific methods
+  const getCompanyApplications = async (
+    companyId: string,
+    page = 1,
+    limit = 10,
+    search = ""
+  ) => {
+    const response = await applicationService.getCompanyApplications(
+      companyId,
+      page,
+      limit,
+      search
+    );
+    dispatch(setApplications(response.data));
+    return response;
+  };
+
+  const getStaffApplications = async (
+    staffId: string,
+    page = 1,
+    limit = 10,
+    search = ""
+  ) => {
+    const response = await applicationService.getStaffApplications(
+      staffId,
+      page,
+      limit,
+      search
+    );
+    dispatch(setApplications(response.data));
+    return response;
+  };
+
+  const searchApplications = async (query: string, page = 1, limit = 10) => {
+    const response = await applicationService.searchApplications(
+      query,
+      page,
+      limit
+    );
+    dispatch(setApplications(response.data));
+    return response;
   };
 
   return {
@@ -56,5 +106,9 @@ export const useApplication = () => {
     getApplicationById,
     updateApplicationStatus,
     getJobApplications,
+    // Manager methods
+    getCompanyApplications,
+    getStaffApplications,
+    searchApplications,
   };
 };

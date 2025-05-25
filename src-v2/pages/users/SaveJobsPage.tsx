@@ -1,18 +1,24 @@
 import { useSaveJob } from "../../hooks/useSaveJob";
-import { useAppDispatch } from "../../redux/store";
 import JobCard from "./JobCard";
+import { useTranslation } from "react-i18next";
 
 export const SaveJobsPage = () => {
+  const { t } = useTranslation();
   const { savedJobs } = useSaveJob();
-  const dispatch = useAppDispatch();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Saved Jobs</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {t("dashboard.savedJobs")}
+          </h1>
           <p className="text-gray-600">
-            {savedJobs.length} job{savedJobs.length !== 1 ? "s" : ""} saved
+            {savedJobs.length}{" "}
+            {savedJobs.length === 1
+              ? t("jobCard.applicant")
+              : t("jobCard.applicants")}{" "}
+            {t("common.save").toLowerCase()}d
           </p>
         </div>
 
@@ -29,11 +35,9 @@ export const SaveJobsPage = () => {
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No saved jobs yet
+              {t("homepage.noJobsTitle")}
             </h3>
-            <p className="text-gray-500">
-              Start saving jobs you're interested in to see them here.
-            </p>
+            <p className="text-gray-500">{t("homepage.noJobsDescription")}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -42,7 +46,7 @@ export const SaveJobsPage = () => {
                 key={job.jobId._id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
               >
-                <JobCard job={job.jobId} onClick={() => {}} />
+                <JobCard job={job.jobId} />
               </div>
             ))}
           </div>

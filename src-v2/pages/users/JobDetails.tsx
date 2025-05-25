@@ -17,7 +17,10 @@ import { ApplicationApply } from "./ApplicationApply";
 import { useAppDispatch } from "../../redux/store";
 import { setCurrentJob } from "../../redux/slices/jobsSlice";
 import { useSaveJob } from "../../hooks/useSaveJob";
+import { useTranslation } from "react-i18next";
+
 const JobDetails = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { jobId } = useParams();
   const navigate = useNavigate();
@@ -50,9 +53,9 @@ const JobDetails = () => {
 
   // Format salary range
   const formatSalary = () => {
-    if (!currentJob) return "Not specified";
+    if (!currentJob) return t("jobDetails.notSpecified");
     if (!currentJob.salaryFrom && !currentJob.salaryTo)
-      return "Salary not specified";
+      return t("jobDetails.salaryNotSpecified");
 
     const currency = currentJob.salaryCurrency || "$";
     const from = currentJob.salaryFrom
@@ -67,9 +70,9 @@ const JobDetails = () => {
       : "";
 
     if (from && to) return `${currency}${from} - ${currency}${to}`;
-    if (from) return `From ${currency}${from}`;
-    if (to) return `Up to ${currency}${to}`;
-    return "Salary negotiable";
+    if (from) return `${t("jobCard.from")} ${currency}${from}`;
+    if (to) return `${t("jobCard.upTo")} ${currency}${to}`;
+    return t("jobDetails.salaryNegotiable");
   };
 
   // Format deadline with days remaining
@@ -81,10 +84,10 @@ const JobDetails = () => {
     const diffTime = deadline.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return "Expired";
-    if (diffDays === 0) return "Closing today";
-    if (diffDays === 1) return "Closing tomorrow";
-    return `${diffDays} days left`;
+    if (diffDays < 0) return t("jobCard.expired");
+    if (diffDays === 0) return t("jobDetails.closingToday");
+    if (diffDays === 1) return t("jobDetails.closingTomorrow");
+    return `${diffDays} ${t("jobDetails.daysLeft")}`;
   };
 
   // Format date to readable string
@@ -114,6 +117,15 @@ const JobDetails = () => {
     }
   };
 
+  // Get translated job type
+  const getJobTypeText = () => {
+    if (!currentJob?.jobType) return t("jobDetails.notSpecified");
+    return (
+      t(`jobTypes.${currentJob.jobType}`) ||
+      currentJob.jobType.replace("-", " ")
+    );
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
       <div className="container mx-auto px-4 py-8">
@@ -124,7 +136,7 @@ const JobDetails = () => {
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               {currentJob?.isFeatured && (
                 <div className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded mb-4">
-                  Featured Position
+                  {t("jobDetails.featuredPosition")}
                 </div>
               )}
 
@@ -147,18 +159,18 @@ const JobDetails = () => {
                     </h1>
                     <p className="text-gray-600 mt-1">
                       {currentJob?.companyId?.companyName ||
-                        "Company name unavailable"}
+                        t("jobDetails.companyNameUnavailable")}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getJobTypeBadgeClass()}`}
                       >
-                        {currentJob?.jobType?.replace("-", " ")}
+                        {getJobTypeText()}
                       </span>
 
                       {currentJob?.experienceLevel && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {currentJob.experienceLevel} Level
+                          {currentJob.experienceLevel} {t("jobDetails.level")}
                         </span>
                       )}
 
@@ -183,8 +195,8 @@ const JobDetails = () => {
                       savedJobs.some((job) => {
                         return job.jobId._id == currentJob?._id;
                       })
-                        ? "Unsave jobSSS"
-                        : "Save jobSSS"
+                        ? t("jobDetails.unsaveJobAria")
+                        : t("jobDetails.saveJobAria")
                     }
                   >
                     <Star
@@ -200,14 +212,15 @@ const JobDetails = () => {
                 <div className="flex items-center">
                   <MapPin size={18} className="text-gray-500 mr-2" />
                   <span className="text-gray-700">
-                    {currentJob?.location || "Location not specified"}
+                    {currentJob?.location ||
+                      t("jobDetails.locationNotSpecified")}
                   </span>
                 </div>
 
                 <div className="flex items-center">
                   <Briefcase size={18} className="text-gray-500 mr-2" />
                   <span className="text-gray-700 capitalize">
-                    {currentJob?.jobType?.replace("-", " ") || "Not specified"}
+                    {getJobTypeText()}
                   </span>
                 </div>
 
@@ -219,7 +232,8 @@ const JobDetails = () => {
                 <div className="flex items-center">
                   <Clock size={18} className="text-gray-500 mr-2" />
                   <span className="text-gray-700">
-                    Posted on {formatDate(currentJob?.createdAt || new Date())}
+                    {t("jobDetails.postedOn")}{" "}
+                    {formatDate(currentJob?.createdAt || new Date())}
                   </span>
                 </div>
               </div>
@@ -228,7 +242,7 @@ const JobDetails = () => {
             {/* Job description */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Job Description
+                {t("jobDetails.jobDescription")}
               </h2>
               <div className="prose max-w-none text-gray-700">
                 {currentJob?.description}
@@ -240,7 +254,7 @@ const JobDetails = () => {
               currentJob?.keyResponsibilities.length > 0 && (
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    Key Responsibilities
+                    {t("jobDetails.keyResponsibilities")}
                   </h2>
                   <ul className="space-y-2">
                     {currentJob?.keyResponsibilities.map(
@@ -265,7 +279,7 @@ const JobDetails = () => {
               currentJob?.requirements.length > 0 && (
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    Requirements
+                    {t("jobDetails.requirements")}
                   </h2>
                   <ul className="space-y-2">
                     {currentJob?.requirements.map(
@@ -287,7 +301,7 @@ const JobDetails = () => {
             {currentJob?.skills && currentJob?.skills.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Required Skills
+                  {t("jobDetails.requiredSkills")}
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {currentJob.skills.map((skill: string, index: number) => (
@@ -306,7 +320,7 @@ const JobDetails = () => {
             {currentJob?.benefits && currentJob?.benefits.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Benefits
+                  {t("jobDetails.benefits")}
                 </h2>
                 <ul className="space-y-2">
                   {currentJob.benefits.map((benefit: string, index: number) => (
@@ -328,14 +342,14 @@ const JobDetails = () => {
             {/* Apply now card */}
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Apply for this position
+                {t("jobDetails.applyForPosition")}
               </h2>
 
               {currentJob?.deadline && (
                 <div className="mb-4 flex items-center text-sm">
                   <Calendar size={16} className="text-gray-500 mr-2" />
                   <span className="text-gray-700">
-                    Application deadline:{" "}
+                    {t("jobDetails.applicationDeadline")}{" "}
                     {formatDate(currentJob?.deadline || new Date())}
                     {formatDeadline() && (
                       <span className="ml-2 text-red-600 font-medium">
@@ -349,7 +363,8 @@ const JobDetails = () => {
               <div className="mb-6 flex items-center text-sm">
                 <Users size={16} className="text-gray-500 mr-2" />
                 <span className="text-gray-700">
-                  {currentJob?.applicationCount || 0} people have applied
+                  {currentJob?.applicationCount || 0}{" "}
+                  {t("jobDetails.peopleApplied")}
                 </span>
               </div>
 
@@ -357,7 +372,7 @@ const JobDetails = () => {
                 onClick={handleApply}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition-colors duration-200"
               >
-                Apply Now
+                {t("jobs.applyNow")}
               </button>
 
               <button
@@ -370,7 +385,7 @@ const JobDetails = () => {
                     isSaved ? "fill-yellow-500 text-yellow-500" : ""
                   }`}
                 />
-                {isSaved ? "Saved" : "Save Job"}
+                {isSaved ? t("jobDetails.saved") : t("jobs.saveJob")}
               </button>
             </div>
 
@@ -378,7 +393,7 @@ const JobDetails = () => {
             {currentJob?.companyId && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  About the Company
+                  {t("jobDetails.aboutCompany")}
                 </h2>
 
                 <div className="flex items-center mb-4">
@@ -404,7 +419,7 @@ const JobDetails = () => {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:underline"
                       >
-                        Visit website
+                        {t("jobDetails.visitWebsite")}
                       </a>
                     )}
                   </div>
@@ -422,7 +437,7 @@ const JobDetails = () => {
                   }
                   className="text-blue-600 text-sm font-medium hover:text-blue-800"
                 >
-                  View company profile
+                  {t("jobDetails.viewCompanyProfile")}
                 </button>
               </div>
             )}

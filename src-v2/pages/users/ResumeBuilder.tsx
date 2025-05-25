@@ -17,17 +17,10 @@ import {
 import { ArrowBack, Save, Delete, Add as AddIcon } from "@mui/icons-material";
 import { useResume } from "../../hooks/useResume";
 import { Resume } from "../../types";
-
-const steps = [
-  "Personal Information",
-  "Professional Summary",
-  "Work Experience",
-  "Education",
-  "Skills",
-  "Additional Sections",
-];
+import { useTranslation } from "react-i18next";
 
 export const ResumeBuilder = () => {
+  const { t } = useTranslation();
   const { resumeId } = useParams<{ resumeId: string }>();
   const navigate = useNavigate();
   const { currentResume, getResumeById, createResume, updateResume } =
@@ -109,6 +102,15 @@ export const ResumeBuilder = () => {
       ],
     },
   });
+
+  const steps = [
+    t("resumeBuilder.steps.personalInformation"),
+    t("resumeBuilder.steps.professionalSummary"),
+    t("resumeBuilder.steps.workExperience"),
+    t("resumeBuilder.steps.education"),
+    t("resumeBuilder.steps.skills"),
+    t("resumeBuilder.steps.additionalSections"),
+  ];
 
   useEffect(() => {
     if (resumeId) {
@@ -357,7 +359,7 @@ export const ResumeBuilder = () => {
   const renderPersonalInfo = () => (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Personal Information
+        {t("resumeBuilder.personalInfo.title")}
       </Typography>
 
       <Grid container spacing={2}>
@@ -369,7 +371,7 @@ export const ResumeBuilder = () => {
           }}
         >
           <TextField
-            label="Full Name"
+            label={t("resumeBuilder.personalInfo.fullName")}
             value={resumeData.content?.personalInfo?.fullName || ""}
             onChange={(e) =>
               handlePersonalInfoChange("fullName", e.target.value)
@@ -387,7 +389,7 @@ export const ResumeBuilder = () => {
           }}
         >
           <TextField
-            label="Email"
+            label={t("resumeBuilder.personalInfo.email")}
             type="email"
             value={resumeData.content?.personalInfo?.email || ""}
             onChange={(e) => handlePersonalInfoChange("email", e.target.value)}
@@ -404,7 +406,7 @@ export const ResumeBuilder = () => {
           }}
         >
           <TextField
-            label="Phone"
+            label={t("resumeBuilder.personalInfo.phone")}
             value={resumeData.content?.personalInfo?.phone || ""}
             onChange={(e) => handlePersonalInfoChange("phone", e.target.value)}
             fullWidth
@@ -418,7 +420,7 @@ export const ResumeBuilder = () => {
           }}
         >
           <TextField
-            label="Address"
+            label={t("resumeBuilder.personalInfo.address")}
             value={resumeData.content?.personalInfo?.address || ""}
             onChange={(e) =>
               handlePersonalInfoChange("address", e.target.value)
@@ -435,7 +437,7 @@ export const ResumeBuilder = () => {
           }}
         >
           <TextField
-            label="LinkedIn"
+            label={t("resumeBuilder.personalInfo.linkedin")}
             value={resumeData.content?.personalInfo?.linkedin || ""}
             onChange={(e) =>
               handlePersonalInfoChange("linkedin", e.target.value)
@@ -452,7 +454,7 @@ export const ResumeBuilder = () => {
           }}
         >
           <TextField
-            label="Website"
+            label={t("resumeBuilder.personalInfo.website")}
             value={resumeData.content?.personalInfo?.website || ""}
             onChange={(e) =>
               handlePersonalInfoChange("website", e.target.value)
@@ -467,10 +469,10 @@ export const ResumeBuilder = () => {
   const renderSummary = () => (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Professional Summary
+        {t("resumeBuilder.summary.title")}
       </Typography>
       <TextField
-        label="Summary"
+        label={t("resumeBuilder.summary.label")}
         value={resumeData.content?.summary || ""}
         onChange={(e) => handleInputChange("summary", e.target.value)}
         fullWidth
@@ -1140,13 +1142,15 @@ export const ResumeBuilder = () => {
           <ArrowBack />
         </IconButton>
         <Typography variant="h4" component="h1">
-          {resumeId ? "Edit Resume" : "Create New Resume"}
+          {resumeId
+            ? t("resumeBuilder.editResume")
+            : t("resumeBuilder.createNewResume")}
         </Typography>
       </Box>
 
       <Box sx={{ width: "100%", mb: 4 }}>
         <TextField
-          label="Resume Title"
+          label={t("resumeBuilder.resumeTitle")}
           value={resumeData.title || ""}
           onChange={(e) =>
             setResumeData({ ...resumeData, title: e.target.value })
@@ -1169,11 +1173,11 @@ export const ResumeBuilder = () => {
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
             <Button disabled={activeStep === 0} onClick={handleBack}>
-              Back
+              {t("common.back")}
             </Button>
             <Box>
               <Button variant="outlined" onClick={handleCancel} sx={{ mr: 2 }}>
-                Cancel
+                {t("common.cancel")}
               </Button>
 
               {activeStep === steps.length - 1 ? (
@@ -1183,11 +1187,11 @@ export const ResumeBuilder = () => {
                   startIcon={<Save />}
                   disabled={!resumeData.title}
                 >
-                  Save Resume
+                  {t("resumeBuilder.saveResume")}
                 </Button>
               ) : (
                 <Button variant="contained" onClick={handleNext}>
-                  Next
+                  {t("common.next")}
                 </Button>
               )}
             </Box>

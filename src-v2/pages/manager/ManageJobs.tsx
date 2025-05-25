@@ -118,11 +118,12 @@ export const ManageJobs = () => {
   };
 
   const handleImportJobs = async (file: File) => {
+    console.log("file", file);
+    console.log("useProfileId", useProfileId);
     if (!file || !useProfileId) return;
 
     try {
       const response = await jobService.importJobsFromCSV(file, useProfileId);
-
       if (response.success) {
         if (role === "company") {
           getCompanyJobs(useProfileId, page, limit);
@@ -201,7 +202,9 @@ export const ManageJobs = () => {
         <div className="flex gap-2">
           <Input
             placeholder="Search"
-            onChange={(e) => searchJobs(e.target.value, page, limit)}
+            onChange={(e) =>
+              searchJobs(e.target.value, page, limit, role, useProfileId)
+            }
           />
           <Button>Search</Button>
         </div>

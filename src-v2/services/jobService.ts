@@ -59,7 +59,6 @@ const jobService = {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("companyId", companyId);
-
     const response = await apiClient.post<
       ApiResponse<{
         successCount: number;

@@ -3,46 +3,48 @@ import { User, UserProfile } from "../../types";
 
 // Define user state structure
 interface UserState {
-  user: User | null;
   profile: UserProfile | null;
+  user: User | null;
+  currentUser: User | null;
+  users: User[];
 }
-const getInitialState = (): UserState => {
-  if (typeof window !== "undefined") {
-    const user = localStorage.getItem("user");
-    const profile = localStorage.getItem("profile");
-    return {
-      user: user as User | null,
-      profile: profile as UserProfile | null,
-    };
-  }
-  return {
-    user: null,
-    profile: null,
-  };
+
+const initialState: UserState = {
+  profile: null,
+  user: null,
+  currentUser: null,
+  users: [],
 };
-const initialState: UserState = getInitialState();
 
 // Create the user slice
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
-    },
-    clearUser: (state) => {
-      state.user = null;
-    },
     setProfile: (state, action: PayloadAction<UserProfile>) => {
       state.profile = action.payload;
     },
-    clearProfile: (state) => {
-      state.profile = null;
+    setUser: (state, action: PayloadAction<User>) => {
+      state.user = action.payload;
+    },
+    setCurrentUser: (state, action: PayloadAction<User | null>) => {
+      state.currentUser = action.payload;
+    },
+    clearCurrentUser: (state) => {
+      state.currentUser = null;
+    },
+    setUsers: (state, action: PayloadAction<User[]>) => {
+      state.users = action.payload;
     },
   },
 });
 
-export const { setUser, clearUser, setProfile, clearProfile } =
-  userSlice.actions;
+export const {
+  setProfile,
+  setUser,
+  setCurrentUser,
+  clearCurrentUser,
+  setUsers,
+} = userSlice.actions;
 
 export default userSlice.reducer;

@@ -3,8 +3,10 @@ import { useProfile } from "../../hooks/useProfile";
 import { getImageUrl } from "./CompanyCard";
 import { Profile } from "../../types/profile.types";
 import { useAppSelector } from "../../redux/store";
+import { useTranslation } from "react-i18next";
 
 export const ProfilePage = () => {
+  const { t } = useTranslation();
   const { updateProfile } = useProfile();
   const { getProfile, profile } = useProfile();
   const { id } = useAppSelector((state) => state.auth);
@@ -119,18 +121,20 @@ export const ProfilePage = () => {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="bg-blue-600 text-white p-6">
-            <h1 className="text-2xl font-bold">User Profile</h1>
+            <h1 className="text-2xl font-bold">{t("profile.userProfile")}</h1>
           </div>
 
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Personal Information</h2>
+              <h2 className="text-xl font-semibold">
+                {t("profile.personalInformation")}
+              </h2>
               {!isEditingPersonal ? (
                 <button
                   onClick={() => setIsEditingPersonal(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
                 >
-                  Edit Profile
+                  {t("profile.editProfile")}
                 </button>
               ) : (
                 <div className="space-x-2">
@@ -138,13 +142,13 @@ export const ProfilePage = () => {
                     onClick={handleCancel}
                     className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     onClick={handleUpdateProfile}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                   >
-                    Save Changes
+                    {t("profile.saveChanges")}
                   </button>
                 </div>
               )}
@@ -156,18 +160,18 @@ export const ProfilePage = () => {
                 {previewUrl ? (
                   <img
                     src={previewUrl}
-                    alt="Profile Preview"
+                    alt={t("profile.profilePreview")}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
-                    No Image
+                    {t("profile.noImage")}
                   </div>
                 )}
               </div>
               {isEditingPersonal && (
                 <label className="cursor-pointer bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors">
-                  Upload Image
+                  {t("profile.uploadImage")}
                   <input
                     type="file"
                     accept="image/*"
@@ -182,7 +186,7 @@ export const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name
+                  {t("profile.firstName")}
                 </label>
                 <input
                   type="text"
@@ -191,14 +195,14 @@ export const ProfilePage = () => {
                   onChange={handleChange}
                   disabled={!isEditingPersonal}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
-                  placeholder="Enter first name"
+                  placeholder={t("profile.enterFirstName")}
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name
+                  {t("profile.lastName")}
                 </label>
                 <input
                   type="text"
@@ -207,7 +211,7 @@ export const ProfilePage = () => {
                   onChange={handleChange}
                   disabled={!isEditingPersonal}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
-                  placeholder="Enter last name"
+                  placeholder={t("profile.enterLastName")}
                   required
                 />
               </div>
@@ -215,7 +219,7 @@ export const ProfilePage = () => {
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t("auth.email")}
               </label>
               <input
                 type="email"
@@ -224,14 +228,14 @@ export const ProfilePage = () => {
                 onChange={handleChange}
                 disabled={!isEditingPersonal}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
-                placeholder="Enter email"
+                placeholder={t("profile.enterEmail")}
                 required
               />
             </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone
+                {t("profile.phone")}
               </label>
               <input
                 type="tel"
@@ -240,13 +244,13 @@ export const ProfilePage = () => {
                 onChange={handleChange}
                 disabled={!isEditingPersonal}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
-                placeholder="Enter phone number"
+                placeholder={t("profile.enterPhone")}
               />
             </div>
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+                {t("profile.address")}
               </label>
               <textarea
                 name="address"
@@ -254,7 +258,7 @@ export const ProfilePage = () => {
                 onChange={handleChange}
                 disabled={!isEditingPersonal}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
-                placeholder="Enter address"
+                placeholder={t("profile.enterAddress")}
                 rows={3}
               />
             </div>

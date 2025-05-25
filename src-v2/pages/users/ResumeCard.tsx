@@ -19,6 +19,7 @@ import {
   PictureAsPdf as PdfIcon,
 } from "@mui/icons-material";
 import { Resume } from "../../types";
+import { useTranslation } from "react-i18next";
 
 // Common card dimensions
 const CARD_HEIGHT = 400;
@@ -33,6 +34,7 @@ interface ResumeCardProps {
 }
 
 export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -111,7 +113,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
                       color="text.secondary"
                       align="center"
                     >
-                      PDF Preview Unavailable
+                      {t("resumeCard.pdfPreviewUnavailable")}
                     </Typography>
                   </Box>
                 </object>
@@ -136,7 +138,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
                   <PdfIcon fontSize="large" />
                 </Avatar>
                 <Typography variant="body2" align="center">
-                  {resume.title || "PDF Resume"}
+                  {resume.title || t("resumeCard.pdfResume")}
                 </Typography>
               </Box>
             )}
@@ -145,7 +147,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
           {/* File Type Chip */}
           <Box display="flex" justifyContent="center" mb={2}>
             <Chip
-              label="PDF Resume"
+              label={t("resumeCard.pdfResume")}
               color="secondary"
               variant="outlined"
               size="small"
@@ -188,10 +190,10 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
                 <DescriptionIcon sx={{ fontSize: 32 }} />
               </Avatar>
               <Typography variant="h6" color="inherit">
-                Resume Builder
+                {t("resumeCard.resumeBuilder")}
               </Typography>
               <Typography variant="caption" color="inherit">
-                Generated Template
+                {t("resumeCard.generatedTemplate")}
               </Typography>
             </Box>
           </Box>
@@ -199,7 +201,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
           {/* Generated Type Chip */}
           <Box display="flex" justifyContent="center" mb={2}>
             <Chip
-              label="Builder Generated"
+              label={t("resumeCard.builderGenerated")}
               color="primary"
               variant="filled"
               size="small"
@@ -251,7 +253,11 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
         <IconButton
           size="small"
           color={resume.isDefault ? "primary" : "default"}
-          title={resume.isDefault ? "Default resume" : "Set as default"}
+          title={
+            resume.isDefault
+              ? t("resumeCard.defaultResume")
+              : t("resumeCard.setAsDefault")
+          }
           sx={{
             animation: resume.isDefault ? "pulse 2s infinite" : "none",
             "@keyframes pulse": {
@@ -275,7 +281,8 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
         mb={2}
         textAlign="center"
       >
-        Created: {new Date(resume.createdAt as string).toLocaleDateString()}
+        {t("resumeCard.created")}:{" "}
+        {new Date(resume.createdAt as string).toLocaleDateString()}
       </Typography>
 
       {/* Action Buttons */}
@@ -292,7 +299,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
             size="small"
             color="primary"
             onClick={() => handleEdit(resume._id.toString())}
-            title="Edit resume"
+            title={t("resumeCard.editResume")}
             sx={{
               "&:hover": {
                 backgroundColor: "primary.light",
@@ -305,7 +312,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
           <IconButton
             size="small"
             color="error"
-            title="Delete resume"
+            title={t("resumeCard.deleteResume")}
             onClick={() => onDelete?.(resume._id.toString(), resume.title)}
             sx={{
               "&:hover": {
@@ -320,7 +327,7 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
         <IconButton
           size="small"
           color="primary"
-          title="Download as PDF"
+          title={t("resumeCard.downloadAsPdf")}
           onClick={handleDownload}
           disabled={resume.type !== "uploaded"}
           sx={{

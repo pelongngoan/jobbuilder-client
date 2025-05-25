@@ -6,15 +6,19 @@ import { getImageUrl } from "./CompanyCard";
 import { useSaveJob } from "../../hooks/useSaveJob";
 import { useAppDispatch } from "../../redux/store";
 import { setCurrentJob } from "../../redux/slices/jobsSlice";
+import { useTranslation } from "react-i18next";
+
 export default function JobCard({ job }: { job: JobPost }) {
+  const { t } = useTranslation();
   const { savedJobs, saveJob, deleteSavedJob } = useSaveJob();
   const dispatch = useAppDispatch();
   const [isSaved, setIsSaved] = useState(
     savedJobs.some((item) => item.jobId._id == job._id)
   );
+
   // Format salary range
   const formatSalary = () => {
-    if (!job.salaryFrom && !job.salaryTo) return "Thỏa thuận";
+    if (!job.salaryFrom && !job.salaryTo) return t("jobCard.negotiable");
 
     const currency = job.salaryCurrency || "";
     const from = job.salaryFrom
@@ -29,9 +33,9 @@ export default function JobCard({ job }: { job: JobPost }) {
       : "";
 
     if (from && to) return `${from} - ${to} ${currency}`;
-    if (from) return `Từ ${from} ${currency}`;
-    if (to) return `Lên đến ${to} ${currency}`;
-    return "Thỏa thuận";
+    if (from) return `${t("jobCard.from")} ${from} ${currency}`;
+    if (to) return `${t("jobCard.upTo")} ${to} ${currency}`;
+    return t("jobCard.negotiable");
   };
 
   // Format deadline
@@ -43,10 +47,12 @@ export default function JobCard({ job }: { job: JobPost }) {
     const diffTime = deadline.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return "Đã hết hạn";
-    if (diffDays === 0) return "Hết hạn hôm nay";
-    if (diffDays === 1) return "Hết hạn ngày mai";
-    return `Còn ${diffDays} ngày`;
+    if (diffDays < 0) return t("jobCard.expired");
+    if (diffDays === 0) return t("jobCard.expiresToday");
+    if (diffDays === 1) return t("jobCard.expiresTomorrow");
+    return `${t("jobCard.expiresIn")} ${diffDays} ${t(
+      "jobCard.expiresInDays"
+    )}`;
   };
 
   // Get badge color class based on job type
@@ -67,6 +73,12 @@ export default function JobCard({ job }: { job: JobPost }) {
     }
   };
 
+  // Get translated job type
+  const getJobTypeText = () => {
+    if (!job.jobType) return t("jobCard.typeUnknown");
+    return t(`jobTypes.${job.jobType}`) || job.jobType.replace("-", " ");
+  };
+
   const toggleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (isSaved) {
@@ -76,6 +88,7 @@ export default function JobCard({ job }: { job: JobPost }) {
     }
     setIsSaved(!isSaved);
   };
+
   const navigate = useNavigate();
 
   const handleViewDetails = () => {
@@ -114,12 +127,12 @@ export default function JobCard({ job }: { job: JobPost }) {
                 )}
               </div>
               <p className="text-sm text-gray-600 font-medium mb-1">
-                {job.companyId?.companyName || "Công ty chưa xác định"}
+                {job.companyId?.companyName || t("jobCard.companyUnknown")}
               </p>
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center">
                   <MapPin size={14} className="mr-1" />
-                  <span>{job.location || "Chưa xác định"}</span>
+                  <span>{job.location || t("jobCard.locationUnknown")}</span>
                 </div>
                 <div className="font-medium text-green-600">
                   {formatSalary()}
@@ -130,7 +143,7 @@ export default function JobCard({ job }: { job: JobPost }) {
           <button
             className="text-gray-300 hover:text-green-500 focus:outline-none flex-shrink-0 ml-2 p-1"
             onClick={toggleSave}
-            aria-label={isSaved ? "Bỏ lưu" : "Lưu việc làm"}
+            aria-label={isSaved ? t("jobCard.unsaveJob") : t("jobCard.saveJob")}
           >
             <Star
               size={20}
@@ -145,7 +158,7 @@ export default function JobCard({ job }: { job: JobPost }) {
           <span
             className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getJobTypeBadgeClass()}`}
           >
-            {job.jobType?.replace("-", " ") || "Không xác định"}
+            {getJobTypeText()}
           </span>
 
           {job.experienceLevel && (
@@ -183,12 +196,14 @@ export default function JobCard({ job }: { job: JobPost }) {
               <span className="font-medium text-gray-700">
                 {job.applicationCount || 0}
               </span>{" "}
-              ứng viên
+              {(job.applicationCount || 0) === 1
+                ? t("jobCard.applicant")
+                : t("jobCard.applicants")}
             </div>
           </div>
 
           <div className="text-green-600 flex items-center text-sm font-medium group-hover:text-green-700 transition-colors">
-            Xem chi tiết
+            {t("common.viewDetails")}
             <ChevronRight size={14} className="ml-1" />
           </div>
         </div>

@@ -88,7 +88,6 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
     name: "Job Categories",
   },
   { id: "applications", path: "/admin/applications", name: "All Applications" },
-  { id: "settings", path: "/admin/settings", name: "System Settings" },
 ];
 
 // Mobile menu items with categories

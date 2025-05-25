@@ -8,6 +8,7 @@ interface AuthResponse {
   token?: string;
   id?: string;
   useProfileId?: string;
+  companyProfileId?: string;
   role?: "user" | "admin" | "staff" | "company";
 }
 export interface MessageResponse {

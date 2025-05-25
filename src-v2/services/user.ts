@@ -1,4 +1,5 @@
-import { UserProfile } from "../types";
+import { User, UserProfile } from "../types";
+import { ApiResponse, CUDResponse } from "../types/common.types";
 import apiClient from "./api";
 
 const userService = {
@@ -32,6 +33,45 @@ const userService = {
   },
   removeApplication: async (jobId: string) => {
     const response = await apiClient.delete(`/users/jobs/${jobId}/remove`);
+    return response.data;
+  },
+  getUsers: async (page?: number, limit?: number) => {
+    const response = await apiClient.get(`/users`, {
+      params: {
+        page,
+        limit,
+      },
+    });
+    return response.data;
+  },
+  searchUsers: async (query: string, page?: number, limit?: number) => {
+    const params = new URLSearchParams();
+    params.append("q", query);
+    if (page) params.append("page", page.toString());
+    if (limit) params.append("limit", limit.toString());
+    const response = await apiClient.get(`/users/search?${params.toString()}`);
+    return response.data;
+  },
+  createUser: async (data: User) => {
+    const response = await apiClient.post("/users", data);
+    return response.data;
+  },
+  deleteUser: async (id: string) => {
+    const response = await apiClient.delete(`/users/${id}`);
+    return response.data;
+  },
+  importUser: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post<ApiResponse<CUDResponse>>(
+      `/users/import`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   },
 };

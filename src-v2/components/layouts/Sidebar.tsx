@@ -129,12 +129,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: <CategoriesIcon />,
           visible: true,
         },
-        {
-          to: "/manager/settings",
-          label: "Settings",
-          icon: <SettingsIcon />,
-          visible: true,
-        },
       ],
     },
   ];

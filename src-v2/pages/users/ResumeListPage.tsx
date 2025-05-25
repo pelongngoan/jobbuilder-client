@@ -26,8 +26,10 @@ import {
 import { useResume } from "../../hooks/useResume";
 import { useNavigate } from "react-router-dom";
 import { ResumeCard } from "./ResumeCard";
+import { useTranslation } from "react-i18next";
 
 export const ResumeListPage = () => {
+  const { t } = useTranslation();
   const { resumes, fetchResumes, uploadResumeFile, deleteResume } = useResume();
   const navigate = useNavigate();
 
@@ -73,7 +75,7 @@ export const ResumeListPage = () => {
       if (file.type !== "application/pdf") {
         setSnackbar({
           open: true,
-          message: "Only PDF files are allowed",
+          message: t("resumeList.onlyPdfAllowed"),
           severity: "error",
         });
         return;
@@ -97,7 +99,7 @@ export const ResumeListPage = () => {
         await uploadResumeFile(titleDialog.file, titleDialog.title.trim());
         setSnackbar({
           open: true,
-          message: "Resume uploaded successfully!",
+          message: t("resumeList.resumeUploadedSuccess"),
           severity: "success",
         });
         await fetchResumes(); // Refresh the list
@@ -106,9 +108,7 @@ export const ResumeListPage = () => {
         setSnackbar({
           open: true,
           message:
-            err instanceof Error
-              ? err.message
-              : "Failed to upload resume. Please try again.",
+            err instanceof Error ? err.message : t("resumeList.uploadFailed"),
           severity: "error",
         });
       } finally {
@@ -125,7 +125,7 @@ export const ResumeListPage = () => {
         await deleteResume(confirmDelete.id);
         setSnackbar({
           open: true,
-          message: "Resume deleted successfully!",
+          message: t("resumeList.resumeDeletedSuccess"),
           severity: "success",
         });
         await fetchResumes(); // Refresh the list
@@ -134,9 +134,7 @@ export const ResumeListPage = () => {
         setSnackbar({
           open: true,
           message:
-            err instanceof Error
-              ? err.message
-              : "Failed to delete resume. Please try again.",
+            err instanceof Error ? err.message : t("resumeList.deleteFailed"),
           severity: "error",
         });
       } finally {
@@ -152,7 +150,7 @@ export const ResumeListPage = () => {
       await fetchResumes();
       setSnackbar({
         open: true,
-        message: "Resumes refreshed!",
+        message: t("resumeList.resumesRefreshed"),
         severity: "info",
       });
     } finally {
@@ -187,10 +185,10 @@ export const ResumeListPage = () => {
       >
         <Box>
           <Typography variant="h4" component="h1" gutterBottom>
-            My Resumes
+            {t("resumeList.title")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Manage your resumes and create new ones
+            {t("resumeList.subtitle")}
           </Typography>
         </Box>
 
@@ -210,7 +208,7 @@ export const ResumeListPage = () => {
             disabled={loading}
             size="small"
           >
-            Refresh
+            {t("resumeList.refresh")}
           </Button>
 
           <Button
@@ -219,7 +217,7 @@ export const ResumeListPage = () => {
             onClick={handleUpload}
             disabled={uploadLoading}
           >
-            Upload PDF Resume
+            {t("resumeList.uploadPdfResume")}
           </Button>
 
           <Button
@@ -227,7 +225,7 @@ export const ResumeListPage = () => {
             startIcon={<AddIcon />}
             onClick={handleCreateNew}
           >
-            Create New
+            {t("resumeList.createNew")}
           </Button>
         </Box>
       </Box>
@@ -237,25 +235,27 @@ export const ResumeListPage = () => {
         <Box mb={3}>
           <Box display="flex" alignItems="center" gap={2} mb={2}>
             <FilterIcon color="action" />
-            <Typography variant="subtitle1">Filter by type:</Typography>
+            <Typography variant="subtitle1">
+              {t("resumeList.filterByType")}
+            </Typography>
           </Box>
           <Box display="flex" gap={1}>
             <Chip
-              label={`All (${counts.all})`}
+              label={`${t("resumeList.all")} (${counts.all})`}
               variant={filter === "all" ? "filled" : "outlined"}
               color={filter === "all" ? "primary" : "default"}
               onClick={() => setFilter("all")}
               clickable
             />
             <Chip
-              label={`Generated (${counts.generated})`}
+              label={`${t("resumeList.generated")} (${counts.generated})`}
               variant={filter === "generated" ? "filled" : "outlined"}
               color={filter === "generated" ? "primary" : "default"}
               onClick={() => setFilter("generated")}
               clickable
             />
             <Chip
-              label={`Uploaded (${counts.uploaded})`}
+              label={`${t("resumeList.uploaded")} (${counts.uploaded})`}
               variant={filter === "uploaded" ? "filled" : "outlined"}
               color={filter === "uploaded" ? "secondary" : "default"}
               onClick={() => setFilter("uploaded")}
@@ -283,11 +283,10 @@ export const ResumeListPage = () => {
             }}
           >
             <Typography variant="h5" gutterBottom color="primary">
-              Welcome to Resume Manager
+              {t("resumeList.welcomeTitle")}
             </Typography>
             <Typography color="text.secondary" mb={4} variant="body1">
-              You don't have any resumes yet. Get started by creating a new
-              resume from scratch or uploading an existing one.
+              {t("resumeList.welcomeDescription")}
             </Typography>
             <Box display="flex" justifyContent="center" gap={2}>
               <Button
@@ -296,7 +295,7 @@ export const ResumeListPage = () => {
                 onClick={handleUpload}
                 size="large"
               >
-                Upload PDF Resume
+                {t("resumeList.uploadPdfResume")}
               </Button>
               <Button
                 variant="contained"
@@ -304,7 +303,7 @@ export const ResumeListPage = () => {
                 onClick={handleCreateNew}
                 size="large"
               >
-                Create New Resume
+                {t("resumeList.createNewResume")}
               </Button>
             </Box>
           </Card>
@@ -331,13 +330,13 @@ export const ResumeListPage = () => {
       {!loading && resumes.length > 0 && filteredResumes.length === 0 && (
         <Card sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h6" gutterBottom>
-            No {filter} resumes found
+            {t("resumeList.noResumesFound", { type: filter })}
           </Typography>
           <Typography color="text.secondary" mb={3}>
-            Try changing the filter or create a new resume.
+            {t("resumeList.tryChangingFilter")}
           </Typography>
           <Button variant="outlined" onClick={() => setFilter("all")}>
-            Show All Resumes
+            {t("resumeList.showAllResumes")}
           </Button>
         </Card>
       )}
@@ -349,22 +348,25 @@ export const ResumeListPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Delete Resume</DialogTitle>
+        <DialogTitle>{t("resumeList.deleteResume")}</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete "{confirmDelete?.title}"? This
-            action cannot be undone.
+            {t("resumeList.deleteConfirmation", {
+              title: confirmDelete?.title,
+            })}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDelete(null)}>Cancel</Button>
+          <Button onClick={() => setConfirmDelete(null)}>
+            {t("common.cancel")}
+          </Button>
           <Button
             onClick={handleDeleteConfirm}
             color="error"
             variant="contained"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={20} /> : "Delete"}
+            {loading ? <CircularProgress size={20} /> : t("common.delete")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -378,19 +380,21 @@ export const ResumeListPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Resume Title</DialogTitle>
+        <DialogTitle>{t("resumeList.resumeTitle")}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Enter a title for your resume"
+            label={t("resumeList.enterResumeTitle")}
             fullWidth
             value={titleDialog.title}
             onChange={(e) =>
               setTitleDialog({ ...titleDialog, title: e.target.value })
             }
             disabled={uploadLoading}
-            helperText={`File: ${titleDialog.file?.name || ""}`}
+            helperText={`${t("resumeList.file")}: ${
+              titleDialog.file?.name || ""
+            }`}
           />
         </DialogContent>
         <DialogActions>
@@ -398,7 +402,7 @@ export const ResumeListPage = () => {
             onClick={() => setTitleDialog({ ...titleDialog, open: false })}
             disabled={uploadLoading}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleConfirmUpload}
@@ -406,7 +410,11 @@ export const ResumeListPage = () => {
             variant="contained"
             disabled={!titleDialog.title.trim() || uploadLoading}
           >
-            {uploadLoading ? <CircularProgress size={20} /> : "Upload"}
+            {uploadLoading ? (
+              <CircularProgress size={20} />
+            ) : (
+              t("common.upload")
+            )}
           </Button>
         </DialogActions>
       </Dialog>

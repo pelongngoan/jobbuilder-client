@@ -4,8 +4,10 @@ import { JobSearchHero } from "../../components/user/JobSearchHero";
 import { useJobs } from "../../hooks/useJobs";
 import { useEffect } from "react";
 import JobCard from "./JobCard";
+import { useTranslation } from "react-i18next";
 
 export const HomePage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { jobs, getFeaturedJobs } = useJobs();
 
@@ -18,10 +20,6 @@ export const HomePage = () => {
     if (query) searchParams.append("q", query);
     if (location) searchParams.append("location", location);
     navigate(`/user/jobs/search?${searchParams.toString()}`);
-  };
-
-  const handleJobClick = (jobId: string) => {
-    navigate(`/user/jobs/${jobId}`);
   };
 
   // Location filter data
@@ -46,7 +44,7 @@ export const HomePage = () => {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-xl font-bold text-gray-900">
-                Việc làm tốt nhất
+                {t("homepage.bestJobs")}
               </h2>
               <div className="flex items-center gap-2">
                 <img
@@ -55,7 +53,7 @@ export const HomePage = () => {
                   className="w-6 h-6"
                 />
                 <span className="text-sm font-medium text-gray-600">
-                  Được xuất bởi TOPPY AI
+                  {t("homepage.poweredByAI")}
                 </span>
               </div>
             </div>
@@ -74,9 +72,9 @@ export const HomePage = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Lọc theo:</span>
+                <span>{t("homepage.filterBy")}</span>
                 <select className="bg-transparent border-none text-gray-700 font-medium">
-                  <option>Địa điểm</option>
+                  <option>{t("homepage.location")}</option>
                 </select>
               </div>
 
@@ -98,7 +96,7 @@ export const HomePage = () => {
           </div>
 
           <button className="text-green-600 font-medium text-sm hover:text-green-700 flex items-center gap-1">
-            Xem tất cả
+            {t("common.viewAll")}
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -126,8 +124,8 @@ export const HomePage = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm text-blue-800">
-              <strong>Gợi ý:</strong> Di chuột vào tiêu đề việc làm dễ xem thêm
-              thông tin chi tiết
+              <strong>{t("homepage.suggestion")}</strong>{" "}
+              {t("homepage.hoverTooltip")}
             </p>
           </div>
           <button className="text-blue-400 hover:text-blue-600">
@@ -144,7 +142,7 @@ export const HomePage = () => {
         {/* Job Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {jobs.map((job) => (
-            <JobCard key={job._id} job={job} onClick={handleJobClick} />
+            <JobCard key={job._id} job={job} />
           ))}
         </div>
 
@@ -167,11 +165,9 @@ export const HomePage = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Chưa có việc làm nào
+              {t("homepage.noJobsTitle")}
             </h3>
-            <p className="text-gray-500">
-              Hãy quay lại sau để xem các cơ hội việc làm mới.
-            </p>
+            <p className="text-gray-500">{t("homepage.noJobsDescription")}</p>
           </div>
         )}
       </Container>
