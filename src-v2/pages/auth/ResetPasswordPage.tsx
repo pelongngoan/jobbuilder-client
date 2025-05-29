@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button, Input, Card } from "../../components/common";
 import { useAuth } from "../../hooks/useAuth";
 
 const ResetPasswordPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   // Extract token from URL
   const token = location.pathname.split("/").pop() || "";
 
@@ -38,15 +40,15 @@ const ResetPasswordPage: React.FC = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.password) {
-      errors.password = "Password is required";
+      errors.password = t("auth.resetPassword.passwordRequired");
     } else if (formData.password.length < 8) {
-      errors.password = "Password must be at least 8 characters";
+      errors.password = t("auth.resetPassword.passwordTooShort");
     }
 
     if (!formData.confirmPassword) {
-      errors.confirmPassword = "Please confirm your password";
+      errors.confirmPassword = t("auth.resetPassword.confirmPasswordRequired");
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Passwords don't match";
+      errors.confirmPassword = t("auth.resetPassword.passwordMismatch");
     }
 
     setValidationErrors(errors);
@@ -83,9 +85,9 @@ const ResetPasswordPage: React.FC = () => {
         <Card className="p-8 shadow-xl border-0 rounded-xl">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Reset Password
+              {t("auth.resetPassword.title")}
             </h1>
-            <p className="text-gray-600">Create a new secure password.</p>
+            <p className="text-gray-600">{t("auth.resetPassword.subtitle")}</p>
           </div>
 
           {isSuccess ? (
@@ -106,8 +108,7 @@ const ResetPasswordPage: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-green-800">
-                    Your password has been reset successfully. Redirecting to
-                    login...
+                    {t("auth.resetPassword.successMessage")}
                   </p>
                 </div>
               </div>
@@ -115,13 +116,13 @@ const ResetPasswordPage: React.FC = () => {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <Input
-                label="New Password"
+                label={t("auth.resetPassword.newPasswordLabel")}
                 name="password"
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
-                hint="Must be at least 8 characters"
+                placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
+                hint={t("auth.resetPassword.passwordHint")}
                 fullWidth
                 error={validationErrors.password}
                 autoComplete="new-password"
@@ -142,12 +143,12 @@ const ResetPasswordPage: React.FC = () => {
               />
 
               <Input
-                label="Confirm Password"
+                label={t("auth.resetPassword.confirmPasswordLabel")}
                 name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder={t("auth.resetPassword.confirmPasswordPlaceholder")}
                 fullWidth
                 error={validationErrors.confirmPassword}
                 autoComplete="new-password"
@@ -168,19 +169,19 @@ const ResetPasswordPage: React.FC = () => {
               />
 
               <Button type="submit" variant="primary" fullWidth>
-                Reset Password
+                {t("auth.resetPassword.resetPassword")}
               </Button>
             </form>
           )}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Remembered your password?{" "}
+              {t("auth.resetPassword.rememberedPassword")}{" "}
               <Link
                 to="/user/login"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Back to login
+                {t("auth.resetPassword.backToLogin")}
               </Link>
             </p>
           </div>

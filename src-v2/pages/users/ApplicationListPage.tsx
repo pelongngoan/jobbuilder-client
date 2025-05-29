@@ -35,7 +35,8 @@ import { Resume } from "../../types/resume.types";
 import { CompanyProfile } from "../../types/company.types";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
+import { setCurrentJob } from "../../redux/slices/jobsSlice";
+import { useAppDispatch } from "../../redux/store";
 // Status color mapping
 const getStatusColor = (status: ApplicationStatus) => {
   switch (status) {
@@ -280,6 +281,7 @@ const ApplicationCard = ({
 
 export const ApplicationListPage = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const { applications, getUserApplications, deleteApplication } =
     useApplication();
   const [loading, setLoading] = useState(true);
@@ -325,6 +327,7 @@ export const ApplicationListPage = () => {
   const handleView = (application: Application) => {
     const job = application.jobId as JobPost;
     if (job?._id) {
+      dispatch(setCurrentJob(job));
       navigate(`/user/jobs/${job._id}`);
     }
   };

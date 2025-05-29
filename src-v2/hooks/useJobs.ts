@@ -3,27 +3,24 @@ import { JobPost } from "../types/job.types";
 import { useAppSelector } from "../redux/store";
 import { useAppDispatch } from "../redux/store";
 import { jobService } from "../services";
-import { setToast } from "../redux/slices/toastSlice";
 import { setCurrentJob, setJobs } from "../redux/slices/jobsSlice";
 import { setTotalPages } from "../redux/slices/paginationSlice";
+import toast from "react-hot-toast";
 export const useJobs = () => {
   const dispatch = useAppDispatch();
   const { jobs, currentJob } = useAppSelector((state) => state.jobs);
-  const createJob = useCallback(
-    async (jobData: JobPost) => {
-      const response = await jobService.createJob(jobData);
-      if (response.success) {
-        dispatch(setToast({ message: response.message, type: "success" }));
-      }
-    },
-    [dispatch]
-  );
+  const createJob = useCallback(async (jobData: JobPost) => {
+    const response = await jobService.createJob(jobData);
+    if (response.success) {
+      toast.success("Job created successfully");
+    }
+  }, []);
 
   const updateJob = useCallback(
     async (jobId: string, jobData: Partial<JobPost>) => {
       const response = await jobService.updateJob(jobId, jobData);
       if (response.success) {
-        dispatch(setToast({ message: response.message, type: "success" }));
+        toast.success("Job updated successfully");
         // Refresh the current job if it's the one being updated
         if (currentJob?._id === jobId) {
           dispatch(setCurrentJob({ ...currentJob, ...jobData }));
@@ -57,10 +54,10 @@ export const useJobs = () => {
     async (file: File, companyId: string) => {
       const response = await jobService.importJobsFromCSV(file, companyId);
       if (response.success) {
-        dispatch(setToast({ message: response.message, type: "success" }));
+        toast.success("Jobs imported successfully");
       }
     },
-    [dispatch]
+    []
   );
   const getFeaturedJobs = useCallback(async () => {
     const response = await jobService.getFeaturedJobs();
@@ -87,32 +84,51 @@ export const useJobs = () => {
     },
     [dispatch]
   );
-  const deleteJob = useCallback(
-    async (jobId: string) => {
-      const response = await jobService.deleteJob(jobId);
-      if (response.success) {
-        dispatch(setToast({ message: response.message, type: "success" }));
-      }
-    },
-    [dispatch]
-  );
+  const deleteJob = useCallback(async (jobId: string) => {
+    const response = await jobService.deleteJob(jobId);
+    if (response.success) {
+      toast.success("Job deleted successfully");
+    }
+  }, []);
   const searchJobs = useCallback(
-    async (
-      name: string,
-      location: string,
-      category: string,
-      page: number,
-      limit: number
-    ) => {
-      const response = await jobService.searchJobs(
-        name,
+    async ({
+      title,
+      location,
+      category,
+      jobType,
+      experienceLevel,
+      salaryFrom,
+      salaryTo,
+      currency,
+      page,
+      limit,
+    }: {
+      title?: string;
+      location?: string;
+      category?: string;
+      jobType?: string;
+      experienceLevel?: string;
+      salaryFrom?: number;
+      salaryTo?: number;
+      currency?: string;
+      page?: number;
+      limit?: number;
+    }) => {
+      const response = await jobService.searchJobs({
+        title,
         location,
         category,
+        jobType,
+        experienceLevel,
+        salaryFrom,
+        salaryTo,
+        currency,
         page,
-        limit
-      );
+        limit,
+      });
       if (response.success && response.data) {
         dispatch(setJobs(response.data));
+        dispatch(setTotalPages(response.pagination?.pages || 0));
       }
     },
     [dispatch]

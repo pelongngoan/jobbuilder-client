@@ -4,7 +4,8 @@ import { Input } from "../../components/common";
 import { Switch } from "@mui/material";
 import { useStaff } from "../../hooks/useStaff";
 import { clearCurrentStaff } from "../../redux/slices/staffSlice";
-import { useAppDispatch } from "../../redux/store";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
+import { Profile } from "../../types/profile.types";
 interface StaffFormProps {
   status: "add" | "edit";
   isOpen: boolean;
@@ -13,7 +14,8 @@ interface StaffFormProps {
 
 export const StaffForm = ({ isOpen, onClose, status }: StaffFormProps) => {
   const dispatch = useAppDispatch();
-  const { currentStaff, updateStaff, createStaff } = useStaff();
+  const { currentStaff, updateStaff, createStaff, getStaffs } = useStaff();
+  const { page, limit } = useAppSelector((state) => state.pagination);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -24,8 +26,8 @@ export const StaffForm = ({ isOpen, onClose, status }: StaffFormProps) => {
   useEffect(() => {
     if (currentStaff) {
       setFormData({
-        firstName: currentStaff?.profile?.firstName || "",
-        lastName: currentStaff?.profile?.lastName || "",
+        firstName: (currentStaff?.profile as Profile)?.firstName || "",
+        lastName: (currentStaff?.profile as Profile)?.lastName || "",
         active: currentStaff?.active || false,
         password: "",
         role: currentStaff?.role || "",
@@ -45,7 +47,9 @@ export const StaffForm = ({ isOpen, onClose, status }: StaffFormProps) => {
     if (status === "add") {
       createStaff(formData);
     } else if (status === "edit") {
-      updateStaff(currentStaff?._id as string, formData);
+      updateStaff(currentStaff?._id as string, formData).then(() => {
+        getStaffs(page, limit);
+      });
     }
     dispatch(clearCurrentStaff());
     onClose();

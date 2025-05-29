@@ -15,6 +15,7 @@ import staffReducer from "./slices/staffSlice";
 import categoryReducer from "./slices/categorySlice";
 import paginationReducer from "./slices/paginationSlice";
 import saveJobReducer from "./slices/saveJobSlice";
+import chatReducer from "./slices/chatSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -28,6 +29,7 @@ export const store = configureStore({
     toast: toastReducer,
     profile: profileReducer,
     company: companyReducer,
+    chat: chatReducer,
     saveJob: saveJobReducer,
     pagination: paginationReducer,
   },

@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button, Input, Card } from "../../components/common";
 import { useAuth } from "../../hooks/useAuth";
+
 interface ForgotPasswordPageProps {
   variant: "user" | "manager";
 }
+
 const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
   const auth = useAuth();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -14,10 +18,10 @@ const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
 
   const validateForm = (): boolean => {
     if (!email.trim()) {
-      setError("Email is required");
+      setError(t("auth.forgotPassword.emailRequired"));
       return false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address");
+      setError(t("auth.forgotPassword.invalidEmail"));
       return false;
     }
 
@@ -47,12 +51,9 @@ const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
         <Card className="p-8 shadow-xl border-0 rounded-xl">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Forgot Password
+              {t("auth.forgotPassword.title")}
             </h1>
-            <p className="text-gray-600">
-              Enter your email address and we'll send you a link to reset your
-              password
-            </p>
+            <p className="text-gray-600">{t("auth.forgotPassword.subtitle")}</p>
           </div>
 
           {isSuccess ? (
@@ -73,7 +74,7 @@ const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-green-800">
-                    A password reset link has been sent to your email address.
+                    {t("auth.forgotPassword.successTitle")}
                   </p>
                 </div>
               </div>
@@ -87,7 +88,7 @@ const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
               )}
 
               <Input
-                label="Email Address"
+                label={t("auth.forgotPassword.emailLabel")}
                 name="email"
                 type="email"
                 value={email}
@@ -95,7 +96,7 @@ const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
                   setEmail(e.target.value);
                   if (error) setError("");
                 }}
-                placeholder="name@example.com"
+                placeholder={t("auth.forgotPassword.emailPlaceholder")}
                 fullWidth
                 error={error}
                 autoComplete="email"
@@ -113,19 +114,19 @@ const ForgotPasswordPage = ({ variant }: ForgotPasswordPageProps) => {
               />
 
               <Button type="submit" variant="primary" fullWidth>
-                Send Reset Link
+                {t("auth.forgotPassword.sendResetLink")}
               </Button>
             </form>
           )}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Remembered your password?{" "}
+              {t("auth.forgotPassword.rememberedPassword")}{" "}
               <Link
                 to={variant === "user" ? "/user/login" : "/manager/login"}
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Back to login
+                {t("auth.forgotPassword.backToLogin")}
               </Link>
             </p>
           </div>

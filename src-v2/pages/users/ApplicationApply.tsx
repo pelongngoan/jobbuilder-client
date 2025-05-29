@@ -4,7 +4,8 @@ import { useApplication } from "../../hooks/useApplication";
 import { useJobs } from "../../hooks/useJobs";
 import { useResume } from "../../hooks/useResume";
 import { useTranslation } from "react-i18next";
-
+import useNotification from "../../hooks/useNotification";
+import { useUser } from "../../hooks/useUser";
 interface ApplicationApplyProps {
   isOpen: boolean;
   onClose: () => void;
@@ -80,7 +81,6 @@ export const ApplicationApply = ({
   const { resumes, fetchResumes } = useResume();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   useEffect(() => {
     if (currentJob) {
       fetchResumes();
@@ -94,12 +94,18 @@ export const ApplicationApply = ({
     }
   }, [resumes, selectedId]);
 
+  const { createNotification } = useNotification();
+  const { profile } = useUser();
   const handleApply = async () => {
     if (!selectedId || !currentJob?._id) return;
-
     setIsSubmitting(true);
     try {
       await applyForJob(currentJob._id, selectedId);
+      createNotification({
+        userId: currentJob?.contacterId?._id as string,
+        type: "job_application",
+        content: `${profile?.userId.email} applied for ${currentJob?.title}`,
+      });
       onClose();
     } catch (error) {
       console.error("Failed to apply for job:", error);

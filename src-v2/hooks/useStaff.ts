@@ -34,7 +34,7 @@ export const useStaff = () => {
   };
 
   const getStaffById = async (id: string) => {
-    const response = await staffService.getStaff(id);
+    const response = await staffService.getStaffById(id);
     if (response.success) {
       dispatch(setCurrentStaff(response.data));
     }

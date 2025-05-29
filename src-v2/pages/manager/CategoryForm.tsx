@@ -67,6 +67,11 @@ export const CategoryForm = ({
       }
       getCategories(page, limit);
       dispatch(clearCurrentCategory());
+      setFormData({
+        name: "",
+        description: "",
+        parentCategory: "",
+      });
     } catch (error) {
       console.error("Error saving category:", error);
     }
@@ -107,7 +112,7 @@ export const CategoryForm = ({
               value: category._id as string,
               label: category.name,
             }))}
-          value={formData.parentCategory}
+          value={formData.parentCategory as string}
           onChange={(e) =>
             setFormData({ ...formData, parentCategory: e.target.value })
           }

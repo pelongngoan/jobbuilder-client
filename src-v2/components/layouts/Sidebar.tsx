@@ -5,11 +5,13 @@ import {
   UsersIcon,
   JobsIcon,
   ApplicationsIcon,
-  SettingsIcon,
   CategoriesIcon,
   TeamIcon,
+  LogoutIcon,
 } from "./SidebarIcons";
-
+import useAuth from "../../hooks/useAuth";
+import { logout } from "../../redux/slices/authSlice";
+import { useDispatch } from "react-redux";
 export interface SidebarSection {
   title: string;
   items: SidebarItem[];
@@ -18,8 +20,7 @@ export interface SidebarSection {
 export interface VisibleTo {
   admin: boolean;
   company: boolean;
-  hr: boolean;
-  interviewer: boolean;
+  staff: boolean;
   all: boolean;
 }
 
@@ -37,7 +38,7 @@ interface SidebarProps {
   onToggle: () => void;
   activeColor?: string;
   hoverColor?: string;
-  userRole?: "admin" | "company" | "hr" | "interviewer" | string;
+  userRole?: "admin" | "company" | "staff" | string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -48,6 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   hoverColor = "hover:bg-gray-700",
 }) => {
   const location = useLocation();
+  const { role } = useAuth();
+  const dispatch = useDispatch();
 
   // Check if the current path matches the link
   const isActive = (path: string) => {
@@ -66,12 +69,24 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Dashboard",
           icon: <DashboardIcon />,
           visible: true,
+          visibleTo: {
+            admin: true,
+            company: true,
+            staff: true,
+            all: true,
+          },
         },
         {
           to: "/manager/profile",
           label: "Profile",
           icon: <UsersIcon />,
           visible: true,
+          visibleTo: {
+            admin: false,
+            company: true,
+            staff: true,
+            all: false,
+          },
         },
         {
           to: "/manager/staffs",
@@ -80,8 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           visibleTo: {
             admin: false,
             company: true,
-            hr: false,
-            interviewer: false,
+            staff: false,
             all: false,
           },
           visible: true,
@@ -93,8 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           visibleTo: {
             admin: true,
             company: false,
-            hr: false,
-            interviewer: false,
+            staff: false,
             all: false,
           },
           visible: true,
@@ -109,11 +122,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Jobs",
           icon: <JobsIcon />,
           visibleTo: {
-            admin: true,
+            admin: false,
             company: true,
-            hr: true,
-            interviewer: false,
-            all: true,
+            staff: true,
+            all: false,
           },
           visible: true,
         },
@@ -122,12 +134,48 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Applications",
           icon: <ApplicationsIcon />,
           visible: true,
+          visibleTo: {
+            admin: false,
+            company: true,
+            staff: true,
+            all: false,
+          },
         },
         {
           to: "/manager/categories",
           label: "Categories",
           icon: <CategoriesIcon />,
           visible: true,
+          visibleTo: {
+            admin: true,
+            company: false,
+            staff: false,
+            all: false,
+          },
+        },
+        {
+          to: "/manager/chat",
+          label: "Chat",
+          icon: <CategoriesIcon />,
+          visible: true,
+          visibleTo: {
+            admin: false,
+            company: false,
+            staff: true,
+            all: true,
+          },
+        },
+        {
+          to: "/manager/login",
+          label: "Logout",
+          icon: <LogoutIcon />,
+          visible: true,
+          visibleTo: {
+            admin: true,
+            company: true,
+            staff: true,
+            all: true,
+          },
         },
       ],
     },
@@ -196,11 +244,21 @@ const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Section items */}
               {section.items
-                .filter((item) => item.visible !== false)
+                .filter((item) => {
+                  if (item.visibleTo) {
+                    return item.visibleTo[role as keyof VisibleTo];
+                  }
+                  return true;
+                })
                 .map((item, itemIndex) => (
                   <li key={`item-${sectionIndex}-${itemIndex}`}>
                     <Link
                       to={item.to}
+                      onClick={() => {
+                        if (item.to === "/manager/login") {
+                          dispatch(logout());
+                        }
+                      }}
                       className={`flex items-center px-4 py-3 rounded-md transition-colors ${
                         isActive(item.to) ? activeColor : hoverColor
                       }`}

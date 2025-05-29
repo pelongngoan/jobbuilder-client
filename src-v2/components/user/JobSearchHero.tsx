@@ -133,22 +133,22 @@ export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
           <Button
             variant="primary"
             onClick={handleSearch}
-            sx={{
-              backgroundColor: "#22c55e",
-              color: "white",
-              fontWeight: 600,
-              height: "50px",
-              minWidth: "120px",
-              borderRadius: "8px",
-              fontSize: "16px",
-              boxShadow: "0 2px 8px rgba(34, 197, 94, 0.3)",
-              "&:hover": {
-                backgroundColor: "#16a34a",
-                boxShadow: "0 4px 16px rgba(34, 197, 94, 0.4)",
-                transform: "translateY(-1px)",
-              },
-              transition: "all 0.2s ease",
-            }}
+            // sx={{
+            //   backgroundColor: "#22c55e",
+            //   color: "white",
+            //   fontWeight: 600,
+            //   height: "50px",
+            //   minWidth: "120px",
+            //   borderRadius: "8px",
+            //   fontSize: "16px",
+            //   boxShadow: "0 2px 8px rgba(34, 197, 94, 0.3)",
+            //   "&:hover": {
+            //     backgroundColor: "#16a34a",
+            //     boxShadow: "0 4px 16px rgba(34, 197, 94, 0.4)",
+            //     transform: "translateY(-1px)",
+            //   },
+            //   transition: "all 0.2s ease",
+            // }}
           >
             Tìm kiếm
           </Button>

@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { Button, Input, Confirm } from "../../components/common";
 import { DataTable } from "../../components/common";
-import { User, UserRole } from "../../types";
+import { UserRole } from "../../types";
 import { useUser } from "../../hooks/useUser";
 import { Column } from "../../components/common/DataTable";
 import { UserForm } from "./UserForm";
 import Papa from "papaparse";
 import { useDispatch } from "react-redux";
-import { clearCurrentUser, setCurrentUser } from "../../redux/slices/userSlice";
+import { clearCurrentUser } from "../../redux/slices/userSlice";
 import { useAppSelector } from "../../redux/store";
 import { Pagination } from "@mui/material";
 import { setPage } from "../../redux/slices/paginationSlice";
 import { ImportCsv } from "../../components/common/ImportCsv";
 import { Chip } from "@mui/material";
-
 export const ManageUsers = () => {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,14 +21,24 @@ export const ManageUsers = () => {
   const { page, limit, totalPages } = useAppSelector(
     (state) => state.pagination
   );
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { users, currentUser, getUsers, deleteUser, importUser, searchUsers } =
-    useUser();
+  const {
+    users,
+    currentUser,
+    getUsers,
+    deleteUser,
+    importUser,
+    searchUsers,
+    getUserById,
+  } = useUser();
 
   useEffect(() => {
-    getUsers(page, limit);
+    // getUsers(page, limit);
+    searchUsers(searchQuery, page, limit);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit]);
+  }, [page, limit, searchQuery]);
 
   const handleSubmit = () => {
     getUsers(page, limit);
@@ -40,7 +49,7 @@ export const ManageUsers = () => {
     if (!currentUser?._id) return;
     try {
       await deleteUser(currentUser._id);
-      getUsers(page, limit);
+      searchUsers(searchQuery, page, limit);
       setShowDeleteConfirm(false);
       dispatch(clearCurrentUser());
     } catch (error) {
@@ -65,6 +74,13 @@ export const ManageUsers = () => {
         password: "password123",
         role: "user",
         isVerified: true,
+        firstName: "John",
+        lastName: "Doe",
+        phone: "1234567890",
+        address: "123 Main St, Anytown, USA",
+        companyName: "Company Name",
+        domain: "company.com",
+        website: "https://company.com",
       },
     ];
 
@@ -135,9 +151,7 @@ export const ManageUsers = () => {
               variant="secondary"
               onClick={(e) => {
                 e.stopPropagation();
-                dispatch(
-                  setCurrentUser(users.find((u) => u._id === record) as User)
-                );
+                getUserById(record);
                 setIsModalOpen(true);
               }}
             >
@@ -147,9 +161,7 @@ export const ManageUsers = () => {
               variant="danger"
               onClick={(e) => {
                 e.stopPropagation();
-                dispatch(
-                  setCurrentUser(users.find((u) => u._id === record) as User)
-                );
+                getUserById(record);
                 setShowDeleteConfirm(true);
               }}
             >
@@ -162,14 +174,14 @@ export const ManageUsers = () => {
   ];
 
   return (
-    <>
+    <div className="flex flex-col flex-1 m-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
           <Input
             placeholder="Search users..."
             onChange={(e) => {
               setTimeout(() => {
-                searchUsers(e.target.value, page, limit);
+                setSearchQuery(e.target.value);
               }, 1000);
             }}
           />
@@ -226,6 +238,6 @@ export const ManageUsers = () => {
         title="Delete User"
         message="Are you sure you want to delete this user? This action cannot be undone."
       />
-    </>
+    </div>
   );
 };

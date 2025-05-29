@@ -26,6 +26,8 @@ import { ProfilePage } from "../pages/users/ProfilePage";
 import { ApplicationListPage } from "../pages/users/ApplicationListPage";
 import { SaveJobsPage } from "../pages/users/SaveJobsPage";
 import { JobSearchPage } from "../pages/users/JobSearchPage";
+import ChatPage from "../pages/users/ChatPage";
+import NotificationsPage from "../pages/users/NotificationsPage";
 export const routes = createBrowserRouter([
   {
     path: "/",
@@ -100,6 +102,18 @@ export const routes = createBrowserRouter([
             path: "jobs/search",
             element: <JobSearchPage />,
           },
+          {
+            path: "chat/:chatId",
+            element: <ChatPage />,
+          },
+          {
+            path: "chat",
+            element: <ChatPage />,
+          },
+          {
+            path: "notifications",
+            element: <NotificationsPage />,
+          },
         ],
       },
       {
@@ -150,6 +164,10 @@ export const routes = createBrowserRouter([
           {
             path: "users",
             element: <ManageUsers />,
+          },
+          {
+            path: "chat",
+            element: <ChatPage />,
           },
         ],
       },

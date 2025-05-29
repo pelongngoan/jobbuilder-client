@@ -25,14 +25,14 @@ interface JobFormProps {
   isOpen: boolean;
   onClose: () => void;
   contacterId: string;
-  isCompanyUser: boolean;
+  isCompany: boolean;
 }
 
 interface ValidationErrors {
   [key: string]: string;
 }
 
-const getSteps = (isCompanyUser: boolean) => {
+const getSteps = (isCompany: boolean) => {
   const baseSteps = [
     { title: "Basic Info", description: "Job title, type, and location" },
     { title: "Requirements", description: "Skills and experience needed" },
@@ -40,7 +40,7 @@ const getSteps = (isCompanyUser: boolean) => {
     { title: "Additional", description: "Other important details" },
   ];
 
-  return isCompanyUser
+  return isCompany
     ? [
         {
           title: "Contact & Featured",
@@ -55,9 +55,9 @@ export const JobForm = ({
   isOpen,
   onClose,
   contacterId,
-  isCompanyUser,
+  isCompany,
 }: JobFormProps) => {
-  const STEPS = getSteps(isCompanyUser);
+  const STEPS = getSteps(isCompany);
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const { staffs, getStaffs } = useStaff();
@@ -87,12 +87,13 @@ export const JobForm = ({
     keyResponsibilities: [],
     experienceLevel: "Entry",
     isFeatured: false,
-    category: "" as unknown as ObjectId,
-    contacterId: isCompanyUser
-      ? undefined
-      : (contacterId as unknown as CompanyStaff),
+    category: categories[0],
+    contacterId: isCompany
+      ? (staffs.filter(
+          (staff) => staff.role === "hr"
+        )[0] as unknown as ObjectId)
+      : (contacterId as unknown as ObjectId),
   }));
-
   // Reset form when modal is opened/closed
   useEffect(() => {
     if (isOpen) {
@@ -114,7 +115,7 @@ export const JobForm = ({
           description: "",
           salaryFrom: 0,
           salaryTo: 0,
-          salaryCurrency: "USD",
+          salaryCurrency: "VND",
           benefits: [],
           skills: [],
           status: "draft",
@@ -122,16 +123,17 @@ export const JobForm = ({
           keyResponsibilities: [],
           experienceLevel: "Entry",
           isFeatured: false,
-          category: "" as unknown as ObjectId,
-          contacterId: isCompanyUser
-            ? undefined
-            : (contacterId as unknown as CompanyStaff),
+          category: categories[0]._id,
+          contacterId: isCompany
+            ? (staffs.filter((staff) => staff.role === "hr")[0]
+                ._id as unknown as ObjectId)
+            : (contacterId as unknown as ObjectId),
         });
       }
       setCurrentStep(0);
       setErrors({});
     }
-  }, [isOpen, currentJob, isCompanyUser, contacterId]);
+  }, [isOpen, currentJob, isCompany, contacterId, staffs, categories]);
 
   const handleChange = (
     name: keyof JobPost,
@@ -173,7 +175,7 @@ export const JobForm = ({
   };
 
   const renderStepContent = () => {
-    if (isCompanyUser && currentStep === 0) {
+    if (isCompany && currentStep === 0) {
       return (
         <div className="space-y-4">
           <Select
@@ -230,7 +232,7 @@ export const JobForm = ({
       );
     }
 
-    const adjustedStep = isCompanyUser ? currentStep - 1 : currentStep;
+    const adjustedStep = isCompany ? currentStep - 1 : currentStep;
 
     switch (adjustedStep) {
       case 0:
@@ -359,12 +361,12 @@ export const JobForm = ({
               value={formData.salaryCurrency}
               onChange={(e) => handleChange("salaryCurrency", e.target.value)}
               options={[
+                { value: "VND", label: "VND - Vietnamese Dong" },
                 { value: "USD", label: "USD - US Dollar" },
                 { value: "EUR", label: "EUR - Euro" },
                 { value: "GBP", label: "GBP - British Pound" },
                 { value: "JPY", label: "JPY - Japanese Yen" },
-                { value: "AUD", label: "AUD - Australian Dollar" },
-                { value: "CAD", label: "CAD - Canadian Dollar" },
+                { value: "CNY", label: "CNY - Chinese Yuan" },
               ]}
               fullWidth
             />

@@ -92,17 +92,33 @@ const jobService = {
     );
     return response.data;
   },
-  searchJobs: async (
-    name: string,
-    location: string,
-    category: string,
-    page: number,
-    limit: number
-  ) => {
+  searchJobs: async ({
+    title = "",
+    location = "",
+    category = "",
+    jobType = "",
+    experienceLevel = "",
+    salaryFrom,
+    salaryTo,
+    currency = "",
+    page = 1,
+    limit = 10,
+  }: {
+    title?: string;
+    location?: string;
+    category?: string;
+    jobType?: string;
+    experienceLevel?: string;
+    salaryFrom?: number;
+    salaryTo?: number;
+    currency?: string;
+    page?: number;
+    limit?: number;
+  }) => {
     const response = await apiClient.get<
       ApiResponse<PaginatedResponse<JobPost>>
     >(
-      `/jobs/search?name=${name}&location=${location}&category=${category}&page=${page}&limit=${limit}`
+      `/jobs/search?title=${title}&location=${location}&category=${category}&jobType=${jobType}&experienceLevel=${experienceLevel}&salaryFrom=${salaryFrom}&salaryTo=${salaryTo}&currency=${currency}&page=${page}&limit=${limit}`
     );
     return response.data;
   },

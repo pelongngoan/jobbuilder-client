@@ -5,9 +5,19 @@ import { useCompany } from "../../hooks/useCompany";
 import { Input, Button } from "../../components/common";
 import { Profile } from "../../types/profile.types";
 import { CompanyProfile } from "../../types/company.types";
+import { useProfile } from "../../hooks/useProfile";
+
+// Utility function to get complete image URL
+const getImageUrl = (path: string) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  // Use the backend URL for serving static files
+  return `http://localhost:3000/uploads/${path}`;
+};
 
 export const ManageProfile = () => {
-  const { currentStaff } = useStaff();
+  const { currentStaff, getStaffById } = useStaff();
+  const { updateProfile } = useProfile();
   const { getCompanyByProfile, currentCompany, updateCompanyProfile } =
     useCompany();
   const { id, role } = useAppSelector((state) => state.auth);
@@ -20,12 +30,12 @@ export const ManageProfile = () => {
 
   // Form state for staff profile
   const [formValues, setFormValues] = useState<Profile>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    profilePicture: "",
+    firstName: currentStaff?.profile?.firstName || "",
+    lastName: currentStaff?.profile?.lastName || "",
+    email: currentStaff?.profile?.email || "",
+    phone: currentStaff?.profile?.phone || "",
+    address: currentStaff?.profile?.address || "",
+    profilePicture: currentStaff?.profile?.profilePicture || "",
   });
 
   // Form state for company profile
@@ -43,7 +53,7 @@ export const ManageProfile = () => {
 
   useEffect(() => {
     if (id && role === "staff") {
-      // getStaff(id);
+      getStaffById(id);
     }
     if (id && role === "company") {
       getCompanyByProfile();
@@ -130,6 +140,8 @@ export const ManageProfile = () => {
         if (selectedProfilePicture) {
           formData.append("profilePicture", selectedProfilePicture);
         }
+
+        await updateProfile(id, profileData, selectedProfilePicture);
       } else if (role === "company") {
         const companyData: CompanyProfile = {
           ...companyFormValues,
@@ -152,39 +164,6 @@ export const ManageProfile = () => {
     if (role === "staff") {
       return (
         <>
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Manage Information</h2>
-              {!isEditingInfo ? (
-                <Button
-                  variant="primary"
-                  onClick={() => setIsEditingInfo(true)}
-                >
-                  Edit
-                </Button>
-              ) : (
-                <div className="space-x-2">
-                  <Button onClick={() => setIsEditingInfo(false)}>
-                    Cancel
-                  </Button>
-                  <Button variant="primary" onClick={handleUpdateProfile}>
-                    Save
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="border-b pb-4">
-                <h3 className="font-medium mb-2">Job Posts</h3>
-                {/* Add job posts list here */}
-              </div>
-              <div className="border-b pb-4">
-                <h3 className="font-medium mb-2">Applications</h3>
-                {/* Add applications list here */}
-              </div>
-            </div>
-          </div>
-
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Personal Information</h2>
@@ -294,8 +273,12 @@ export const ManageProfile = () => {
                 <div className="mt-1 flex items-center">
                   {formValues.profilePicture && (
                     <img
-                      src={formValues.profilePicture}
-                      alt="Profile Picture"
+                      src={
+                        selectedProfilePicture
+                          ? URL.createObjectURL(selectedProfilePicture)
+                          : getImageUrl(formValues.profilePicture)
+                      }
+                      alt="Profile"
                       className="h-12 w-12 object-cover rounded-full mr-4"
                     />
                   )}
@@ -477,7 +460,7 @@ export const ManageProfile = () => {
                     src={
                       selectedLogo
                         ? URL.createObjectURL(selectedLogo)
-                        : companyFormValues.logo
+                        : getImageUrl(companyFormValues.logo)
                     }
                     alt="Company Logo"
                     className="h-12 w-12 object-cover rounded-full mr-4"
@@ -508,7 +491,7 @@ export const ManageProfile = () => {
                     src={
                       selectedWallpaper
                         ? URL.createObjectURL(selectedWallpaper)
-                        : companyFormValues.wallPaper
+                        : getImageUrl(companyFormValues.wallPaper)
                     }
                     alt="Company Wallpaper"
                     className="h-24 w-full object-cover rounded-lg mb-4"

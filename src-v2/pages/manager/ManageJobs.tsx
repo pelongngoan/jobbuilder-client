@@ -118,8 +118,6 @@ export const ManageJobs = () => {
   };
 
   const handleImportJobs = async (file: File) => {
-    console.log("file", file);
-    console.log("useProfileId", useProfileId);
     if (!file || !useProfileId) return;
 
     try {
@@ -197,13 +195,17 @@ export const ManageJobs = () => {
   };
 
   return (
-    <>
+    <div className="flex flex-col flex-1 m-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
           <Input
             placeholder="Search"
             onChange={(e) =>
-              searchJobs(e.target.value, page, limit, role, useProfileId)
+              searchJobs({
+                title: e.target.value,
+                page,
+                limit,
+              })
             }
           />
           <Button>Search</Button>
@@ -228,7 +230,7 @@ export const ManageJobs = () => {
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
         contacterId={id as string}
-        isCompanyUser={role === "company"}
+        isCompany={role === "company"}
       />
 
       {/* Import Modal */}
@@ -239,6 +241,6 @@ export const ManageJobs = () => {
         onDownloadTemplate={downloadTemplate}
         title="Jobs"
       />
-    </>
+    </div>
   );
 };

@@ -22,7 +22,7 @@ const staffService = {
     );
     return response.data;
   },
-  getStaff: async (id: string) => {
+  getStaffById: async (id: string) => {
     const response = await apiClient.get<ApiResponse<GetResponse>>(
       `/staffs/${id}`
     );

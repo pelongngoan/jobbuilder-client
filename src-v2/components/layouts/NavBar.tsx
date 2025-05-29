@@ -6,8 +6,8 @@ import { getImageUrl } from "../../pages/users/CompanyCard";
 import { useAppDispatch } from "../../redux/store";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../redux/slices/authSlice";
-import { LanguageSwitcher } from "../common";
 import { useTranslation } from "react-i18next";
+import { Notification, ChatButton } from "../common";
 
 interface NavBarProps {
   variant?: "light" | "dark";
@@ -112,14 +112,18 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
       : "text-gray-200 hover:text-white";
 
   // Get user's first name or username for display
-  const displayName = profile?.firstName || user?.email || "User";
+  const profileData =
+    profile?.profile && typeof profile.profile === "object"
+      ? profile.profile
+      : null;
+  const displayName = profileData?.firstName || user?.email || "User";
 
   // Get user's initials for avatar fallback
   const getInitials = () => {
-    if (profile?.profile && profile?.profile?.firstName) {
-      return `${profile.profile.firstName.charAt(
+    if (profileData?.firstName && profileData?.lastName) {
+      return `${profileData.firstName.charAt(0)}${profileData.lastName.charAt(
         0
-      )}${profile.profile.lastName.charAt(0)}`.toUpperCase();
+      )}`.toUpperCase();
     }
     if (user?.email) {
       return user.email.charAt(0).toUpperCase();
@@ -174,56 +178,15 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                       </div>
                       {categories
                         .filter((category) => category.parentCategory === null)
-                        .map((category) => {
-                          const hasChildren = categories.some(
-                            (subcategory) =>
-                              category._id === subcategory.parentCategory
-                          );
-                          return (
-                            <div
-                              key={category._id}
-                              className="relative group block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span>{category.name}</span>
-                                {hasChildren && (
-                                  <svg
-                                    className="h-4 w-4 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M9 5l7 7-7 7"
-                                    />
-                                  </svg>
-                                )}
-                              </div>
-                              {hasChildren && (
-                                <div className="absolute left-full top-0 w-48 bg-white shadow-lg rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                  {categories
-                                    .filter(
-                                      (subcategory) =>
-                                        category._id ===
-                                        subcategory.parentCategory
-                                    )
-                                    .map((subcategory) => (
-                                      <Link
-                                        key={subcategory._id}
-                                        to={`/user/jobs/category/${subcategory._id}`}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                                      >
-                                        {subcategory.name}
-                                      </Link>
-                                    ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                        .map((category) => (
+                          <Link
+                            key={category._id}
+                            to={`/user/jobs/category/${category._id}`}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {category.name}
+                          </Link>
+                        ))}
                     </div>
                   </div>
                 )}
@@ -279,9 +242,8 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
 
           {/* Right side with user profile */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Language Switcher */}
-            <LanguageSwitcher variant="button" className="mr-2" />
-
+            <Notification />
+            <ChatButton />
             {profile ? (
               <div className="relative" ref={userDropdownRef}>
                 <button
@@ -289,10 +251,10 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
                   className="flex items-center space-x-2 focus:outline-none"
                 >
                   <div className="flex items-center space-x-3">
-                    {profile?.profile?.profilePicture ? (
+                    {profileData?.profilePicture ? (
                       <img
                         src={getImageUrl(
-                          `/uploads/${profile.profile.profilePicture}`
+                          `/uploads/${profileData.profilePicture}`
                         )}
                         alt="Profile"
                         className="h-8 w-8 rounded-full object-cover border border-gray-200"

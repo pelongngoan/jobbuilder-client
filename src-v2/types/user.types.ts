@@ -15,6 +15,13 @@ export interface LoginRequest {
 
 // Register request payload
 export interface RegisterRequest {
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  domain?: string;
+  website?: string;
+  address?: string;
+  phoneNumber?: string;
   email: string;
   password: string;
   role?: UserRole;

@@ -6,18 +6,18 @@ import {
   Container,
   Divider,
   Paper,
-  Step,
-  StepLabel,
-  Stepper,
   Typography,
   TextField,
-  Grid,
   IconButton,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { ArrowBack, Save, Delete, Add as AddIcon } from "@mui/icons-material";
 import { useResume } from "../../hooks/useResume";
 import { Resume } from "../../types";
 import { useTranslation } from "react-i18next";
+import { Theme } from "@mui/material/styles";
+import { SxProps } from "@mui/system";
 
 export const ResumeBuilder = () => {
   const { t } = useTranslation();
@@ -25,8 +25,7 @@ export const ResumeBuilder = () => {
   const navigate = useNavigate();
   const { currentResume, getResumeById, createResume, updateResume } =
     useResume();
-  console.log(currentResume);
-  const [activeStep, setActiveStep] = useState(0);
+
   const [resumeData, setResumeData] = useState<Partial<Resume>>({
     title: currentResume?.title || "",
     type: "generated",
@@ -36,8 +35,6 @@ export const ResumeBuilder = () => {
         email: currentResume?.content?.personalInfo?.email || "",
         phone: currentResume?.content?.personalInfo?.phone || "",
         address: currentResume?.content?.personalInfo?.address || "",
-        linkedin: currentResume?.content?.personalInfo?.linkedin || "",
-        website: currentResume?.content?.personalInfo?.website || "",
       },
       summary: currentResume?.content?.summary || "",
       workExperience: [
@@ -103,15 +100,6 @@ export const ResumeBuilder = () => {
     },
   });
 
-  const steps = [
-    t("resumeBuilder.steps.personalInformation"),
-    t("resumeBuilder.steps.professionalSummary"),
-    t("resumeBuilder.steps.workExperience"),
-    t("resumeBuilder.steps.education"),
-    t("resumeBuilder.steps.skills"),
-    t("resumeBuilder.steps.additionalSections"),
-  ];
-
   useEffect(() => {
     if (resumeId) {
       getResumeById(resumeId);
@@ -123,14 +111,6 @@ export const ResumeBuilder = () => {
       setResumeData(currentResume);
     }
   }, [currentResume, resumeId]);
-
-  const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-  };
-
-  const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
 
   const handleInputChange = (section: keyof ResumeContent, value: string) => {
     setResumeData((prev) => ({
@@ -156,13 +136,7 @@ export const ResumeBuilder = () => {
     ResumeContent[T]
   >[number];
 
-  type PersonalInfoField =
-    | "fullName"
-    | "email"
-    | "phone"
-    | "address"
-    | "linkedin"
-    | "website";
+  type PersonalInfoField = "fullName" | "email" | "phone" | "address";
 
   const handlePersonalInfoChange = (
     field: PersonalInfoField,
@@ -357,167 +331,91 @@ export const ResumeBuilder = () => {
   };
 
   const renderPersonalInfo = () => (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        {t("resumeBuilder.personalInfo.title")}
-      </Typography>
-
-      <Grid container spacing={2}>
-        <Grid
-          sx={{
-            item: {
-              xs: 12,
-            },
-          }}
-        >
-          <TextField
-            label={t("resumeBuilder.personalInfo.fullName")}
-            value={resumeData.content?.personalInfo?.fullName || ""}
-            onChange={(e) =>
-              handlePersonalInfoChange("fullName", e.target.value)
-            }
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid
-          sx={{
-            item: {
-              xs: 12,
-              sm: 6,
-            },
-          }}
-        >
-          <TextField
-            label={t("resumeBuilder.personalInfo.email")}
-            type="email"
-            value={resumeData.content?.personalInfo?.email || ""}
-            onChange={(e) => handlePersonalInfoChange("email", e.target.value)}
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid
-          sx={{
-            item: {
-              xs: 12,
-              sm: 6,
-            },
-          }}
-        >
-          <TextField
-            label={t("resumeBuilder.personalInfo.phone")}
-            value={resumeData.content?.personalInfo?.phone || ""}
-            onChange={(e) => handlePersonalInfoChange("phone", e.target.value)}
-            fullWidth
-          />
-        </Grid>
-        <Grid
-          sx={{
-            item: {
-              xs: 12,
-            },
-          }}
-        >
-          <TextField
-            label={t("resumeBuilder.personalInfo.address")}
-            value={resumeData.content?.personalInfo?.address || ""}
-            onChange={(e) =>
-              handlePersonalInfoChange("address", e.target.value)
-            }
-            fullWidth
-          />
-        </Grid>
-        <Grid
-          sx={{
-            item: {
-              xs: 12,
-              sm: 6,
-            },
-          }}
-        >
-          <TextField
-            label={t("resumeBuilder.personalInfo.linkedin")}
-            value={resumeData.content?.personalInfo?.linkedin || ""}
-            onChange={(e) =>
-              handlePersonalInfoChange("linkedin", e.target.value)
-            }
-            fullWidth
-          />
-        </Grid>
-        <Grid
-          sx={{
-            item: {
-              xs: 12,
-              sm: 6,
-            },
-          }}
-        >
-          <TextField
-            label={t("resumeBuilder.personalInfo.website")}
-            value={resumeData.content?.personalInfo?.website || ""}
-            onChange={(e) =>
-              handlePersonalInfoChange("website", e.target.value)
-            }
-            fullWidth
-          />
-        </Grid>
-      </Grid>
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.fullName")}
+          value={resumeData.content?.personalInfo?.fullName || ""}
+          onChange={(e) => handlePersonalInfoChange("fullName", e.target.value)}
+          fullWidth
+          required
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.email")}
+          type="email"
+          value={resumeData.content?.personalInfo?.email || ""}
+          onChange={(e) => handlePersonalInfoChange("email", e.target.value)}
+          fullWidth
+          required
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.phone")}
+          value={resumeData.content?.personalInfo?.phone || ""}
+          onChange={(e) => handlePersonalInfoChange("phone", e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.address")}
+          value={resumeData.content?.personalInfo?.address || ""}
+          onChange={(e) => handlePersonalInfoChange("address", e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
     </Box>
   );
 
   const renderSummary = () => (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        {t("resumeBuilder.summary.title")}
-      </Typography>
-      <TextField
-        label={t("resumeBuilder.summary.label")}
-        value={resumeData.content?.summary || ""}
-        onChange={(e) => handleInputChange("summary", e.target.value)}
-        fullWidth
-        multiline
-        rows={4}
-      />
-    </Box>
+    <TextField
+      label={t("resumeBuilder.summary.label")}
+      value={resumeData.content?.summary || ""}
+      onChange={(e) => handleInputChange("summary", e.target.value)}
+      fullWidth
+      multiline
+      rows={4}
+      size="small"
+    />
   );
 
   const renderWorkExperience = () => (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Work Experience
-      </Typography>
-
       {resumeData.content?.workExperience?.map((job, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 3 }}>
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             mb={2}
           >
-            <Typography variant="subtitle1">Position {index + 1}</Typography>
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => removeItem("workExperience", index)}
-              disabled={resumeData.content?.workExperience?.length === 1}
-            >
-              <Delete />
-            </IconButton>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {job.position || t("resumeBuilder.workExperience.position")}{" "}
+              {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("workExperience", index)}
+                disabled={resumeData.content?.workExperience?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
           </Box>
 
-          <Grid container spacing={2}>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Company"
+                label={t("resumeBuilder.workExperience.company")}
                 value={job.company || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -529,18 +427,12 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 required
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Position"
+                label={t("resumeBuilder.workExperience.position")}
                 value={job.position || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -552,18 +444,12 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 required
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Location"
+                label={t("resumeBuilder.workExperience.location")}
                 value={job.location || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -574,18 +460,12 @@ export const ResumeBuilder = () => {
                   )
                 }
                 fullWidth
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 3,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
               <TextField
-                label="Start Date"
+                label={t("resumeBuilder.workExperience.startDate")}
                 type="date"
                 value={formatDate(job.startDate)}
                 onChange={(e) =>
@@ -598,18 +478,12 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 3,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
               <TextField
-                label="End Date"
+                label={t("resumeBuilder.workExperience.endDate")}
                 type="date"
                 value={formatDate(job.endDate)}
                 onChange={(e) =>
@@ -622,9 +496,28 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
-            </Grid>
-          </Grid>
+            </Box>
+            <Box sx={{ flex: "1 1 100%" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.description")}
+                value={job.description || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "description",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                multiline
+                rows={3}
+                size="small"
+              />
+            </Box>
+          </Box>
         </Paper>
       ))}
 
@@ -643,47 +536,42 @@ export const ResumeBuilder = () => {
           })
         }
         sx={{ mt: 2 }}
+        size="small"
       >
-        Add Position
+        {t("resumeBuilder.workExperience.addPosition")}
       </Button>
     </Box>
   );
 
   const renderEducation = () => (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Education
-      </Typography>
-
       {resumeData.content?.education?.map((edu, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 3 }}>
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             mb={2}
           >
-            <Typography variant="subtitle1">Education {index + 1}</Typography>
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => removeItem("education", index)}
-              disabled={resumeData.content?.education?.length === 1}
-            >
-              <Delete />
-            </IconButton>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {edu.degree || t("resumeBuilder.education.degree")} {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("education", index)}
+                disabled={resumeData.content?.education?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
           </Box>
-          <Grid container spacing={2}>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Institution"
+                label={t("resumeBuilder.education.institution")}
                 value={edu.institution || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -695,18 +583,12 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 required
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Degree"
+                label={t("resumeBuilder.education.degree")}
                 value={edu.degree || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -717,35 +599,23 @@ export const ResumeBuilder = () => {
                   )
                 }
                 fullWidth
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Field of Study"
+                label={t("resumeBuilder.education.field")}
                 value={edu.field || ""}
                 onChange={(e) =>
                   handleArrayChange("education", index, "field", e.target.value)
                 }
                 fullWidth
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 3,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
               <TextField
-                label="Start Date"
+                label={t("resumeBuilder.education.startDate")}
                 type="date"
                 value={formatDate(edu.startDate)}
                 onChange={(e) =>
@@ -758,18 +628,12 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 3,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
               <TextField
-                label="End Date"
+                label={t("resumeBuilder.education.endDate")}
                 type="date"
                 value={formatDate(edu.endDate)}
                 onChange={(e) =>
@@ -782,26 +646,21 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
               <TextField
-                label="GPA"
+                label={t("resumeBuilder.education.gpa")}
                 value={edu.gpa || ""}
                 onChange={(e) =>
                   handleArrayChange("education", index, "gpa", e.target.value)
                 }
                 fullWidth
+                size="small"
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
       ))}
 
@@ -821,63 +680,54 @@ export const ResumeBuilder = () => {
           })
         }
         sx={{ mt: 2 }}
+        size="small"
       >
-        Add Education
+        {t("resumeBuilder.education.addEducation")}
       </Button>
     </Box>
   );
 
   const renderSkills = () => (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Skills
-      </Typography>
-
       {resumeData.content?.skills?.map((skillGroup, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 3 }}>
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             mb={2}
           >
-            <Typography variant="subtitle1">Skill Group {index + 1}</Typography>
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => removeItem("skills", index)}
-              disabled={resumeData.content?.skills?.length === 1}
-            >
-              <Delete />
-            </IconButton>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {skillGroup.category || t("resumeBuilder.skills.category")}{" "}
+              {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("skills", index)}
+                disabled={resumeData.content?.skills?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
           </Box>
 
-          <Grid container spacing={2}>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                },
-              }}
-            >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box>
               <TextField
-                label="Category"
+                label={t("resumeBuilder.skills.category")}
                 value={skillGroup.category || ""}
                 onChange={(e) =>
                   handleArrayChange("skills", index, "category", e.target.value)
                 }
                 fullWidth
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                },
-              }}
-            >
+            </Box>
+            <Box>
               <Typography variant="subtitle2" gutterBottom>
-                Skills
+                {t("resumeBuilder.skills.items")}
               </Typography>
 
               {skillGroup.items?.map((skill, sIndex) => (
@@ -890,7 +740,9 @@ export const ResumeBuilder = () => {
                       handleArrayChange("skills", index, "items", items);
                     }}
                     fullWidth
-                    placeholder={`Skill ${sIndex + 1}`}
+                    placeholder={`${t("resumeBuilder.skills.skill")} ${
+                      sIndex + 1
+                    }`}
                     size="small"
                   />
                   <IconButton
@@ -920,10 +772,10 @@ export const ResumeBuilder = () => {
                 size="small"
                 sx={{ mt: 1 }}
               >
-                Add Skill
+                {t("resumeBuilder.skills.addSkill")}
               </Button>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
       ))}
 
@@ -937,8 +789,9 @@ export const ResumeBuilder = () => {
           })
         }
         sx={{ mt: 2 }}
+        size="small"
       >
-        Add Skill Group
+        {t("resumeBuilder.skills.addCategory")}
       </Button>
     </Box>
   );
@@ -946,32 +799,43 @@ export const ResumeBuilder = () => {
   const renderAdditionalSections = () => (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Languages
+        {t("resumeBuilder.languages.title")}
       </Typography>
 
       {resumeData.content?.languages?.map((lang, index) => (
         <Box key={index} display="flex" alignItems="center" mb={2}>
-          <TextField
-            label="Language"
-            value={lang.language || ""}
-            onChange={(e) =>
-              handleArrayChange("languages", index, "language", e.target.value)
-            }
-            sx={{ mr: 2, flexGrow: 1 }}
-          />
-          <TextField
-            label="Proficiency"
-            value={lang.proficiency || ""}
-            onChange={(e) =>
-              handleArrayChange(
-                "languages",
-                index,
-                "proficiency",
-                e.target.value
-              )
-            }
-            sx={{ flexGrow: 1 }}
-          />
+          <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px", mr: 2 }}>
+            <TextField
+              label={t("resumeBuilder.languages.language")}
+              value={lang.language || ""}
+              onChange={(e) =>
+                handleArrayChange(
+                  "languages",
+                  index,
+                  "language",
+                  e.target.value
+                )
+              }
+              fullWidth
+              size="small"
+            />
+          </Box>
+          <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+            <TextField
+              label={t("resumeBuilder.languages.proficiency")}
+              value={lang.proficiency || ""}
+              onChange={(e) =>
+                handleArrayChange(
+                  "languages",
+                  index,
+                  "proficiency",
+                  e.target.value
+                )
+              }
+              fullWidth
+              size="small"
+            />
+          </Box>
           <IconButton
             size="small"
             color="error"
@@ -994,48 +858,44 @@ export const ResumeBuilder = () => {
           })
         }
         sx={{ mb: 4, mt: 1 }}
+        size="small"
       >
-        Add Language
+        {t("resumeBuilder.languages.addLanguage")}
       </Button>
 
       <Divider sx={{ my: 3 }} />
 
       <Typography variant="h6" gutterBottom>
-        Certifications
+        {t("resumeBuilder.certifications.title")}
       </Typography>
 
       {resumeData.content?.certifications?.map((cert, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 3 }}>
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             mb={2}
           >
-            <Typography variant="subtitle1">
-              Certification {index + 1}
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {cert.name || t("resumeBuilder.certifications.name")} {index + 1}
             </Typography>
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => removeItem("certifications", index)}
-              disabled={resumeData.content?.certifications?.length === 1}
-            >
-              <Delete />
-            </IconButton>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("certifications", index)}
+                disabled={resumeData.content?.certifications?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
           </Box>
 
-          <Grid container spacing={2}>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Name"
+                label={t("resumeBuilder.certifications.name")}
                 value={cert.name || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -1047,18 +907,12 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 required
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Issuer"
+                label={t("resumeBuilder.certifications.issuer")}
                 value={cert.issuer || ""}
                 onChange={(e) =>
                   handleArrayChange(
@@ -1069,18 +923,12 @@ export const ResumeBuilder = () => {
                   )
                 }
                 fullWidth
+                size="small"
               />
-            </Grid>
-            <Grid
-              sx={{
-                item: {
-                  xs: 12,
-                  sm: 6,
-                },
-              }}
-            >
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
               <TextField
-                label="Date"
+                label={t("resumeBuilder.certifications.date")}
                 type="date"
                 value={formatDate(cert.date)}
                 onChange={(e) =>
@@ -1093,9 +941,10 @@ export const ResumeBuilder = () => {
                 }
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
       ))}
 
@@ -1110,30 +959,12 @@ export const ResumeBuilder = () => {
           })
         }
         sx={{ mt: 2 }}
+        size="small"
       >
-        Add Certification
+        {t("resumeBuilder.certifications.addCertification")}
       </Button>
     </Box>
   );
-
-  const getStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return renderPersonalInfo();
-      case 1:
-        return renderSummary();
-      case 2:
-        return renderWorkExperience();
-      case 3:
-        return renderEducation();
-      case 4:
-        return renderSkills();
-      case 5:
-        return renderAdditionalSections();
-      default:
-        return "Unknown step";
-    }
-  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -1146,57 +977,85 @@ export const ResumeBuilder = () => {
             ? t("resumeBuilder.editResume")
             : t("resumeBuilder.createNewResume")}
         </Typography>
+        <Box sx={{ flexGrow: 1 }} />
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          startIcon={<Save />}
+          disabled={!resumeData.title}
+          sx={{ ml: 2 }}
+        >
+          {t("resumeBuilder.saveResume")}
+        </Button>
       </Box>
 
-      <Box sx={{ width: "100%", mb: 4 }}>
-        <TextField
-          label={t("resumeBuilder.resumeTitle")}
-          value={resumeData.title || ""}
-          onChange={(e) =>
-            setResumeData({ ...resumeData, title: e.target.value })
-          }
-          fullWidth
-          required
-          sx={{ mb: 4 }}
-        />
-
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
         <Paper elevation={1} sx={{ p: 3 }}>
-          {getStepContent(activeStep)}
-
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
-            <Button disabled={activeStep === 0} onClick={handleBack}>
-              {t("common.back")}
-            </Button>
-            <Box>
-              <Button variant="outlined" onClick={handleCancel} sx={{ mr: 2 }}>
-                {t("common.cancel")}
-              </Button>
-
-              {activeStep === steps.length - 1 ? (
-                <Button
-                  variant="contained"
-                  onClick={handleSave}
-                  startIcon={<Save />}
-                  disabled={!resumeData.title}
-                >
-                  {t("resumeBuilder.saveResume")}
-                </Button>
-              ) : (
-                <Button variant="contained" onClick={handleNext}>
-                  {t("common.next")}
-                </Button>
-              )}
-            </Box>
-          </Box>
+          <TextField
+            label={t("resumeBuilder.resumeTitle")}
+            value={resumeData.title || ""}
+            onChange={(e) =>
+              setResumeData({ ...resumeData, title: e.target.value })
+            }
+            fullWidth
+            required
+            size="small"
+          />
         </Paper>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.personalInfo.title")}
+            </Typography>
+            {renderPersonalInfo()}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.summary.title")}
+            </Typography>
+            {renderSummary()}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.workExperience.title")}
+            </Typography>
+            {renderWorkExperience()}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.education.title")}
+            </Typography>
+            {renderEducation()}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.skills.title")}
+            </Typography>
+            {renderSkills()}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.additionalSections.title")}
+            </Typography>
+            {renderAdditionalSections()}
+          </CardContent>
+        </Card>
       </Box>
     </Container>
   );

@@ -18,7 +18,8 @@ export interface JobPost {
   status?: "open" | "closed" | "draft";
   deadline?: Date;
   requirements?: string[];
-  contacterId: CompanyStaff;
+  contacterId: CompanyStaff | ObjectId;
+  contacterEmail: string;
   profile?: Profile;
   keyResponsibilities?: string[];
   applications: Profile[];

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, FormEvent } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Container,
   Paper,
@@ -45,6 +46,7 @@ interface ActionButtonProps {
 const VerifyEmailPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const location = useLocation();
+  const { t } = useTranslation();
   const { verifyEmail, resendEmailVerification } = useAuth();
   const [isLoading, setIsLoading] = useState(!!token);
   const [verificationStatus, setVerificationStatus] = useState<{
@@ -85,7 +87,7 @@ const VerifyEmailPage: React.FC = () => {
         console.error("Email verification error:", err);
         setVerificationStatus({
           success: false,
-          message: "Failed to verify email. Please try again later.",
+          message: t("auth.verifyEmail.errorMessage"),
         });
       } finally {
         setIsLoading(false);
@@ -93,14 +95,14 @@ const VerifyEmailPage: React.FC = () => {
     };
 
     verifyUserEmail();
-  }, [token, verifyEmail]);
+  }, [token, verifyEmail, t]);
 
   const handleResendEmail = async (e: FormEvent) => {
     e.preventDefault();
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setResendStatus({
         success: false,
-        message: "Please enter a valid email address",
+        message: t("auth.verifyEmail.invalidEmail"),
       });
       return;
     }
@@ -113,14 +115,14 @@ const VerifyEmailPage: React.FC = () => {
       if (response) {
         setResendStatus({
           success: response.success,
-          message: response.message || "Verification email sent successfully!",
+          message: response.message || t("auth.verifyEmail.resendSuccess"),
         });
       }
     } catch (err) {
       console.error("Resend verification email error:", err);
       setResendStatus({
         success: false,
-        message: "Failed to resend verification email. Please try again later.",
+        message: t("auth.verifyEmail.resendError"),
       });
     } finally {
       setResending(false);
@@ -205,7 +207,7 @@ const VerifyEmailPage: React.FC = () => {
             WebkitTextFillColor: "transparent",
           }}
         >
-          Email Verification
+          {t("auth.verifyEmail.title")}
         </Typography>
 
         {isLoading ? (
@@ -219,7 +221,7 @@ const VerifyEmailPage: React.FC = () => {
           >
             <CircularProgress size={60} sx={{ mb: 3 }} />
             <Typography variant="body1" sx={{ mt: 2 }}>
-              Verifying your email...
+              {t("auth.verifyEmail.verifying")}
             </Typography>
           </Box>
         ) : token && verificationStatus?.success ? (
@@ -247,14 +249,13 @@ const VerifyEmailPage: React.FC = () => {
               {verificationStatus.message}
             </Alert>
             <Typography variant="body1" paragraph align="center" sx={{ mb: 3 }}>
-              Your email has been verified successfully. You can now log in to
-              your account.
+              {t("auth.verifyEmail.successMessage")}
             </Typography>
 
             <ActionButton
               to="/user/login"
               icon={<Login />}
-              text="Log In"
+              text={t("auth.verifyEmail.loginButton")}
               variant="contained"
               color="primary"
               sx={{ mt: 2 }}
@@ -282,21 +283,21 @@ const VerifyEmailPage: React.FC = () => {
                 },
               }}
             >
-              {verificationStatus?.message || "Verification failed."}
+              {verificationStatus?.message ||
+                t("auth.verifyEmail.errorMessage")}
             </Alert>
             <Typography variant="body1" paragraph align="center" sx={{ mb: 3 }}>
-              We couldn't verify your email. The verification link may have
-              expired or is invalid.
+              {t("auth.verifyEmail.errorMessage")}
             </Typography>
 
             <Box sx={{ mt: 2, width: "100%", mb: 3 }}>
               <form onSubmit={handleResendEmail}>
                 <Typography variant="body2" sx={{ mb: 2, fontWeight: 500 }}>
-                  Enter your email to request a new verification link:
+                  {t("auth.verifyEmail.enterEmailLabel")}
                 </Typography>
                 <TextField
                   fullWidth
-                  label="Email Address"
+                  label={t("auth.forgotPassword.emailLabel")}
                   variant="outlined"
                   type="email"
                   value={email}
@@ -309,7 +310,7 @@ const VerifyEmailPage: React.FC = () => {
                   }}
                 />
                 <ActionButton
-                  text="Resend Verification Email"
+                  text={t("auth.verifyEmail.resendButton")}
                   variant="contained"
                   color="primary"
                   icon={<Send />}
@@ -331,14 +332,14 @@ const VerifyEmailPage: React.FC = () => {
 
             <Divider sx={{ width: "100%", my: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                OR
+                {t("auth.verifyEmail.or")}
               </Typography>
             </Divider>
 
             <ActionButton
               to="/user/login"
               icon={<Login />}
-              text="Back to Login"
+              text={t("auth.verifyEmail.backToLogin")}
               variant="outlined"
               color="primary"
             />
@@ -365,24 +366,21 @@ const VerifyEmailPage: React.FC = () => {
                 },
               }}
             >
-              Please check your email for the verification link.
+              {t("auth.verifyEmail.checkEmailTitle")}
             </Alert>
 
             <Typography variant="body1" paragraph align="center" sx={{ mb: 1 }}>
-              We've sent a verification link to{" "}
-              <strong>{email || "your email address"}</strong>. Please click the
-              link in the email to verify your account.
+              {t("auth.verifyEmail.checkEmailMessage")}
             </Typography>
 
             <Typography variant="body2" paragraph align="center" sx={{ mb: 3 }}>
-              If you don't see the email in your inbox, please check your spam
-              folder.
+              {t("auth.verifyEmail.checkEmailNote")}
             </Typography>
 
             <Stack direction="column" spacing={2} width="100%" sx={{ mb: 3 }}>
               <ActionButton
                 icon={<Refresh />}
-                text="Resend Verification Email"
+                text={t("auth.verifyEmail.resendButton")}
                 variant="contained"
                 color="primary"
                 disabled={resending || !email}
@@ -408,14 +406,14 @@ const VerifyEmailPage: React.FC = () => {
 
             <Divider sx={{ width: "100%", my: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                OR
+                {t("auth.verifyEmail.or")}
               </Typography>
             </Divider>
 
             <ActionButton
               to="/user/login"
               icon={<Login />}
-              text="Back to Login"
+              text={t("auth.verifyEmail.backToLogin")}
               variant="outlined"
               color="primary"
             />

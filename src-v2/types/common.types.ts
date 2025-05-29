@@ -2,7 +2,7 @@
 export type ObjectId = string;
 
 // Response format for API calls
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   pagination: {
     pages: number;
     total: number;
@@ -11,7 +11,9 @@ export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
+  errors?: string[];
   message?: string;
+  imported?: number;
 }
 
 // Pagination response
@@ -31,7 +33,7 @@ export interface CUDResponse {
   message: string;
 }
 
-export interface GetResponse<T = any> {
+export interface GetResponse<T = unknown> {
   success: boolean;
   message: string;
   data: T;

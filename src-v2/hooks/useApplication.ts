@@ -15,7 +15,11 @@ export const useApplication = () => {
 
   const getUserApplications = async () => {
     const response = await applicationService.getUserApplications();
-    dispatch(setApplications(response.data));
+    if (response.success) {
+      dispatch(setApplications(response.data));
+    }
+
+    return response.data;
   };
 
   const applyForJob = async (jobId: string, resumeId: string) => {

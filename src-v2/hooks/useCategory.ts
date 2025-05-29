@@ -5,8 +5,8 @@ import {
 } from "../redux/slices/categorySlice";
 import { Category } from "../types/category.types";
 import { categoryService } from "../services";
-import { setToast } from "../redux/slices/toastSlice";
 import { setTotalPages } from "../redux/slices/paginationSlice";
+import toast from "react-hot-toast";
 
 export const useCategory = () => {
   const dispatch = useAppDispatch();
@@ -37,12 +37,10 @@ export const useCategory = () => {
   const createCategory = async (data: Category) => {
     const response = await categoryService.createCategory(data);
     if (response.success) {
-      dispatch(
-        setToast({ message: "Category created successfully", type: "success" })
-      );
+      toast.success("Category created successfully");
       return response.data;
     }
-    dispatch(setToast({ message: "Failed to create category", type: "error" }));
+    toast.error("Failed to create category");
     return null;
   };
 
@@ -51,24 +49,20 @@ export const useCategory = () => {
 
     const response = await categoryService.updateCategory(data._id, data);
     if (response.success) {
-      dispatch(
-        setToast({ message: "Category updated successfully", type: "success" })
-      );
+      toast.success("Category updated successfully");
       return response.data;
     }
-    dispatch(setToast({ message: "Failed to update category", type: "error" }));
+    toast.error("Failed to update category");
     return null;
   };
 
   const deleteCategory = async (id: string) => {
     const response = await categoryService.deleteCategory(id);
     if (response.success) {
-      dispatch(
-        setToast({ message: "Category deleted successfully", type: "success" })
-      );
+      toast.success("Category deleted successfully");
       return true;
     }
-    dispatch(setToast({ message: "Failed to delete category", type: "error" }));
+    toast.error("Failed to delete category");
     return false;
   };
 
@@ -76,19 +70,12 @@ export const useCategory = () => {
     const formData = new FormData();
     formData.append("file", file);
     const response = await categoryService.importCategoriesFromCSV(formData);
-    if (response.success) {
-      dispatch(
-        setToast({
-          message: `Successfully imported ${response.data?.successCount} categories`,
-          type: "success",
-        })
-      );
-      return response.data;
+    if (response?.errors) {
+      toast.error("Error importing categories");
+    } else {
+      toast.success("Categories imported successfully");
     }
-    dispatch(
-      setToast({ message: "Failed to import categories", type: "error" })
-    );
-    return null;
+    return response.data;
   };
 
   const searchCategories = async (

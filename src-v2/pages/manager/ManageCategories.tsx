@@ -148,7 +148,7 @@ export const ManageCategories = () => {
   ];
 
   return (
-    <>
+    <div className="flex flex-col flex-1 m-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
           <Input
@@ -214,6 +214,6 @@ export const ManageCategories = () => {
         title="Delete Category"
         message="Are you sure you want to delete this category? This action cannot be undone."
       />
-    </>
+    </div>
   );
 };

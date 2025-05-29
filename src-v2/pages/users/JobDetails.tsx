@@ -10,6 +10,7 @@ import {
   Star,
   Building,
   Clock,
+  MessageCircle,
 } from "lucide-react";
 import { useJobs } from "../../hooks/useJobs";
 import { getImageUrl } from "./CompanyCard";
@@ -18,7 +19,11 @@ import { useAppDispatch } from "../../redux/store";
 import { setCurrentJob } from "../../redux/slices/jobsSlice";
 import { useSaveJob } from "../../hooks/useSaveJob";
 import { useTranslation } from "react-i18next";
-
+import { useApplication } from "../../hooks/useApplication";
+import useChat from "../../hooks/useChat";
+import { useAuth } from "../../hooks/useAuth";
+import useNotification from "../../hooks/useNotification";
+import { useUser } from "../../hooks/useUser";
 const JobDetails = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -27,6 +32,8 @@ const JobDetails = () => {
   const { currentJob, getJobById } = useJobs();
   const { savedJobs, saveJob, deleteSavedJob } = useSaveJob();
   const [isSaved, setIsSaved] = useState(false);
+  const { applications } = useApplication();
+  const [isApplied, setIsApplied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     if (jobId) {
@@ -35,9 +42,21 @@ const JobDetails = () => {
     if (savedJobs) {
       setIsSaved(savedJobs.some((job) => job.jobId._id == currentJob?._id));
     }
-  }, [jobId, getJobById, savedJobs]);
+    if (applications) {
+      setIsApplied(applications.some((app) => app.jobId._id == jobId));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId, getJobById, savedJobs, applications]);
+  const { createNotification } = useNotification();
+  const { profile } = useUser();
+
   const handleApply = () => {
     dispatch(setCurrentJob(currentJob));
+    createNotification({
+      userId: currentJob?.contacterId?._id as string,
+      type: "job_application",
+      content: `${profile?.userId.email} applied for ${currentJob?.title}`,
+    });
     setIsOpen(true);
   };
   const toggleSaveJob = () => {
@@ -49,6 +68,21 @@ const JobDetails = () => {
       }
       setIsSaved(!isSaved);
     }
+  };
+  const { getChatByReceiverId, getChatMessages, createChat, currentChat } =
+    useChat();
+  const { useProfileId } = useAuth();
+  const handleContactThroughChat = async () => {
+    if (!currentJob?.contacterId?._id) return;
+    const existingChat = await getChatByReceiverId(
+      currentJob?.contacterId?._id
+    );
+    if (existingChat?.success && existingChat.data !== null) {
+      await getChatMessages(existingChat.data?._id as string);
+    } else {
+      await createChat(useProfileId as string, currentJob?.contacterId?._id);
+    }
+    navigate(`/user/chat`);
   };
 
   // Format salary range
@@ -359,7 +393,18 @@ const JobDetails = () => {
                   </span>
                 </div>
               )}
-
+              <div>
+                <div className="mb-6 flex items-center text-sm">
+                  <MessageCircle size={16} className="text-gray-500 mr-2" />
+                  <button
+                    onClick={handleContactThroughChat}
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200"
+                    title="Contact through chat"
+                  >
+                    {currentJob?.contacterEmail}
+                  </button>
+                </div>
+              </div>
               <div className="mb-6 flex items-center text-sm">
                 <Users size={16} className="text-gray-500 mr-2" />
                 <span className="text-gray-700">
@@ -370,9 +415,14 @@ const JobDetails = () => {
 
               <button
                 onClick={handleApply}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition-colors duration-200"
+                disabled={isApplied}
+                className={`w-full ${
+                  isApplied
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                } text-white py-3 px-4 rounded-md font-medium transition-colors duration-200`}
               >
-                {t("jobs.applyNow")}
+                {isApplied ? t("jobs.applied") : t("jobs.applyNow")}
               </button>
 
               <button

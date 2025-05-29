@@ -17,10 +17,8 @@ import { useDispatch } from "react-redux";
 import { setPage } from "../../redux/slices/paginationSlice";
 import { Pagination } from "@mui/material";
 import {
-  Box,
   Typography,
   Chip,
-  Grid,
   Card,
   CardContent,
   Divider,
@@ -34,7 +32,6 @@ import {
   Work as WorkIcon,
   Description as ResumeIcon,
 } from "@mui/icons-material";
-import useCompany from "../../hooks/useCompany";
 import { useStaff } from "../../hooks/useStaff";
 import { UserProfile } from "../../types";
 

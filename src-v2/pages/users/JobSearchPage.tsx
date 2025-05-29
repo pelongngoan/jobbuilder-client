@@ -1,456 +1,1088 @@
-import React, { useEffect, useState } from "react";
-import { useJobs } from "../../hooks/useJobs";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { useAppSelector } from "../../redux/store";
-import { useCategory } from "../../hooks/useCategory";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  Paper,
+  Typography,
+  TextField,
+  IconButton,
+  Card,
+  CardContent,
+} from "@mui/material";
+import { ArrowBack, Save, Delete, Add as AddIcon } from "@mui/icons-material";
+import { useResume } from "../../hooks/useResume";
+import { Resume } from "../../types";
 import { useTranslation } from "react-i18next";
+import { Theme } from "@mui/material/styles";
+import { SxProps } from "@mui/system";
 
 export const JobSearchPage = () => {
   const { t } = useTranslation();
-  const { jobs, searchJobs, loading, error } = useJobs();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { resumeId } = useParams<{ resumeId: string }>();
   const navigate = useNavigate();
+  const { currentResume, getResumeById, createResume, updateResume } =
+    useResume();
 
-  // Get current search parameters
-  const query = searchParams.get("q") || "";
-  const location = searchParams.get("location") || "";
-  const category = searchParams.get("category") || "";
-
-  // Local state for form inputs
-  const [searchForm, setSearchForm] = useState({
-    jobName: query,
-    location: location,
-    category: category,
+  const [resumeData, setResumeData] = useState<Partial<Resume>>({
+    title: currentResume?.title || "",
+    type: "generated",
+    content: {
+      personalInfo: {
+        fullName: currentResume?.content?.personalInfo?.fullName || "",
+        email: currentResume?.content?.personalInfo?.email || "",
+        phone: currentResume?.content?.personalInfo?.phone || "",
+        address: currentResume?.content?.personalInfo?.address || "",
+        linkedin: currentResume?.content?.personalInfo?.linkedin || "",
+        website: currentResume?.content?.personalInfo?.website || "",
+      },
+      summary: currentResume?.content?.summary || "",
+      workExperience: [
+        {
+          company: currentResume?.content?.workExperience?.[0]?.company || "",
+          position: currentResume?.content?.workExperience?.[0]?.position || "",
+          location: currentResume?.content?.workExperience?.[0]?.location || "",
+          startDate:
+            currentResume?.content?.workExperience?.[0]?.startDate || "",
+          endDate: currentResume?.content?.workExperience?.[0]?.endDate || "",
+          description:
+            currentResume?.content?.workExperience?.[0]?.description || "",
+          highlights: currentResume?.content?.workExperience?.[0]
+            ?.highlights || [""],
+        },
+      ],
+      education: [
+        {
+          institution:
+            currentResume?.content?.education?.[0]?.institution || "",
+          degree: currentResume?.content?.education?.[0]?.degree || "",
+          field: currentResume?.content?.education?.[0]?.field || "",
+          location: currentResume?.content?.education?.[0]?.location || "",
+          startDate: currentResume?.content?.education?.[0]?.startDate || "",
+          endDate: currentResume?.content?.education?.[0]?.endDate || "",
+          gpa: currentResume?.content?.education?.[0]?.gpa || "",
+          highlights: currentResume?.content?.education?.[0]?.highlights || [
+            "",
+          ],
+        },
+      ],
+      skills: [
+        {
+          category:
+            currentResume?.content?.skills?.[0]?.category || "Technical Skills",
+          items: currentResume?.content?.skills?.[0]?.items || [""],
+        },
+      ],
+      languages: [
+        {
+          language: currentResume?.content?.languages?.[0]?.language || "",
+          proficiency:
+            currentResume?.content?.languages?.[0]?.proficiency || "",
+        },
+      ],
+      projects: [
+        {
+          name: currentResume?.content?.projects?.[0]?.name || "",
+          description: currentResume?.content?.projects?.[0]?.description || "",
+          technologies: currentResume?.content?.projects?.[0]?.technologies || [
+            "",
+          ],
+          highlights: currentResume?.content?.projects?.[0]?.highlights || [""],
+        },
+      ],
+      certifications: [
+        {
+          name: currentResume?.content?.certifications?.[0]?.name || "",
+          issuer: currentResume?.content?.certifications?.[0]?.issuer || "",
+          date: currentResume?.content?.certifications?.[0]?.date || "",
+        },
+      ],
+    },
   });
 
-  const { page, limit, totalPages } = useAppSelector(
-    (state) => state.pagination
-  );
-  const { categories } = useCategory();
-  // Job categories for dropdown
-  const jobCategories = [
-    "Danh mục Nghề",
-    "Technology",
-    "Healthcare",
-    "Finance",
-    "Education",
-    "Marketing",
-    "Sales",
-    "Engineering",
-    "Design",
-    "Customer Service",
-    "Human Resources",
-    "Operations",
-    "Legal",
-    "Consulting",
-    "Manufacturing",
-  ];
-
-  // Experience levels
-  const experienceLevels = [
-    t("jobSearch.allExperience"),
-    t("jobSearch.under1Year"),
-    `1 ${t("jobSearch.years")}`,
-    `2 ${t("jobSearch.years")}`,
-    `3 ${t("jobSearch.years")}`,
-    `4 ${t("jobSearch.years")}`,
-    `5 ${t("jobSearch.years")}`,
-    t("jobSearch.over5Years"),
-  ];
-
-  // Search jobs when URL parameters change
   useEffect(() => {
-    if (query || location || category) {
-      searchJobs(query, location, category, page, limit);
+    if (resumeId) {
+      getResumeById(resumeId);
     }
-  }, [query, location, category, page, limit, searchJobs]);
+  }, [resumeId, getResumeById]);
 
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setSearchForm((prev) => ({
+  useEffect(() => {
+    if (currentResume && resumeId) {
+      setResumeData(currentResume);
+    }
+  }, [currentResume, resumeId]);
+
+  const handleInputChange = (section: keyof ResumeContent, value: string) => {
+    setResumeData((prev) => ({
       ...prev,
-      [name]: value,
+      content: {
+        ...(prev.content || {}),
+        [section]: value,
+      },
     }));
   };
 
-  // Handle search form submission
-  const handleSearch = (e) => {
-    e.preventDefault();
+  type ResumeContent = NonNullable<Resume["content"]>;
+  type ArraySection = Extract<
+    keyof ResumeContent,
+    | "workExperience"
+    | "education"
+    | "skills"
+    | "certifications"
+    | "languages"
+    | "projects"
+  >;
+  type SectionItem<T extends ArraySection> = NonNullable<
+    ResumeContent[T]
+  >[number];
 
-    // Update URL parameters
-    const newParams = new URLSearchParams();
-    if (searchForm.jobName.trim()) {
-      newParams.set("q", searchForm.jobName.trim());
-    }
-    if (searchForm.location.trim()) {
-      newParams.set("location", searchForm.location.trim());
-    }
-    if (searchForm.category && searchForm.category !== "Danh mục Nghề") {
-      newParams.set("category", searchForm.category);
-    }
+  type PersonalInfoField =
+    | "fullName"
+    | "email"
+    | "phone"
+    | "address"
+    | "linkedin"
+    | "website";
 
-    setSearchParams(newParams);
+  const handlePersonalInfoChange = (
+    field: PersonalInfoField,
+    value: string
+  ) => {
+    setResumeData((prev) => {
+      const content = prev.content || ({} as ResumeContent);
+      return {
+        ...prev,
+        content: {
+          ...content,
+          personalInfo: {
+            ...content.personalInfo,
+            [field]: value,
+          },
+        },
+      };
+    });
   };
 
-  // Handle job click
-  const handleJobClick = (jobId) => {
-    navigate(`/jobs/${jobId}`);
+  const handleArrayChange = (
+    section: ArraySection,
+    index: number,
+    field: string,
+    value: string | string[]
+  ) => {
+    setResumeData((prev) => {
+      const content = prev.content || ({} as ResumeContent);
+      const sectionData = [...(content[section] || [])] as SectionItem<
+        typeof section
+      >[];
+      sectionData[index] = {
+        ...sectionData[index],
+        [field]: value,
+      };
+
+      return {
+        ...prev,
+        content: {
+          ...content,
+          [section]: sectionData,
+        },
+      };
+    });
   };
+
+  const handleHighlightChange = (
+    section: string,
+    itemIndex: number,
+    highlightIndex: number,
+    value: string
+  ) => {
+    setResumeData((prev) => {
+      const sectionData = [
+        ...((prev.content?.[
+          section as keyof Resume["content"]
+        ] as unknown as any[]) || []),
+      ];
+      const highlights = [...(sectionData[itemIndex]?.highlights || [])];
+      highlights[highlightIndex] = value;
+
+      sectionData[itemIndex] = {
+        ...sectionData[itemIndex],
+        highlights,
+      };
+
+      return {
+        ...prev,
+        content: {
+          ...prev.content,
+          [section]: sectionData,
+        },
+      };
+    });
+  };
+
+  const addItem = <T extends ArraySection>(
+    section: T,
+    template: SectionItem<T>
+  ) => {
+    setResumeData((prev) => {
+      const content = prev.content || ({} as ResumeContent);
+      const sectionData = [...(content[section] || [])] as SectionItem<T>[];
+      sectionData.push(template);
+
+      return {
+        ...prev,
+        content: {
+          ...content,
+          [section]: sectionData,
+        },
+      };
+    });
+  };
+
+  const removeItem = (section: ArraySection, index: number) => {
+    setResumeData((prev) => {
+      const content = prev.content || ({} as ResumeContent);
+      const sectionData = [...(content[section] || [])] as SectionItem<
+        typeof section
+      >[];
+      if (sectionData.length > 1) {
+        sectionData.splice(index, 1);
+      }
+
+      return {
+        ...prev,
+        content: {
+          ...content,
+          [section]: sectionData,
+        },
+      };
+    });
+  };
+
+  const addHighlight = (section: ArraySection, itemIndex: number) => {
+    setResumeData((prev) => {
+      const content = prev.content || ({} as ResumeContent);
+      const sectionData = [...(content[section] || [])] as SectionItem<
+        typeof section
+      >[];
+      const item = sectionData[itemIndex] as { highlights?: string[] };
+      const highlights = [...(item.highlights || []), ""];
+
+      sectionData[itemIndex] = {
+        ...sectionData[itemIndex],
+        highlights,
+      } as SectionItem<typeof section>;
+
+      return {
+        ...prev,
+        content: {
+          ...content,
+          [section]: sectionData,
+        },
+      };
+    });
+  };
+
+  const removeHighlight = (
+    section: ArraySection,
+    itemIndex: number,
+    highlightIndex: number
+  ) => {
+    setResumeData((prev) => {
+      const content = prev.content || ({} as ResumeContent);
+      const sectionData = [...(content[section] || [])] as SectionItem<
+        typeof section
+      >[];
+      const item = sectionData[itemIndex] as { highlights?: string[] };
+      const highlights = [...(item.highlights || [])];
+
+      if (highlights.length > 1) {
+        highlights.splice(highlightIndex, 1);
+      }
+
+      sectionData[itemIndex] = {
+        ...sectionData[itemIndex],
+        highlights,
+      } as SectionItem<typeof section>;
+
+      return {
+        ...prev,
+        content: {
+          ...content,
+          [section]: sectionData,
+        },
+      };
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      if (resumeId) {
+        await updateResume({ ...resumeData, _id: resumeId } as Resume);
+      } else {
+        await createResume(resumeData as Resume);
+      }
+      navigate("/user/resumes");
+    } catch (error) {
+      console.error("Error saving resume:", error);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate("/user/resumes");
+  };
+
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return "";
+    return new Date(date).toISOString().split("T")[0];
+  };
+
+  const renderPersonalInfo = () => (
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.fullName")}
+          value={resumeData.content?.personalInfo?.fullName || ""}
+          onChange={(e) => handlePersonalInfoChange("fullName", e.target.value)}
+          fullWidth
+          required
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.email")}
+          type="email"
+          value={resumeData.content?.personalInfo?.email || ""}
+          onChange={(e) => handlePersonalInfoChange("email", e.target.value)}
+          fullWidth
+          required
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.phone")}
+          value={resumeData.content?.personalInfo?.phone || ""}
+          onChange={(e) => handlePersonalInfoChange("phone", e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.address")}
+          value={resumeData.content?.personalInfo?.address || ""}
+          onChange={(e) => handlePersonalInfoChange("address", e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.linkedin")}
+          value={resumeData.content?.personalInfo?.linkedin || ""}
+          onChange={(e) => handlePersonalInfoChange("linkedin", e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
+      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+        <TextField
+          label={t("resumeBuilder.personalInfo.website")}
+          value={resumeData.content?.personalInfo?.website || ""}
+          onChange={(e) => handlePersonalInfoChange("website", e.target.value)}
+          fullWidth
+          size="small"
+        />
+      </Box>
+    </Box>
+  );
+
+  const renderSummary = () => (
+    <TextField
+      label={t("resumeBuilder.summary.label")}
+      value={resumeData.content?.summary || ""}
+      onChange={(e) => handleInputChange("summary", e.target.value)}
+      fullWidth
+      multiline
+      rows={4}
+      size="small"
+    />
+  );
+
+  const renderWorkExperience = () => (
+    <Box>
+      {resumeData.content?.workExperience?.map((job, index) => (
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {job.position || t("resumeBuilder.workExperience.position")}{" "}
+              {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("workExperience", index)}
+                disabled={resumeData.content?.workExperience?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.company")}
+                value={job.company || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "company",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                required
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.position")}
+                value={job.position || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "position",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                required
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.location")}
+                value={job.location || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "location",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.startDate")}
+                type="date"
+                value={formatDate(job.startDate)}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "startDate",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.endDate")}
+                type="date"
+                value={formatDate(job.endDate)}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "endDate",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 100%" }}>
+              <TextField
+                label={t("resumeBuilder.workExperience.description")}
+                value={job.description || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "workExperience",
+                    index,
+                    "description",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                multiline
+                rows={3}
+                size="small"
+              />
+            </Box>
+          </Box>
+        </Paper>
+      ))}
+
+      <Button
+        variant="outlined"
+        startIcon={<AddIcon />}
+        onClick={() =>
+          addItem("workExperience", {
+            company: "",
+            position: "",
+            location: "",
+            startDate: "",
+            endDate: "",
+            description: "",
+            highlights: [""],
+          })
+        }
+        sx={{ mt: 2 }}
+        size="small"
+      >
+        {t("resumeBuilder.workExperience.addPosition")}
+      </Button>
+    </Box>
+  );
+
+  const renderEducation = () => (
+    <Box>
+      {resumeData.content?.education?.map((edu, index) => (
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {edu.degree || t("resumeBuilder.education.degree")} {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("education", index)}
+                disabled={resumeData.content?.education?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.education.institution")}
+                value={edu.institution || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "education",
+                    index,
+                    "institution",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                required
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.education.degree")}
+                value={edu.degree || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "education",
+                    index,
+                    "degree",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.education.field")}
+                value={edu.field || ""}
+                onChange={(e) =>
+                  handleArrayChange("education", index, "field", e.target.value)
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
+              <TextField
+                label={t("resumeBuilder.education.startDate")}
+                type="date"
+                value={formatDate(edu.startDate)}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "education",
+                    index,
+                    "startDate",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
+              <TextField
+                label={t("resumeBuilder.education.endDate")}
+                type="date"
+                value={formatDate(edu.endDate)}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "education",
+                    index,
+                    "endDate",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
+              <TextField
+                label={t("resumeBuilder.education.gpa")}
+                value={edu.gpa || ""}
+                onChange={(e) =>
+                  handleArrayChange("education", index, "gpa", e.target.value)
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+          </Box>
+        </Paper>
+      ))}
+
+      <Button
+        variant="outlined"
+        startIcon={<AddIcon />}
+        onClick={() =>
+          addItem("education", {
+            institution: "",
+            degree: "",
+            field: "",
+            location: "",
+            startDate: "",
+            endDate: "",
+            gpa: "",
+            highlights: [""],
+          })
+        }
+        sx={{ mt: 2 }}
+        size="small"
+      >
+        {t("resumeBuilder.education.addEducation")}
+      </Button>
+    </Box>
+  );
+
+  const renderSkills = () => (
+    <Box>
+      {resumeData.content?.skills?.map((skillGroup, index) => (
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {skillGroup.category || t("resumeBuilder.skills.category")}{" "}
+              {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("skills", index)}
+                disabled={resumeData.content?.skills?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box>
+              <TextField
+                label={t("resumeBuilder.skills.category")}
+                value={skillGroup.category || ""}
+                onChange={(e) =>
+                  handleArrayChange("skills", index, "category", e.target.value)
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                {t("resumeBuilder.skills.items")}
+              </Typography>
+
+              {skillGroup.items?.map((skill, sIndex) => (
+                <Box key={sIndex} display="flex" alignItems="center" mb={1}>
+                  <TextField
+                    value={skill}
+                    onChange={(e) => {
+                      const items = [...skillGroup.items];
+                      items[sIndex] = e.target.value;
+                      handleArrayChange("skills", index, "items", items);
+                    }}
+                    fullWidth
+                    placeholder={`${t("resumeBuilder.skills.skill")} ${
+                      sIndex + 1
+                    }`}
+                    size="small"
+                  />
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => {
+                      const items = [...skillGroup.items];
+                      if (items.length > 1) {
+                        items.splice(sIndex, 1);
+                        handleArrayChange("skills", index, "items", items);
+                      }
+                    }}
+                    disabled={skillGroup.items?.length === 1}
+                    sx={{ ml: 1 }}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+
+              <Button
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  const items = [...skillGroup.items, ""];
+                  handleArrayChange("skills", index, "items", items);
+                }}
+                size="small"
+                sx={{ mt: 1 }}
+              >
+                {t("resumeBuilder.skills.addSkill")}
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+      ))}
+
+      <Button
+        variant="outlined"
+        startIcon={<AddIcon />}
+        onClick={() =>
+          addItem("skills", {
+            category: "",
+            items: [""],
+          })
+        }
+        sx={{ mt: 2 }}
+        size="small"
+      >
+        {t("resumeBuilder.skills.addCategory")}
+      </Button>
+    </Box>
+  );
+
+  const renderAdditionalSections = () => (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        {t("resumeBuilder.languages.title")}
+      </Typography>
+
+      {resumeData.content?.languages?.map((lang, index) => (
+        <Box key={index} display="flex" alignItems="center" mb={2}>
+          <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px", mr: 2 }}>
+            <TextField
+              label={t("resumeBuilder.languages.language")}
+              value={lang.language || ""}
+              onChange={(e) =>
+                handleArrayChange(
+                  "languages",
+                  index,
+                  "language",
+                  e.target.value
+                )
+              }
+              fullWidth
+              size="small"
+            />
+          </Box>
+          <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+            <TextField
+              label={t("resumeBuilder.languages.proficiency")}
+              value={lang.proficiency || ""}
+              onChange={(e) =>
+                handleArrayChange(
+                  "languages",
+                  index,
+                  "proficiency",
+                  e.target.value
+                )
+              }
+              fullWidth
+              size="small"
+            />
+          </Box>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => removeItem("languages", index)}
+            disabled={resumeData.content?.languages?.length === 1}
+            sx={{ ml: 1 }}
+          >
+            <Delete />
+          </IconButton>
+        </Box>
+      ))}
+
+      <Button
+        variant="outlined"
+        startIcon={<AddIcon />}
+        onClick={() =>
+          addItem("languages", {
+            language: "",
+            proficiency: "",
+          })
+        }
+        sx={{ mb: 4, mt: 1 }}
+        size="small"
+      >
+        {t("resumeBuilder.languages.addLanguage")}
+      </Button>
+
+      <Divider sx={{ my: 3 }} />
+
+      <Typography variant="h6" gutterBottom>
+        {t("resumeBuilder.certifications.title")}
+      </Typography>
+
+      {resumeData.content?.certifications?.map((cert, index) => (
+        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {cert.name || t("resumeBuilder.certifications.name")} {index + 1}
+            </Typography>
+            <Box>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => removeItem("certifications", index)}
+                disabled={resumeData.content?.certifications?.length === 1}
+              >
+                <Delete />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.certifications.name")}
+                value={cert.name || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "certifications",
+                    index,
+                    "name",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                required
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.certifications.issuer")}
+                value={cert.issuer || ""}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "certifications",
+                    index,
+                    "issuer",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
+              <TextField
+                label={t("resumeBuilder.certifications.date")}
+                type="date"
+                value={formatDate(cert.date)}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "certifications",
+                    index,
+                    "date",
+                    e.target.value
+                  )
+                }
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Box>
+          </Box>
+        </Paper>
+      ))}
+
+      <Button
+        variant="outlined"
+        startIcon={<AddIcon />}
+        onClick={() =>
+          addItem("certifications", {
+            name: "",
+            issuer: "",
+            date: "",
+          })
+        }
+        sx={{ mt: 2 }}
+        size="small"
+      >
+        {t("resumeBuilder.certifications.addCertification")}
+      </Button>
+    </Box>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Green Header with Search */}
-      <div className="bg-green-600 py-6">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-white rounded-lg p-4 shadow-lg">
-            <form onSubmit={handleSearch} className="flex items-center gap-4">
-              {/* Category Dropdown */}
-              <div className="flex items-center border-r border-gray-300 pr-4">
-                <div className="flex items-center text-gray-600 mr-2">
-                  <span className="text-lg">☰</span>
-                </div>
-                <select
-                  name="category"
-                  value={searchForm.category}
-                  onChange={handleInputChange}
-                  className="border-none outline-none bg-transparent text-gray-700 font-medium min-w-[120px]"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="text-gray-400 ml-1">▼</span>
-              </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box display="flex" alignItems="center" mb={4}>
+        <IconButton onClick={handleCancel} sx={{ mr: 2 }}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="h4" component="h1">
+          {resumeId
+            ? t("resumeBuilder.editResume")
+            : t("resumeBuilder.createNewResume")}
+        </Typography>
+        <Box sx={{ flexGrow: 1 }} />
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          startIcon={<Save />}
+          disabled={!resumeData.title}
+          sx={{ ml: 2 }}
+        >
+          {t("resumeBuilder.saveResume")}
+        </Button>
+      </Box>
 
-              {/* Job Search Input */}
-              <div className="flex-1 flex items-center">
-                <div className="flex items-center text-gray-400 mr-3">
-                  <span className="text-lg">🔍</span>
-                </div>
-                <input
-                  type="text"
-                  name="jobName"
-                  value={searchForm.jobName}
-                  onChange={handleInputChange}
-                  placeholder={t("jobSearch.searchPlaceholder")}
-                  className="flex-1 border-none outline-none text-gray-700 placeholder-gray-400"
-                />
-                {searchForm.jobName && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSearchForm((prev) => ({ ...prev, jobName: "" }))
-                    }
-                    className="text-gray-400 hover:text-gray-600 ml-2"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Paper elevation={1} sx={{ p: 3 }}>
+          <TextField
+            label={t("resumeBuilder.resumeTitle")}
+            value={resumeData.title || ""}
+            onChange={(e) =>
+              setResumeData({ ...resumeData, title: e.target.value })
+            }
+            fullWidth
+            required
+            size="small"
+          />
+        </Paper>
 
-              {/* Location Input */}
-              <div className="flex items-center border-l border-gray-300 pl-4">
-                <div className="flex items-center text-gray-400 mr-3">
-                  <span className="text-lg">📍</span>
-                </div>
-                <input
-                  type="text"
-                  name="location"
-                  value={searchForm.location}
-                  onChange={handleInputChange}
-                  placeholder={t("jobSearch.locationPlaceholder")}
-                  className="border-none outline-none text-gray-700 placeholder-gray-400 min-w-[100px]"
-                />
-                <span className="text-gray-400 ml-1">▼</span>
-              </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.personalInfo.title")}
+            </Typography>
+            {renderPersonalInfo()}
+          </CardContent>
+        </Card>
 
-              {/* Search Button */}
-              <button
-                type="submit"
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-medium transition-colors"
-              >
-                {t("jobSearch.searchButton")}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.summary.title")}
+            </Typography>
+            {renderSummary()}
+          </CardContent>
+        </Card>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Breadcrumb */}
-        <div className="mb-4">
-          <div className="text-lg font-medium text-gray-800 mb-2">
-            Tuyển dụng 2 việc làm Remote Job [Update{" "}
-            {new Date().toLocaleDateString("vi-VN")}]
-          </div>
-          <div className="flex items-center text-sm text-gray-600 gap-2">
-            <span className="text-green-600">{t("jobSearch.homepage")}</span>
-            <span>›</span>
-            <span>{t("jobSearch.jobs")}</span>
-            <span>›</span>
-            <span>Remote Job</span>
-          </div>
-        </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.workExperience.title")}
+            </Typography>
+            {renderWorkExperience()}
+          </CardContent>
+        </Card>
 
-        {/* Job Tags */}
-        <div className="mb-6">
-          <span className="text-gray-600 mr-2">
-            {t("jobSearch.suggestedKeywords")}
-          </span>
-          <div className="inline-flex flex-wrap gap-2">
-            {[
-              "part-time",
-              "thực tập sinh",
-              "công tác viên",
-              "nhân viên văn phòng",
-              "freelancer",
-              "intern",
-              "việc online",
-              "remote",
-            ].map((tag) => (
-              <button
-                key={tag}
-                onClick={() =>
-                  setSearchForm((prev) => ({ ...prev, jobName: tag }))
-                }
-                className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors"
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.education.title")}
+            </Typography>
+            {renderEducation()}
+          </CardContent>
+        </Card>
 
-        <div className="flex gap-6">
-          {/* Left Sidebar - Filters */}
-          <div className="w-80 flex-shrink-0">
-            {/* Advanced Filters */}
-            <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-gray-800 flex items-center">
-                  <span className="text-green-600 mr-2">▼</span>
-                  Lọc nâng cao
-                </h3>
-              </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.skills.title")}
+            </Typography>
+            {renderSkills()}
+          </CardContent>
+        </Card>
 
-              {/* Search Options */}
-              <div className="mb-6">
-                <div className="flex gap-4 text-sm">
-                  <button className="text-gray-400">Xóa lọc</button>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-gray-600">Tìm kiếm theo:</span>
-                  <button className="text-gray-600 hover:text-green-600">
-                    Tên việc làm
-                  </button>
-                  <button className="text-gray-600 hover:text-green-600">
-                    Tên công ty
-                  </button>
-                  <button className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">
-                    Cả hai
-                  </button>
-                </div>
-              </div>
-
-              {/* Job Categories */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-3">
-                  Theo danh mục nghề
-                </h4>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2 text-green-600" />
-                    <span className="text-gray-700">
-                      Giáo viên/Giảng viên/Gia sư (2)
-                    </span>
-                  </label>
-                  <div className="ml-6">
-                    <button className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
-                      Giáo viên tiếng Anh
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Experience Level */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-3">Kinh nghiệm</h4>
-                <div className="space-y-2">
-                  {experienceLevels.map((level) => (
-                    <label key={level} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="experience"
-                        className="mr-2 text-green-600"
-                        defaultChecked={level === "Tất cả"}
-                      />
-                      <span className="text-gray-700">{level}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Education Level */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-3">Cấp bậc</h4>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="level"
-                    className="mr-2 text-green-600"
-                    defaultChecked
-                  />
-                  <span className="text-gray-700">Tất cả</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Content - Job Results */}
-          <div className="flex-1">
-            {/* Results Count */}
-            {jobs && (
-              <div className="mb-4">
-                <p className="text-gray-600">
-                  Hiển thị {jobs.length} việc làm phù hợp
-                </p>
-              </div>
-            )}
-
-            {/* Loading State */}
-            {loading && (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                <p className="mt-4 text-gray-600">Đang tìm kiếm...</p>
-              </div>
-            )}
-
-            {/* Job Cards */}
-            <div className="space-y-4">
-              {jobs &&
-                jobs.map((job) => (
-                  <div
-                    key={job.id}
-                    onClick={() => handleJobClick(job.id)}
-                    className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-200"
-                  >
-                    <div className="flex gap-4">
-                      {/* Company Logo */}
-                      <div className="w-16 h-16 bg-red-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-sm">
-                          {job.company
-                            ? job.company.substring(0, 2).toUpperCase()
-                            : "CO"}
-                        </span>
-                      </div>
-
-                      {/* Job Details */}
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-medium text-gray-900 hover:text-green-600 transition-colors">
-                            {job.title ||
-                              "Giáo Viên Tiếng Anh Giao Tiếp 1:1 (Remote Job)"}
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            <span className="text-green-600 font-medium">
-                              4 - 8 triệu
-                            </span>
-                            <button className="text-gray-400 hover:text-red-500">
-                              <span className="text-xl">♡</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        <p className="text-gray-600 font-medium mb-2">
-                          {job.company || "TRUNG TÂM NGOẠI NGỮ BINGGO LEADERS"}
-                        </p>
-
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                          <span>
-                            📍 {job.location || "Hà Nội & 4 nơi khác"}
-                          </span>
-                          <span>🕐 Không yêu cầu</span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex gap-2">
-                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                              Giáo viên tiếng Anh
-                            </span>
-                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                              Giáo dục / Đào tạo
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>Đăng 2 ngày trước</span>
-                            <button className="text-green-600 hover:text-green-700">
-                              <span className="text-lg">♡</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-              {/* Mock Job Card 2 */}
-              <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-200">
-                <div className="flex gap-4">
-                  <div className="w-16 h-16 bg-red-600 rounded flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold">LG</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-medium text-gray-900 hover:text-green-600 transition-colors">
-                        Giáo Viên Tiếng Anh Giao Tiếp (Remote Job)
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-green-600 font-medium">
-                          4 - 8 triệu
-                        </span>
-                        <button className="text-gray-400 hover:text-red-500">
-                          <span className="text-xl">♡</span>
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-gray-600 font-medium mb-2">
-                      CÔNG TY CỔ PHẦN ĐẦU TƯ HBR HOLDINGS
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                      <span>📍 Hà Nội</span>
-                      <span>🕐 Không yêu cầu</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-2">
-                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                          Giáo viên tiếng Anh
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>Đăng 3 tuần trước</span>
-                        <span>Đã xem</span>
-                        <button className="text-green-600 hover:text-green-700">
-                          <span className="text-lg">♡</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* No Results */}
-            {jobs && jobs.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Không tìm thấy việc làm phù hợp</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {t("resumeBuilder.additionalSections.title")}
+            </Typography>
+            {renderAdditionalSections()}
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   );
 };

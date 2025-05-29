@@ -1,10 +1,8 @@
 import { Button, Input, Select } from "../../components/common";
-import DataTable, { Column } from "../../components/common/DataTable";
+import DataTable from "../../components/common/DataTable";
 import { useEffect, useState } from "react";
 import { useStaff } from "../../hooks/useStaff";
-import companyService from "../../services/company";
 import { StaffForm } from "./StaffForm";
-import { User } from "../../types/user.types";
 import { ImportCsv } from "../../components/common/ImportCsv";
 import { Pagination } from "@mui/material";
 import { setPage } from "../../redux/slices/paginationSlice";
@@ -12,19 +10,20 @@ import { useAppDispatch } from "../../redux/store";
 import { useAppSelector } from "../../redux/store";
 import { setCurrentStaff } from "../../redux/slices/staffSlice";
 import Papa from "papaparse";
-interface CompanyStaff extends Record<string, unknown> {
-  email: string;
-  role: string;
-  active: boolean;
-  createdAt: Date;
-  id: string;
-}
-
+import { StaffProfile } from "../../types/staff.types";
+import { User } from "../../types/user.types";
 export const ManageStaffs = () => {
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [isImportStaffModalOpen, setIsImportStaffModalOpen] = useState(false);
-  const { staffs, getStaffs, deleteStaff, importStaffs, searchStaffs } =
-    useStaff();
+  const {
+    staffs,
+    getStaffs,
+    deleteStaff,
+    importStaffs,
+    searchStaffs,
+    getStaffById,
+    updateStaff,
+  } = useStaff();
   const { page, limit, totalPages } = useAppSelector(
     (state) => state.pagination
   );
@@ -38,23 +37,15 @@ export const ManageStaffs = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit]);
 
-  const handleToggleActive = async (
-    staffId: string,
-    currentActive: boolean
-  ) => {
-    try {
-      await companyService.updateCompanyStaffActive({
-        ids: [staffId],
-        active: !currentActive,
-      });
-      getStaffs(page, limit);
-    } catch (error) {
-      console.error("Failed to toggle staff status:", error);
-    }
-  };
-
   const handleImportStaff = async (file: File) => {
     importStaffs(file);
+  };
+  const handleCloseAddStaffModal = () => {
+    setIsAddStaffModalOpen(false);
+  };
+
+  const handleCloseImportStaffModal = () => {
+    setIsImportStaffModalOpen(false);
   };
 
   const handleDownloadTemplate = () => {
@@ -129,15 +120,15 @@ export const ManageStaffs = () => {
     },
     {},
     {
-      id: "actions",
+      id: "id",
       header: "Actions",
       accessor: "id",
-      render: (value: string, row: CompanyStaff) => (
+      render: (value: string, row: StaffProfile) => (
         <div className="flex gap-2">
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              dispatch(setCurrentStaff(row));
+              getStaffById(value);
               setStatus("edit");
               setIsAddStaffModalOpen(true);
             }}
@@ -147,7 +138,11 @@ export const ManageStaffs = () => {
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              handleToggleActive(value, row.active);
+              updateStaff(value, {
+                active: !row.active,
+              }).then(() => {
+                getStaffs(page, limit);
+              });
             }}
             className={`${
               row.active ? "bg-red-500" : "bg-green-500"
@@ -158,7 +153,9 @@ export const ManageStaffs = () => {
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              deleteStaff(value);
+              deleteStaff(value).then(() => {
+                getStaffs(page, limit);
+              });
             }}
           >
             Delete
@@ -169,7 +166,7 @@ export const ManageStaffs = () => {
   ];
 
   return (
-    <>
+    <div className="flex flex-col flex-1 m-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
           <Input
@@ -217,13 +214,15 @@ export const ManageStaffs = () => {
           </Button>
         </div>
       </div>
-      <DataTable<CompanyStaff>
-        columns={columns as Column<CompanyStaff>[]}
+      <DataTable<StaffProfile>
+        columns={columns as Column<StaffProfile>[]}
         data={staffs.map((staff) => {
           return {
             email: (staff.userId as User).email,
             role: staff.role,
             active: staff.active || false,
+            jobPosts: staff.jobPosts || 0,
+            applications: staff.applications || 0,
             createdAt: staff.createdAt || new Date(),
             id: staff._id,
           };
@@ -236,16 +235,16 @@ export const ManageStaffs = () => {
       />
       <StaffForm
         isOpen={isAddStaffModalOpen}
-        onClose={() => setIsAddStaffModalOpen(false)}
+        onClose={handleCloseAddStaffModal}
         status={status}
       />
       <ImportCsv
         isOpen={isImportStaffModalOpen}
-        onClose={() => setIsImportStaffModalOpen(false)}
+        onClose={handleCloseImportStaffModal}
         onSubmit={handleImportStaff}
         onDownloadTemplate={handleDownloadTemplate}
         title="Staff"
       />
-    </>
+    </div>
   );
 };
