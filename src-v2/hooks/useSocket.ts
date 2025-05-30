@@ -21,12 +21,16 @@ export const useSocket = (): UseSocketReturn => {
     }
 
     // Initialize socket connection
-    const socket = io("http://localhost:3000", {
-      auth: {
-        token: token,
-      },
-      autoConnect: true,
-    });
+    const socket = io(
+      // "http://localhost:3000"
+      "https://jobbuilder-server.onrender.com",
+      {
+        auth: {
+          token: token,
+        },
+        autoConnect: true,
+      }
+    );
 
     socketRef.current = socket;
 

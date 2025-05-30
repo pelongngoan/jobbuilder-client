@@ -22,7 +22,11 @@ import { useStaff } from "../../hooks/useStaff";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import useChat from "../../hooks/useChat";
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// const USER_URL = import.meta.env.VITE_USER_URL || "http://localhost:5173";
+
+const BACKEND_URL =
+  import.meta.env.VITE_API_URL || "https://jobbuilder-server.onrender.com";
 const USER_URL = import.meta.env.VITE_USER_URL || "http://localhost:5173";
 
 // Status options for the select dropdown

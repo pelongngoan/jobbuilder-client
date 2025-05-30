@@ -14,7 +14,8 @@ const getImageUrl = (path: string) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   // Use the backend URL for serving static files
-  return `http://localhost:3000/uploads/${path}`;
+  // return `http://localhost:3000/uploads/${path}`;
+  return `https://jobbuilder-server.onrender.com/uploads/${path}`;
 };
 
 const ChatPage: React.FC = () => {

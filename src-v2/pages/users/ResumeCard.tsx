@@ -26,7 +26,10 @@ const CARD_HEIGHT = 400;
 const PREVIEW_HEIGHT = 200;
 
 // Get backend URL from environment or use default
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const BACKEND_URL =
+  import.meta.env.VITE_API_URL || "https://jobbuilder-server.onrender.com";
+
 const USER_URL = import.meta.env.VITE_USER_URL || "http://localhost:5173";
 
 interface ResumeCardProps {
