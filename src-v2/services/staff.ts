@@ -64,18 +64,20 @@ const staffService = {
   },
 
   searchStaffs: async ({
+    companyId,
     page,
     limit,
     email,
     role,
   }: {
+    companyId: string;
     page: number;
     limit: number;
     email: string;
     role: string;
   }) => {
     const response = await apiClient.get<ApiResponse<GetResponse>>(
-      `/staffs/search?page=${page}&limit=${limit}&email=${email}&role=${role}`
+      `/staffs/search?page=${page}&limit=${limit}&email=${email}&role=${role}&companyId=${companyId}`
     );
     return response.data;
   },

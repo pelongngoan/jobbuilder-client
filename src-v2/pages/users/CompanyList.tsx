@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import useCompany from "../../hooks/useCompany";
 import { CompanyCard } from "./CompanyCard";
 import { useTranslation } from "react-i18next";
@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 export const CompanyList = () => {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(10);
   const { getAllCompanies, companies } = useCompany();
 
   useEffect(() => {

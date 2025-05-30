@@ -15,7 +15,8 @@ import { useJobs } from "../../hooks/useJobs";
 import { Category } from "../../types/category.types";
 import { ObjectId } from "../../types/common.types";
 import { StaffProfile } from "../../types/staff.types";
-
+import { useAuth } from "../../hooks/useAuth";
+import { useAppSelector } from "../../redux/store";
 interface Option {
   value: string;
   label: string;
@@ -61,15 +62,18 @@ export const JobForm = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const { staffs, getStaffs } = useStaff();
-  const { currentJob, updateJob, createJob } = useJobs();
-
+  const { getCompanyJobs, getHrJobs, currentJob, updateJob, createJob } =
+    useJobs();
+  const { page, limit } = useAppSelector((state) => state.pagination);
   useEffect(() => {
     getStaffs(1, 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { categories, getCategories } = useCategory();
   useEffect(() => {
     getCategories(1, 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [formData, setFormData] = useState<Partial<JobPost>>(() => ({
@@ -157,12 +161,24 @@ export const JobForm = ({
   const handlePrev = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
-
+  const { role, useProfileId } = useAuth();
   const handleSubmit = () => {
     if (currentJob) {
-      updateJob(currentJob._id, formData as JobPost);
+      updateJob(currentJob._id, formData as JobPost).then(() => {
+        if (role === "company" && useProfileId) {
+          getCompanyJobs(useProfileId, page, limit);
+        } else if (role === "staff" && useProfileId) {
+          getHrJobs(useProfileId, page, limit);
+        }
+      });
     } else {
-      createJob(formData as JobPost);
+      createJob(formData as JobPost).then(() => {
+        if (role === "company" && useProfileId) {
+          getCompanyJobs(useProfileId, page, limit);
+        } else if (role === "staff" && useProfileId) {
+          getHrJobs(useProfileId, page, limit);
+        }
+      });
     }
     setFormData({});
     onClose();

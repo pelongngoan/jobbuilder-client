@@ -56,8 +56,8 @@ const companyService = {
     );
 
     // Transform image URLs in the response
-    if (response.data.data) {
-      const data = response.data.data as CompanyProfile;
+    if (response.data) {
+      const data = response.data as unknown as CompanyProfile;
       return {
         ...response.data,
         data: {

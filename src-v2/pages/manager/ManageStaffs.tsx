@@ -11,13 +11,12 @@ import { useAppSelector } from "../../redux/store";
 import { setCurrentStaff } from "../../redux/slices/staffSlice";
 import Papa from "papaparse";
 import { StaffProfile } from "../../types/staff.types";
-import { User } from "../../types/user.types";
+import useAuth from "../../hooks/useAuth";
 export const ManageStaffs = () => {
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [isImportStaffModalOpen, setIsImportStaffModalOpen] = useState(false);
   const {
     staffs,
-    getStaffs,
     deleteStaff,
     importStaffs,
     searchStaffs,
@@ -27,18 +26,26 @@ export const ManageStaffs = () => {
   const { page, limit, totalPages } = useAppSelector(
     (state) => state.pagination
   );
+  const [search, setSearch] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState<"add" | "edit">("add");
   const dispatch = useAppDispatch();
+  const { companyProfileId } = useAuth();
 
   useEffect(() => {
-    getStaffs(page, limit);
+    // getStaffs(page, limit);
+    searchStaffs(search, role, page, limit, companyProfileId as string);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit]);
+  }, [page, limit, search, role]);
 
   const handleImportStaff = async (file: File) => {
-    importStaffs(file);
+    const response = await importStaffs(file);
+    if (response.imported && response.imported > 0) {
+      searchStaffs(search, role, page, limit, companyProfileId as string);
+    }
+    setIsImportStaffModalOpen(false);
   };
   const handleCloseAddStaffModal = () => {
     setIsAddStaffModalOpen(false);
@@ -96,22 +103,22 @@ export const ManageStaffs = () => {
         </div>
       ),
     },
-    {
-      id: "jobPosts",
-      header: "Number Of Job Posts",
-      accessor: "jobPosts",
-      render: (jobPosts: any) => {
-        return 0;
-      },
-    },
-    {
-      id: "applications",
-      header: "Number Of Applications",
-      accessor: "applications",
-      render: (applications: any) => {
-        return 0;
-      },
-    },
+    // {
+    //   id: "jobPosts",
+    //   header: "Number Of Job Posts",
+    //   accessor: "jobPosts",
+    //   render: (jobPosts: any) => {
+    //     return 0;
+    //   },
+    // },
+    // {
+    //   id: "applications",
+    //   header: "Number Of Applications",
+    //   accessor: "applications",
+    //   render: (applications: any) => {
+    //     return 0;
+    //   },
+    // },
     {
       id: "createdAt",
       header: "Created At",
@@ -141,7 +148,13 @@ export const ManageStaffs = () => {
               updateStaff(value, {
                 active: !row.active,
               }).then(() => {
-                getStaffs(page, limit);
+                searchStaffs(
+                  search,
+                  role,
+                  page,
+                  limit,
+                  companyProfileId as string
+                );
               });
             }}
             className={`${
@@ -154,7 +167,13 @@ export const ManageStaffs = () => {
             onClick={(e) => {
               e.stopPropagation();
               deleteStaff(value).then(() => {
-                getStaffs(page, limit);
+                searchStaffs(
+                  search,
+                  role,
+                  page,
+                  limit,
+                  companyProfileId as string
+                );
               });
             }}
           >
@@ -174,7 +193,7 @@ export const ManageStaffs = () => {
             onChange={(e) => {
               setEmail(e.target.value);
               setTimeout(() => {
-                searchStaffs(e.target.value, role, page, limit);
+                setSearch(e.target.value);
               }, 1000);
             }}
           />
@@ -187,10 +206,22 @@ export const ManageStaffs = () => {
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
               const value = e.target.value;
               if (value === "all") {
-                searchStaffs(email, "", page, limit);
+                searchStaffs(
+                  email,
+                  "",
+                  page,
+                  limit,
+                  companyProfileId as string
+                );
               } else {
                 setRole(value);
-                searchStaffs(email, value, page, limit);
+                searchStaffs(
+                  email,
+                  value,
+                  page,
+                  limit,
+                  companyProfileId as string
+                );
               }
             }}
           />

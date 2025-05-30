@@ -2,8 +2,8 @@ import { useAppDispatch, useAppSelector } from "../redux/store";
 import { useCallback } from "react";
 import companyService from "../services/company";
 import { CompanyProfile } from "../types";
-import { setToast } from "../redux/slices/toastSlice";
 import { setCompanies, setCurrentCompany } from "../redux/slices/companySlice";
+import toast from "react-hot-toast";
 export const useCompany = () => {
   const dispatch = useAppDispatch();
   const { companies, currentCompany } = useAppSelector(
@@ -21,10 +21,12 @@ export const useCompany = () => {
         wallPaper: wallPaper || undefined,
       });
       if (response.success) {
-        dispatch(setToast({ message: response.message, type: "success" }));
+        toast.success(
+          response.message || "Update company profile successfully"
+        );
       }
     },
-    [dispatch]
+    []
   );
   const getCompanyByProfile = useCallback(async () => {
     const response = await companyService.getCompanyByProfile();
@@ -40,6 +42,7 @@ export const useCompany = () => {
       dispatch(setCompanies(response.data as unknown as CompanyProfile[]));
       return response.data;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const getCompanyById = useCallback(async (id: string) => {
     const response = await companyService.getCompanyById(id);
@@ -47,6 +50,7 @@ export const useCompany = () => {
       dispatch(setCurrentCompany(response.data as unknown as CompanyProfile));
       return response.data;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable } from "../../components/common";
 import { Button } from "../../components/common";
 import { Input } from "../../components/common";
@@ -13,11 +13,12 @@ import { useAppSelector } from "../../redux/store";
 import { setPage } from "../../redux/slices/paginationSlice";
 import { Pagination } from "@mui/material";
 import { useDispatch } from "react-redux";
+
 export const ManageJobs = () => {
   const dispatch = useDispatch();
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const { id, role, useProfileId } = useAuth();
+  const { role, useProfileId } = useAuth();
   const { getCompanyJobs, getHrJobs, jobs, getJobById, deleteJob, searchJobs } =
     useJobs();
   const { page, limit, totalPages } = useAppSelector(
@@ -34,7 +35,8 @@ export const ManageJobs = () => {
       id: "category",
       header: "Category",
       accessor: "category",
-      render: (category: Category) => {
+      render: (value: unknown) => {
+        const category = value as Category;
         return category?.name;
       },
     },
@@ -57,8 +59,9 @@ export const ManageJobs = () => {
       id: "contacterId",
       header: "Contacter Email",
       accessor: "contacterId",
-      render: (row: JobPost) => {
-        return row?.profile?.email;
+      render: (_value: unknown, row: Record<string, unknown>) => {
+        const jobPost = row as unknown as JobPost;
+        return jobPost?.profile?.email;
       },
     },
     {
@@ -80,14 +83,16 @@ export const ManageJobs = () => {
       id: "_id",
       header: "Actions",
       accessor: "_id",
-      render: (row: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      render: (value: unknown, _row: Record<string, unknown>) => {
+        const jobId = value as string;
         return (
           <div className="flex gap-2">
-            <Button onClick={() => handleEditJob(row)} size="sm">
+            <Button onClick={() => handleEditJob(jobId)} size="sm">
               Edit
             </Button>
             <Button
-              onClick={() => handleDeleteJob(row)}
+              onClick={() => handleDeleteJob(jobId)}
               size="sm"
               variant="danger"
             >
@@ -98,12 +103,15 @@ export const ManageJobs = () => {
       },
     },
   ];
-  const handleDeleteJob = useCallback(
-    async (job: string) => {
-      deleteJob(job);
-    },
-    [deleteJob]
-  );
+  const handleDeleteJob = async (job: string) => {
+    await deleteJob(job).then(() => {
+      if (role === "company" && useProfileId) {
+        getCompanyJobs(useProfileId, page, limit);
+      } else if (role === "staff" && useProfileId) {
+        getHrJobs(useProfileId, page, limit);
+      }
+    });
+  };
   useEffect(() => {
     if (role === "company" && useProfileId) {
       getCompanyJobs(useProfileId, page, limit);
@@ -111,7 +119,7 @@ export const ManageJobs = () => {
       getHrJobs(useProfileId, page, limit);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getCompanyJobs, getHrJobs, role, useProfileId, page, limit]);
+  }, [role, useProfileId, page, limit]);
   const handleEditJob = async (job: string) => {
     getJobById(job);
     setIsJobModalOpen(true);
@@ -163,20 +171,20 @@ export const ManageJobs = () => {
     const sampleData = [
       "Frontend Developer",
       "Responsible for developing and maintaining web interfaces using React.js",
-      "Hanoi, Vietnam",
-      "Full-time",
-      "Mid-level",
+      "Cau Giay",
+      "full-time",
+      "Mid",
       "800",
       "1500",
       "USD",
       "JavaScript;React;HTML;CSS",
-      "Open",
+      "open",
       "Health insurance;Flexible hours;Remote work",
       "hr@example.com",
       "true",
       "3+ years experience with React;Familiarity with REST APIs",
       "Build and maintain UI components;Collaborate with backend team",
-      "IT",
+      "Information Technology",
       "2025-06-30",
     ].join(",");
 
@@ -229,7 +237,7 @@ export const ManageJobs = () => {
       <JobForm
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
-        contacterId={id as string}
+        contacterId={useProfileId as string}
         isCompany={role === "company"}
       />
 

@@ -1,23 +1,25 @@
-import React, { useState, useRef, useEffect, use } from "react";
-import { useTranslation } from "react-i18next";
-import { useUser } from "../../hooks/useUser";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import useChat from "../../hooks/useChat";
-import { Chat, ChatMessage } from "../../types/chat.types";
+import { ChatMessage } from "../../types/chat.types";
 import { StaffProfile } from "../../types/staff.types";
 import { Profile } from "../../types/profile.types";
 import { UserProfile } from "../../types/user.types";
 import useAuth from "../../hooks/useAuth";
-import useNotification from "../../hooks/useNotification";
+import { useSocket } from "../../hooks/useSocket";
+import { setMessages } from "../../redux/slices/chatSlice";
+
 const getImageUrl = (path: string) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   // Use the backend URL for serving static files
   return `http://localhost:3000/uploads/${path}`;
 };
+
 const ChatPage: React.FC = () => {
-  const { t } = useTranslation();
   const { chatId } = useParams();
+  const dispatch = useDispatch();
   const {
     messages,
     currentChat,
@@ -27,12 +29,14 @@ const ChatPage: React.FC = () => {
     getChatById,
     getChats,
   } = useChat();
-  const { profile } = useUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const { id, role } = useAuth();
+  const { socket, joinChat, leaveChat, sendTyping } = useSocket();
+
   useEffect(() => {
     getChats();
     if (chatId) {
@@ -42,11 +46,64 @@ const ChatPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
+  // Socket.io setup for real-time messaging
+  useEffect(() => {
+    if (!socket || !chatId) return;
+
+    // Join the chat room
+    joinChat(chatId);
+
+    // Listen for new messages
+    const handleNewMessage = (message: ChatMessage) => {
+      dispatch(setMessages([...messages, message]));
+    };
+
+    // Listen for typing indicators
+    const handleUserTyping = ({
+      userId,
+      isTyping,
+    }: {
+      userId: string;
+      isTyping: boolean;
+    }) => {
+      setTypingUsers((prev) => {
+        const newSet = new Set(prev);
+        if (isTyping && userId !== id) {
+          newSet.add(userId);
+        } else {
+          newSet.delete(userId);
+        }
+        return newSet;
+      });
+
+      // Clear typing indicator after 3 seconds
+      if (isTyping) {
+        setTimeout(() => {
+          setTypingUsers((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(userId);
+            return newSet;
+          });
+        }, 3000);
+      }
+    };
+
+    socket.on("new_message", handleNewMessage);
+    socket.on("user_typing", handleUserTyping);
+
+    // Cleanup when leaving chat or component unmounting
+    return () => {
+      leaveChat(chatId);
+      socket.off("new_message", handleNewMessage);
+      socket.off("user_typing", handleUserTyping);
+    };
+  }, [socket, chatId, id, joinChat, leaveChat, dispatch, messages]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-  const { createNotification } = useNotification();
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !currentChat) return;
@@ -54,22 +111,35 @@ const ChatPage: React.FC = () => {
     try {
       const response = await sendMessage(currentChat._id, newMessage.trim());
       if (response?.success) {
-        await createNotification({
-          userId:
-            role === "user"
-              ? (currentChat.staffId as string)
-              : (currentChat.userId as string),
-          type: "chat_message",
-          content: newMessage.trim(),
-        });
         setNewMessage("");
         setError(null);
+        // Stop typing indicator
+        sendTyping(currentChat._id, false);
       } else {
         setError("Failed to send message. Please try again.");
       }
     } catch (error) {
       console.error("Error sending message:", error);
       setError("Failed to send message. Please try again.");
+    }
+  };
+
+  // Handle typing indicator
+  const handleTyping = (isTyping: boolean) => {
+    if (currentChat) {
+      sendTyping(currentChat._id, isTyping);
+    }
+  };
+
+  // Handle input change with typing indicator
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+
+    // Send typing indicator
+    if (e.target.value.trim() && !newMessage.trim()) {
+      handleTyping(true);
+    } else if (!e.target.value.trim() && newMessage.trim()) {
+      handleTyping(false);
     }
   };
 
@@ -106,6 +176,30 @@ const ChatPage: React.FC = () => {
       return `${profile.firstName} ${profile.lastName}`;
     }
     return "Staff";
+  };
+
+  const getProfilePicture = (
+    profileData: Profile | string | undefined
+  ): string => {
+    if (typeof profileData === "object" && profileData?.profilePicture) {
+      return profileData.profilePicture;
+    }
+    return "";
+  };
+
+  const getProfileInfo = (profileData: Profile | string | undefined) => {
+    if (typeof profileData === "object") {
+      return {
+        firstName: profileData.firstName || "",
+        lastName: profileData.lastName || "",
+        email: profileData.email || "",
+      };
+    }
+    return {
+      firstName: "",
+      lastName: "",
+      email: "",
+    };
   };
 
   return (
@@ -169,6 +263,15 @@ const ChatPage: React.FC = () => {
                       typeof chat.staffId === "object"
                         ? (chat.staffId as StaffProfile)
                         : null;
+                    const user =
+                      typeof chat.userId === "object"
+                        ? (chat.userId as UserProfile)
+                        : null;
+
+                    const displayProfile =
+                      role === "user" ? staff?.profile : user?.profile;
+                    const profilePicture = getProfilePicture(displayProfile);
+
                     return (
                       <div
                         key={chat._id}
@@ -186,11 +289,8 @@ const ChatPage: React.FC = () => {
                           <div className="relative">
                             <img
                               src={
-                                staff
-                                  ? getImageUrl(
-                                      (staff as StaffProfile)?.profile
-                                        ?.profilePicture
-                                    )
+                                profilePicture
+                                  ? getImageUrl(profilePicture)
                                   : "/api/placeholder/40/40"
                               }
                               alt={staff ? getStaffName(staff) : "Staff"}
@@ -234,8 +334,13 @@ const ChatPage: React.FC = () => {
                           {typeof currentChat.staffId === "object" && (
                             <img
                               src={getImageUrl(
-                                (currentChat.staffId as StaffProfile)?.profile
-                                  ?.profilePicture
+                                getProfilePicture(
+                                  role === "user"
+                                    ? (currentChat.staffId as StaffProfile)
+                                        ?.profile
+                                    : (currentChat.userId as UserProfile)
+                                        ?.profile
+                                )
                               )}
                               alt={getStaffName(
                                 currentChat.staffId as StaffProfile
@@ -247,29 +352,29 @@ const ChatPage: React.FC = () => {
                         <div>
                           <h2 className="text-lg font-medium text-gray-900">
                             {role === "user"
-                              ? `${
-                                  (currentChat.staffId as StaffProfile)?.profile
-                                    ?.firstName
-                                } 
-                                ${
-                                  (currentChat.staffId as StaffProfile)?.profile
-                                    ?.lastName
-                                } ( ${
-                                  (currentChat.staffId as StaffProfile)?.profile
-                                    ?.email
-                                })`
-                              : `${
-                                  (currentChat.userId as UserProfile)?.profile
-                                    ?.firstName
-                                } 
-                                ${
-                                  (currentChat.userId as UserProfile)?.profile
-                                    ?.lastName
-                                } ( ${
-                                  (currentChat.userId as UserProfile)?.profile
-                                    ?.email
-                                })`}
+                              ? (() => {
+                                  const staffProfile = getProfileInfo(
+                                    (currentChat.staffId as StaffProfile)
+                                      ?.profile
+                                  );
+                                  return `${staffProfile.firstName} ${staffProfile.lastName} (${staffProfile.email})`;
+                                })()
+                              : (() => {
+                                  const userProfile = getProfileInfo(
+                                    (currentChat.userId as UserProfile)?.profile
+                                  );
+                                  return `${userProfile.firstName} ${userProfile.lastName} (${userProfile.email})`;
+                                })()}
                           </h2>
+                          {/* Typing indicator */}
+                          {typingUsers.size > 0 && (
+                            <p className="text-sm text-blue-500 italic">
+                              {typingUsers.size === 1
+                                ? "Someone is"
+                                : "People are"}{" "}
+                              typing...
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -327,7 +432,8 @@ const ChatPage: React.FC = () => {
                         <input
                           type="text"
                           value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
+                          onChange={handleInputChange}
+                          onBlur={() => handleTyping(false)}
                           placeholder="Type a message..."
                           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         />

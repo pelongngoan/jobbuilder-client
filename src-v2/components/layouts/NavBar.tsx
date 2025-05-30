@@ -24,6 +24,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
   useEffect(() => {
     getCategories(1, 100);
     getUserProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [isScrolled, setIsScrolled] = useState(false);
   const [jobsDropdownOpen, setJobsDropdownOpen] = useState(false);
@@ -140,7 +141,7 @@ const NavBar: React.FC<NavBarProps> = ({ variant = "light" }) => {
           {/* Logo and brand */}
           <div className="flex items-center">
             <Link
-              to="/"
+              to="/user"
               className={`flex-shrink-0 flex items-center ${logoColor} font-bold text-xl`}
             >
               JobBuilder

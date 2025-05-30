@@ -8,9 +8,8 @@ import { setToast } from "../redux/slices/toastSlice";
 
 export function useAuth() {
   const dispatch = useAppDispatch();
-  const { token, id, role, useProfileId } = useAppSelector(
-    (state) => state.auth
-  );
+  const { token, id, role, useProfileId, companyId, companyProfileId } =
+    useAppSelector((state) => state.auth);
 
   const login = useCallback(
     async (credentials: LoginRequest) => {
@@ -29,6 +28,8 @@ export function useAuth() {
         localStorage.setItem("id", result.id);
         localStorage.setItem("role", result.role);
         localStorage.setItem("useProfileId", result.useProfileId || "");
+        localStorage.setItem("companyId", result.companyId || "");
+        localStorage.setItem("companyProfileId", result.companyProfileId || "");
         dispatch(setToast({ message: "Login successful", type: "success" }));
       }
       return result;
@@ -58,6 +59,8 @@ export function useAuth() {
     localStorage.removeItem("id");
     localStorage.removeItem("role");
     localStorage.removeItem("useProfileId");
+    localStorage.removeItem("companyId");
+    localStorage.removeItem("companyProfileId");
   }, [dispatch]);
   // Verify email
   const verifyEmail = useCallback(
@@ -135,6 +138,8 @@ export function useAuth() {
     id,
     role,
     useProfileId,
+    companyId,
+    companyProfileId,
     login,
     register,
     logout: logoutUser,

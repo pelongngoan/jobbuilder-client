@@ -24,7 +24,7 @@ export interface JobPost {
   keyResponsibilities?: string[];
   applications: Profile[];
   experienceLevel?: "Entry" | "Mid" | "Senior" | "Executive";
-  other?: { title?: string; description?: string; [key: string]: any };
+  other?: { title?: string; description?: string; [key: string]: unknown };
   viewCount: number;
   applicationCount: number;
   isFeatured: boolean;

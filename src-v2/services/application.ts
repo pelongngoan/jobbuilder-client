@@ -63,19 +63,24 @@ const applicationService = {
     );
     return response.data;
   },
-  getStaffApplications: async (
-    staffId: string,
+  getStaffApplications: async ({
+    staffId,
     page = 1,
     limit = 10,
-    search = ""
-  ) => {
+  }: {
+    staffId: string;
+    page?: number;
+    limit?: number;
+  }) => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
-      ...(search && { search }),
     });
     const response = await apiClient.get<ApiResponse<GetResponse>>(
-      `/applications/staff/${staffId}?${params}`
+      `/applications/staff/${staffId}`,
+      {
+        params,
+      }
     );
     return response.data;
   },

@@ -10,6 +10,7 @@ interface AuthResponse {
   useProfileId?: string;
   companyProfileId?: string;
   role?: "user" | "admin" | "staff" | "company";
+  companyId?: string;
 }
 export interface MessageResponse {
   success: boolean;

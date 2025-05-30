@@ -4,11 +4,17 @@ import { useApplication } from "../../hooks/useApplication";
 import { useJobs } from "../../hooks/useJobs";
 import { useResume } from "../../hooks/useResume";
 import { useTranslation } from "react-i18next";
-import useNotification from "../../hooks/useNotification";
-import { useUser } from "../../hooks/useUser";
+
 interface ApplicationApplyProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface ResumeData {
+  _id: string;
+  title: string;
+  description?: string;
+  updatedAt: string;
 }
 
 /**
@@ -19,7 +25,7 @@ const ResumeRadioCheck = ({
   selectedId,
   setSelectedId,
 }: {
-  resumes: any[];
+  resumes: ResumeData[];
   selectedId: string | null;
   setSelectedId: (id: string) => void;
 }) => {
@@ -27,7 +33,7 @@ const ResumeRadioCheck = ({
 
   return (
     <div className="flex flex-col gap-3">
-      {resumes.map((resume: any) => (
+      {resumes.map((resume: ResumeData) => (
         <div
           key={resume._id}
           className={`p-3 border rounded-md cursor-pointer hover:bg-gray-50 ${
@@ -81,6 +87,7 @@ export const ApplicationApply = ({
   const { resumes, fetchResumes } = useResume();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (currentJob) {
       fetchResumes();
@@ -94,18 +101,14 @@ export const ApplicationApply = ({
     }
   }, [resumes, selectedId]);
 
-  const { createNotification } = useNotification();
-  const { profile } = useUser();
   const handleApply = async () => {
     if (!selectedId || !currentJob?._id) return;
+
     setIsSubmitting(true);
     try {
       await applyForJob(currentJob._id, selectedId);
-      createNotification({
-        userId: currentJob?.contacterId?._id as string,
-        type: "job_application",
-        content: `${profile?.userId.email} applied for ${currentJob?.title}`,
-      });
+      // Backend now automatically creates notifications for staff
+      // No need for manual notification creation
       onClose();
     } catch (error) {
       console.error("Failed to apply for job:", error);
@@ -127,7 +130,7 @@ export const ApplicationApply = ({
               {t("applicationApply.selectResume")}
             </p>
             <ResumeRadioCheck
-              resumes={resumes}
+              resumes={resumes as ResumeData[]}
               selectedId={selectedId}
               setSelectedId={setSelectedId}
             />

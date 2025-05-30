@@ -2,110 +2,33 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button, Card } from "../../components/common";
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  type: "job" | "application" | "system" | "message";
-  isRead: boolean;
-  createdAt: Date;
-  link?: string;
-}
+import { useNotifications } from "../../hooks/useNotifications";
 
 const NotificationsPage: React.FC = () => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<
-    "all" | "unread" | "job" | "application" | "system" | "message"
+    | "all"
+    | "unread"
+    | "job_application"
+    | "application_status"
+    | "application_assigned"
+    | "interview_scheduled"
+    | "chat_message"
   >("all");
 
-  // Mock notifications data - replace with actual API call
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: "1",
-      title: "New Job Match",
-      message:
-        "Frontend Developer position at TechCorp matches your profile. The role requires React, TypeScript, and 3+ years of experience.",
-      type: "job",
-      isRead: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      link: "/user/jobs/1",
-    },
-    {
-      id: "2",
-      title: "Application Update",
-      message:
-        "Your application for Backend Developer at StartupXYZ has been reviewed and moved to the interview stage.",
-      type: "application",
-      isRead: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      link: "/user/applications",
-    },
-    {
-      id: "3",
-      title: "Profile Viewed",
-      message:
-        "TechCorp's hiring manager viewed your profile. They seem interested in your React and Node.js experience.",
-      type: "system",
-      isRead: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      link: "/user/profile",
-    },
-    {
-      id: "4",
-      title: "New Message",
-      message:
-        "You have a new message from Sarah Johnson (HR Manager at TechCorp) regarding your application.",
-      type: "message",
-      isRead: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-      link: "/user/messages",
-    },
-    {
-      id: "5",
-      title: "Interview Scheduled",
-      message:
-        "Your technical interview for Senior Developer position has been scheduled for tomorrow at 2:00 PM.",
-      type: "application",
-      isRead: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-      link: "/user/applications",
-    },
-    {
-      id: "6",
-      title: "Job Alert",
-      message:
-        "5 new Full-stack Developer positions match your preferences in San Francisco.",
-      type: "job",
-      isRead: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4), // 4 days ago
-      link: "/user/jobs",
-    },
-    {
-      id: "7",
-      title: "Profile Completion",
-      message:
-        "Complete your profile to increase your chances of getting hired. Add your work experience and skills.",
-      type: "system",
-      isRead: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
-      link: "/user/profile",
-    },
-    {
-      id: "8",
-      title: "Application Rejected",
-      message:
-        "Unfortunately, your application for Junior Developer at WebCorp was not selected. Keep applying!",
-      type: "application",
-      isRead: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 1 week ago
-      link: "/user/applications",
-    },
-  ]);
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "job":
+      case "job_application":
         return (
           <div className="bg-blue-100 p-2 rounded-full">
             <svg
@@ -123,7 +46,8 @@ const NotificationsPage: React.FC = () => {
             </svg>
           </div>
         );
-      case "application":
+      case "application_status":
+      case "application_assigned":
         return (
           <div className="bg-green-100 p-2 rounded-full">
             <svg
@@ -141,7 +65,25 @@ const NotificationsPage: React.FC = () => {
             </svg>
           </div>
         );
-      case "message":
+      case "interview_scheduled":
+        return (
+          <div className="bg-yellow-100 p-2 rounded-full">
+            <svg
+              className="h-5 w-5 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-4 9l4-4m0 0l-4-4m4 4H3"
+              />
+            </svg>
+          </div>
+        );
+      case "chat_message":
         return (
           <div className="bg-purple-100 p-2 rounded-full">
             <svg
@@ -180,9 +122,10 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (date: Date | string) => {
     const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
+    const notificationDate = new Date(date);
+    const diffInMs = now.getTime() - notificationDate.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
@@ -202,25 +145,17 @@ const NotificationsPage: React.FC = () => {
     return notification.type === filter;
   });
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
+  const handleMarkAsRead = async (id: string) => {
+    await markAsRead(id);
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notif) => ({ ...notif, isRead: true }))
-    );
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+  const handleDeleteNotification = async (id: string) => {
+    await deleteNotification(id);
   };
-
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const getFilterLabel = (filterType: string) => {
     switch (filterType) {
@@ -228,18 +163,44 @@ const NotificationsPage: React.FC = () => {
         return "All";
       case "unread":
         return "Unread";
-      case "job":
-        return "Jobs";
-      case "application":
-        return "Applications";
-      case "system":
-        return "System";
-      case "message":
+      case "job_application":
+        return "Job Applications";
+      case "application_status":
+        return "Application Status";
+      case "application_assigned":
+        return "Assignments";
+      case "interview_scheduled":
+        return "Interviews";
+      case "chat_message":
         return "Messages";
       default:
         return "All";
     }
   };
+
+  if (loading && notifications.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <p className="text-red-700">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
@@ -251,7 +212,11 @@ const NotificationsPage: React.FC = () => {
               {t("navigation.notifications")}
             </h1>
             {unreadCount > 0 && (
-              <Button onClick={markAllAsRead} variant="secondary" size="sm">
+              <Button
+                onClick={handleMarkAllAsRead}
+                variant="secondary"
+                size="sm"
+              >
                 Mark all as read
               </Button>
             )}
@@ -278,7 +243,10 @@ const NotificationsPage: React.FC = () => {
             <Card className="p-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {notifications.filter((n) => n.type === "job").length}
+                  {
+                    notifications.filter((n) => n.type === "job_application")
+                      .length
+                  }
                 </div>
                 <div className="text-sm text-gray-500">Jobs</div>
               </div>
@@ -286,7 +254,10 @@ const NotificationsPage: React.FC = () => {
             <Card className="p-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {notifications.filter((n) => n.type === "application").length}
+                  {
+                    notifications.filter((n) => n.type === "application_status")
+                      .length
+                  }
                 </div>
                 <div className="text-sm text-gray-500">Applications</div>
               </div>
@@ -295,36 +266,43 @@ const NotificationsPage: React.FC = () => {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-2">
-            {["all", "unread", "job", "application", "system", "message"].map(
-              (filterType) => (
-                <button
-                  key={filterType}
-                  onClick={() =>
-                    setFilter(
-                      filterType as
-                        | "all"
-                        | "unread"
-                        | "job"
-                        | "application"
-                        | "system"
-                        | "message"
-                    )
-                  }
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    filter === filterType
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
-                  }`}
-                >
-                  {getFilterLabel(filterType)}
-                  {filterType === "unread" && unreadCount > 0 && (
-                    <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              )
-            )}
+            {[
+              "all",
+              "unread",
+              "job_application",
+              "application_status",
+              "application_assigned",
+              "interview_scheduled",
+              "chat_message",
+            ].map((filterType) => (
+              <button
+                key={filterType}
+                onClick={() =>
+                  setFilter(
+                    filterType as
+                      | "all"
+                      | "unread"
+                      | "job_application"
+                      | "application_status"
+                      | "application_assigned"
+                      | "interview_scheduled"
+                      | "chat_message"
+                  )
+                }
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  filter === filterType
+                    ? "bg-blue-500 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                }`}
+              >
+                {getFilterLabel(filterType)}
+                {filterType === "unread" && unreadCount > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -359,7 +337,7 @@ const NotificationsPage: React.FC = () => {
           ) : (
             filteredNotifications.map((notification) => (
               <Card
-                key={notification.id}
+                key={notification._id}
                 className={`p-6 transition-all duration-200 hover:shadow-md ${
                   !notification.isRead
                     ? "border-l-4 border-l-blue-500 bg-blue-50"
@@ -368,7 +346,7 @@ const NotificationsPage: React.FC = () => {
               >
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    {getNotificationIcon(notification.type)}
+                    {getNotificationIcon(notification.type || "")}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -384,25 +362,29 @@ const NotificationsPage: React.FC = () => {
                           {notification.title}
                         </h3>
                         <p className="mt-1 text-gray-600 leading-relaxed">
-                          {notification.message}
+                          {notification.content}
                         </p>
                         <div className="mt-3 flex items-center justify-between">
                           <p className="text-sm text-gray-500">
-                            {formatTimeAgo(notification.createdAt)}
+                            {formatTimeAgo(notification.createdAt!)}
                           </p>
                           <div className="flex items-center space-x-2">
-                            {notification.link && (
+                            {notification.actionUrl && (
                               <Link
-                                to={notification.link}
+                                to={notification.actionUrl}
                                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() =>
+                                  handleMarkAsRead(notification._id!)
+                                }
                               >
                                 View
                               </Link>
                             )}
                             {!notification.isRead && (
                               <button
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() =>
+                                  handleMarkAsRead(notification._id!)
+                                }
                                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                               >
                                 Mark as read
@@ -410,7 +392,7 @@ const NotificationsPage: React.FC = () => {
                             )}
                             <button
                               onClick={() =>
-                                deleteNotification(notification.id)
+                                handleDeleteNotification(notification._id!)
                               }
                               className="text-red-600 hover:text-red-800 text-sm font-medium"
                             >
@@ -432,13 +414,6 @@ const NotificationsPage: React.FC = () => {
             ))
           )}
         </div>
-
-        {/* Load More Button */}
-        {filteredNotifications.length > 0 && (
-          <div className="mt-8 text-center">
-            <Button variant="secondary">Load More Notifications</Button>
-          </div>
-        )}
       </div>
     </div>
   );

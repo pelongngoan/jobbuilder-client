@@ -16,8 +16,6 @@ import { ArrowBack, Save, Delete, Add as AddIcon } from "@mui/icons-material";
 import { useResume } from "../../hooks/useResume";
 import { Resume } from "../../types";
 import { useTranslation } from "react-i18next";
-import { Theme } from "@mui/material/styles";
-import { SxProps } from "@mui/system";
 
 export const ResumeBuilder = () => {
   const { t } = useTranslation();
@@ -113,7 +111,7 @@ export const ResumeBuilder = () => {
   }, [currentResume, resumeId]);
 
   const handleInputChange = (section: keyof ResumeContent, value: string) => {
-    setResumeData((prev) => ({
+    setResumeData((prev: Partial<Resume>) => ({
       ...prev,
       content: {
         ...(prev.content || {}),
@@ -142,18 +140,20 @@ export const ResumeBuilder = () => {
     field: PersonalInfoField,
     value: string
   ) => {
-    setResumeData((prev) => {
+    setResumeData((prev: Partial<Resume>) => {
       const content = prev.content || ({} as ResumeContent);
+      const personalInfo = content.personalInfo || {};
+
       return {
         ...prev,
         content: {
           ...content,
           personalInfo: {
-            ...content.personalInfo,
+            ...personalInfo,
             [field]: value,
           },
         },
-      };
+      } as Partial<Resume>;
     });
   };
 
@@ -163,7 +163,7 @@ export const ResumeBuilder = () => {
     field: string,
     value: string | string[]
   ) => {
-    setResumeData((prev) => {
+    setResumeData((prev: Partial<Resume>) => {
       const content = prev.content || ({} as ResumeContent);
       const sectionData = [...(content[section] || [])] as SectionItem<
         typeof section
@@ -183,41 +183,11 @@ export const ResumeBuilder = () => {
     });
   };
 
-  const handleHighlightChange = (
-    section: string,
-    itemIndex: number,
-    highlightIndex: number,
-    value: string
-  ) => {
-    setResumeData((prev) => {
-      const sectionData = [
-        ...((prev.content?.[
-          section as keyof Resume["content"]
-        ] as unknown as any[]) || []),
-      ];
-      const highlights = [...(sectionData[itemIndex]?.highlights || [])];
-      highlights[highlightIndex] = value;
-
-      sectionData[itemIndex] = {
-        ...sectionData[itemIndex],
-        highlights,
-      };
-
-      return {
-        ...prev,
-        content: {
-          ...prev.content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
   const addItem = <T extends ArraySection>(
     section: T,
     template: SectionItem<T>
   ) => {
-    setResumeData((prev) => {
+    setResumeData((prev: Partial<Resume>) => {
       const content = prev.content || ({} as ResumeContent);
       const sectionData = [...(content[section] || [])] as SectionItem<T>[];
       sectionData.push(template);
@@ -233,7 +203,7 @@ export const ResumeBuilder = () => {
   };
 
   const removeItem = (section: ArraySection, index: number) => {
-    setResumeData((prev) => {
+    setResumeData((prev: Partial<Resume>) => {
       const content = prev.content || ({} as ResumeContent);
       const sectionData = [...(content[section] || [])] as SectionItem<
         typeof section
@@ -241,62 +211,6 @@ export const ResumeBuilder = () => {
       if (sectionData.length > 1) {
         sectionData.splice(index, 1);
       }
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const addHighlight = (section: ArraySection, itemIndex: number) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<
-        typeof section
-      >[];
-      const item = sectionData[itemIndex] as { highlights?: string[] };
-      const highlights = [...(item.highlights || []), ""];
-
-      sectionData[itemIndex] = {
-        ...sectionData[itemIndex],
-        highlights,
-      } as SectionItem<typeof section>;
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const removeHighlight = (
-    section: ArraySection,
-    itemIndex: number,
-    highlightIndex: number
-  ) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<
-        typeof section
-      >[];
-      const item = sectionData[itemIndex] as { highlights?: string[] };
-      const highlights = [...(item.highlights || [])];
-
-      if (highlights.length > 1) {
-        highlights.splice(highlightIndex, 1);
-      }
-
-      sectionData[itemIndex] = {
-        ...sectionData[itemIndex],
-        highlights,
-      } as SectionItem<typeof section>;
 
       return {
         ...prev,

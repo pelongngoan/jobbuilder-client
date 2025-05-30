@@ -13,6 +13,7 @@ export const HomePage = () => {
 
   useEffect(() => {
     getFeaturedJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = (query: string, location: string) => {
@@ -21,18 +22,6 @@ export const HomePage = () => {
     if (location) searchParams.append("location", location);
     navigate(`/user/jobs/search?${searchParams.toString()}`);
   };
-
-  // Location filter data
-  const locations = [
-    "Hà Nội",
-    "Ba Đình",
-    "Hoàn Kiếm",
-    "Hai Bà Trưng",
-    "Đống Đa",
-    "Tây Hồ",
-    "Cầu Giấy",
-    "Thanh Xuân",
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50">

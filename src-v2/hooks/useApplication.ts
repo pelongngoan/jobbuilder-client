@@ -75,19 +75,24 @@ export const useApplication = () => {
     return response;
   };
 
-  const getStaffApplications = async (
-    staffId: string,
+  const getStaffApplications = async ({
+    staffId,
     page = 1,
     limit = 10,
-    search = ""
-  ) => {
-    const response = await applicationService.getStaffApplications(
+  }: {
+    staffId: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) => {
+    const response = await applicationService.getStaffApplications({
       staffId,
       page,
       limit,
-      search
-    );
+    });
+    console.log(response.data);
     dispatch(setApplications(response.data));
+    console.log(applications);
     return response;
   };
 

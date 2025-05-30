@@ -20,6 +20,7 @@ import JobDetails from "../pages/users/JobDetails";
 import JobByCategory from "../pages/users/JobByCategory";
 import { ResumeBuilder } from "../pages/users/ResumeBuilder";
 import { ResumeListPage } from "../pages/users/ResumeListPage";
+import { ResumeViewer } from "../pages/users/ResumeViewer";
 import { CompanyList } from "../pages/users/CompanyList";
 import { CompanyDetail } from "../pages/users/CompanyDetail";
 import { ProfilePage } from "../pages/users/ProfilePage";
@@ -77,6 +78,10 @@ export const routes = createBrowserRouter([
           {
             path: "resumes/edit/:resumeId",
             element: <ResumeBuilder />,
+          },
+          {
+            path: "resumes/view/:resumeId",
+            element: <ResumeViewer />,
           },
           {
             path: "companies",

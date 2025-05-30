@@ -22,8 +22,9 @@ import { useTranslation } from "react-i18next";
 import { useApplication } from "../../hooks/useApplication";
 import useChat from "../../hooks/useChat";
 import { useAuth } from "../../hooks/useAuth";
-import useNotification from "../../hooks/useNotification";
-import { useUser } from "../../hooks/useUser";
+import { JobPost } from "../../types";
+import { StaffProfile } from "../../types/staff.types";
+import { Chat } from "../../types/chat.types";
 const JobDetails = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -43,20 +44,15 @@ const JobDetails = () => {
       setIsSaved(savedJobs.some((job) => job.jobId._id == currentJob?._id));
     }
     if (applications) {
-      setIsApplied(applications.some((app) => app.jobId._id == jobId));
+      setIsApplied(
+        applications.some((app) => (app.jobId as JobPost)?._id == jobId)
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId, getJobById, savedJobs, applications]);
-  const { createNotification } = useNotification();
-  const { profile } = useUser();
 
   const handleApply = () => {
     dispatch(setCurrentJob(currentJob));
-    createNotification({
-      userId: currentJob?.contacterId?._id as string,
-      type: "job_application",
-      content: `${profile?.userId.email} applied for ${currentJob?.title}`,
-    });
     setIsOpen(true);
   };
   const toggleSaveJob = () => {
@@ -69,18 +65,22 @@ const JobDetails = () => {
       setIsSaved(!isSaved);
     }
   };
-  const { getChatByReceiverId, getChatMessages, createChat, currentChat } =
-    useChat();
+  const { getChatByReceiverId, getChatMessages, createChat } = useChat();
   const { useProfileId } = useAuth();
   const handleContactThroughChat = async () => {
-    if (!currentJob?.contacterId?._id) return;
+    if (!(currentJob?.contacterId as unknown as StaffProfile)?._id) return;
     const existingChat = await getChatByReceiverId(
-      currentJob?.contacterId?._id
+      (currentJob?.contacterId as unknown as StaffProfile)?._id
     );
     if (existingChat?.success && existingChat.data !== null) {
-      await getChatMessages(existingChat.data?._id as string);
+      await getChatMessages(
+        (existingChat.data as unknown as Chat)?._id as string
+      );
     } else {
-      await createChat(useProfileId as string, currentJob?.contacterId?._id);
+      await createChat(
+        useProfileId as string,
+        (currentJob?.contacterId as unknown as StaffProfile)?._id
+      );
     }
     navigate(`/user/chat`);
   };
@@ -401,6 +401,7 @@ const JobDetails = () => {
                     className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200"
                     title="Contact through chat"
                   >
+                    {/* {JSON.stringify(currentJob)} */}
                     {currentJob?.contacterEmail}
                   </button>
                 </div>

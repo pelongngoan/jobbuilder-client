@@ -1,6 +1,7 @@
 import { CompanyProfile } from "../../types";
 import { useNavigate } from "react-router-dom";
 // Utility function to get complete image URL
+// eslint-disable-next-line react-refresh/only-export-components
 export const getImageUrl = (path: string) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;

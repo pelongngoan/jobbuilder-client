@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -14,9 +14,9 @@ import {
   Delete as DeleteIcon,
   Star as StarIcon,
   StarBorder as StarBorderIcon,
-  FileDownload as FileDownloadIcon,
   Description as DescriptionIcon,
   PictureAsPdf as PdfIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import { Resume } from "../../types";
 import { useTranslation } from "react-i18next";
@@ -27,6 +27,7 @@ const PREVIEW_HEIGHT = 200;
 
 // Get backend URL from environment or use default
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const USER_URL = import.meta.env.VITE_USER_URL || "http://localhost:5173";
 
 interface ResumeCardProps {
   resume: Resume;
@@ -50,7 +51,11 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
     navigate(`/user/resumes/edit/${id}`);
   };
 
-  const handleDownload = async () => {
+  const handleView = (id: string) => {
+    if (resume.type === "generated") {
+      // navigate(`/user/resumes/view/${id}`);
+      window.open(`${USER_URL}/user/resumes/view/${id}`, "_blank");
+    }
     if (resume.type === "uploaded" && resume.fileUrl) {
       window.open(`${BACKEND_URL}/uploads/resumes/${resume.fileUrl}`, "_blank");
     }
@@ -170,7 +175,13 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
               mb: 2,
               backgroundImage:
                 "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              cursor: "pointer",
+              "&:hover": {
+                transform: "scale(1.02)",
+                transition: "transform 0.2s ease",
+              },
             }}
+            onClick={() => handleView(resume._id.toString())}
           >
             <Box
               display="flex"
@@ -194,6 +205,13 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
               </Typography>
               <Typography variant="caption" color="inherit">
                 {t("resumeCard.generatedTemplate")}
+              </Typography>
+              <Typography
+                variant="caption"
+                color="inherit"
+                sx={{ mt: 1, fontSize: "0.75rem" }}
+              >
+                {t("resumeCard.clickToView")}
               </Typography>
             </Box>
           </Box>
@@ -298,8 +316,8 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
           <IconButton
             size="small"
             color="primary"
-            onClick={() => handleEdit(resume._id.toString())}
-            title={t("resumeCard.editResume")}
+            onClick={() => handleView(resume._id.toString())}
+            title={t("resumeCard.viewResume")}
             sx={{
               "&:hover": {
                 backgroundColor: "primary.light",
@@ -307,8 +325,24 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
               },
             }}
           >
-            <EditIcon />
+            <VisibilityIcon />
           </IconButton>
+          {resume.type === "generated" && (
+            <IconButton
+              size="small"
+              color="primary"
+              onClick={() => handleEdit(resume._id.toString())}
+              title={t("resumeCard.editResume")}
+              sx={{
+                "&:hover": {
+                  backgroundColor: "primary.light",
+                  color: "primary.contrastText",
+                },
+              }}
+            >
+              <EditIcon />
+            </IconButton>
+          )}
           <IconButton
             size="small"
             color="error"
@@ -324,21 +358,6 @@ export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
             <DeleteIcon />
           </IconButton>
         </Box>
-        <IconButton
-          size="small"
-          color="primary"
-          title={t("resumeCard.downloadAsPdf")}
-          onClick={handleDownload}
-          disabled={resume.type !== "uploaded"}
-          sx={{
-            "&:hover": {
-              backgroundColor: "success.light",
-              color: "success.contrastText",
-            },
-          }}
-        >
-          <FileDownloadIcon />
-        </IconButton>
       </Box>
     </Card>
   );

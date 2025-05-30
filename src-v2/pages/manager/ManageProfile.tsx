@@ -1,11 +1,11 @@
 import { useStaff } from "../../hooks/useStaff";
 import { useState, useEffect, ChangeEvent } from "react";
-import { useAppSelector } from "../../redux/store";
 import { useCompany } from "../../hooks/useCompany";
 import { Input, Button } from "../../components/common";
 import { Profile } from "../../types/profile.types";
 import { CompanyProfile } from "../../types/company.types";
 import { useProfile } from "../../hooks/useProfile";
+import useAuth from "../../hooks/useAuth";
 
 // Utility function to get complete image URL
 const getImageUrl = (path: string) => {
@@ -20,7 +20,8 @@ export const ManageProfile = () => {
   const { updateProfile } = useProfile();
   const { getCompanyByProfile, currentCompany, updateCompanyProfile } =
     useCompany();
-  const { id, role } = useAppSelector((state) => state.auth);
+  // const { id, role } = useAppSelector((state) => state.auth);
+  const { id, role, useProfileId } = useAuth();
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
@@ -30,12 +31,12 @@ export const ManageProfile = () => {
 
   // Form state for staff profile
   const [formValues, setFormValues] = useState<Profile>({
-    firstName: currentStaff?.profile?.firstName || "",
-    lastName: currentStaff?.profile?.lastName || "",
-    email: currentStaff?.profile?.email || "",
-    phone: currentStaff?.profile?.phone || "",
-    address: currentStaff?.profile?.address || "",
-    profilePicture: currentStaff?.profile?.profilePicture || "",
+    firstName: (currentStaff?.profile as Profile).firstName || "",
+    lastName: (currentStaff?.profile as Profile).lastName || "",
+    email: (currentStaff?.profile as Profile).email || "",
+    phone: (currentStaff?.profile as Profile).phone || "",
+    address: (currentStaff?.profile as Profile).address || "",
+    profilePicture: (currentStaff?.profile as Profile).profilePicture || "",
   });
 
   // Form state for company profile
@@ -52,23 +53,24 @@ export const ManageProfile = () => {
   });
 
   useEffect(() => {
-    if (id && role === "staff") {
-      getStaffById(id);
+    if (useProfileId && role === "staff") {
+      getStaffById(useProfileId);
     }
     if (id && role === "company") {
       getCompanyByProfile();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, role]);
 
   useEffect(() => {
     if (currentStaff) {
       setFormValues({
-        firstName: currentStaff.profile?.firstName || "",
-        lastName: currentStaff.profile?.lastName || "",
-        email: currentStaff.profile?.email || "",
-        profilePicture: currentStaff.profile?.profilePicture || "",
-        phone: currentStaff.profile?.phone || "",
-        address: currentStaff.profile?.address || "",
+        firstName: (currentStaff.profile as Profile).firstName || "",
+        lastName: (currentStaff.profile as Profile).lastName || "",
+        email: (currentStaff.profile as Profile).email || "",
+        profilePicture: (currentStaff.profile as Profile).profilePicture || "",
+        phone: (currentStaff.profile as Profile).phone || "",
+        address: (currentStaff.profile as Profile).address || "",
       });
     }
   }, [currentStaff]);

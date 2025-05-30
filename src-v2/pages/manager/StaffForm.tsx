@@ -45,7 +45,9 @@ export const StaffForm = ({ isOpen, onClose, status }: StaffFormProps) => {
 
   const handleSubmit = () => {
     if (status === "add") {
-      createStaff(formData);
+      createStaff(formData).then(() => {
+        getStaffs(page, limit);
+      });
     } else if (status === "edit") {
       updateStaff(currentStaff?._id as string, formData).then(() => {
         getStaffs(page, limit);

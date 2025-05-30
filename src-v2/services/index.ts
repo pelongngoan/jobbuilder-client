@@ -1,6 +1,7 @@
 export { default as apiClient } from "./api";
 export { default as authService } from "./authService";
 export { default as jobService } from "./jobService";
+export type { JobCategory } from "./jobService";
 export { default as resumeService } from "./resumeService";
 export { default as applicationService } from "./application";
 export { default as categoryService } from "./category";

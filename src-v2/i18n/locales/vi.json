@@ -6,7 +6,8 @@
     "logout": "Đăng xuất",
     "search": "Tìm kiếm",
     "submit": "Xác nhận",
-    "cancel": "Hủy bỏ",
+    "cancel": "Hủy",
+    "close": "Đóng",
     "language": "Ngôn ngữ",
     "changeLanguage": "Đổi ngôn ngữ",
     "viewAll": "Xem tất cả",
@@ -33,7 +34,9 @@
     "description": "Mô tả",
     "date": "Ngày",
     "created": "Đã tạo",
-    "updated": "Đã cập nhật"
+    "updated": "Đã cập nhật",
+    "print": "In",
+    "goBack": "Quay lại"
   },
   "navigation": {
     "jobs": "Việc làm",
@@ -268,27 +271,29 @@
     "noApplicationsDescription": "Bạn chưa ứng tuyển công việc nào. Hãy khám phá các cơ hội việc làm phù hợp!",
     "findJobs": "Tìm việc làm",
     "viewDetails": "Xem chi tiết",
-    "deleteApplication": "Xóa ứng tuyển",
+    "deleteApplication": "Xóa đơn ứng tuyển",
     "resumeUsed": "CV đã sử dụng",
     "appliedOn": "Ứng tuyển: {date}",
-    "jobUndefined": "Công việc không xác định",
-    "companyUndefined": "Công ty không xác định",
-    "locationUndefined": "Địa điểm không xác định",
-    "resumeUndefined": "CV không xác định",
-    "confirmDeleteTitle": "Xác nhận xóa ứng tuyển",
-    "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa ứng tuyển này? Hành động này không thể hoàn tác.",
+    "jobUndefined": "Công việc chưa xác định",
+    "companyUndefined": "Công ty chưa xác định",
+    "locationUndefined": "Địa điểm chưa xác định",
+    "resumeUndefined": "CV chưa xác định",
+    "assignedInterviewer": "Người phỏng vấn được giao",
+    "interviewerUndefined": "Người phỏng vấn chưa xác định",
+    "confirmDeleteTitle": "Xác nhận xóa đơn ứng tuyển",
+    "confirmDeleteMessage": "Bạn có chắc muốn xóa đơn ứng tuyển này? Hành động này không thể hoàn tác.",
     "delete": "Xóa",
     "status": {
-      "pending": "Đang chờ",
-      "reviewed": "Đã xem",
-      "shortlisted": "Được chọn",
+      "pending": "Chờ xử lý",
+      "reviewed": "Đã xem xét",
+      "shortlisted": "Đã sơ tuyển",
       "interview": "Phỏng vấn",
-      "accepted": "Được chấp nhận",
-      "rejected": "Bị từ chối"
+      "accepted": "Đã chấp nhận",
+      "rejected": "Đã từ chối"
     },
     "resumeType": {
       "uploaded": "PDF",
-      "generated": "Generated"
+      "generated": "Tự tạo"
     }
   },
   "company": {
@@ -454,10 +459,25 @@
     "defaultResume": "CV mặc định",
     "setAsDefault": "Đặt làm mặc định",
     "editResume": "Chỉnh sửa CV",
+    "viewResume": "Xem CV",
     "deleteResume": "Xóa CV",
     "downloadAsPdf": "Tải xuống PDF",
     "pdfPreviewUnavailable": "Không thể xem trước PDF",
-    "created": "Đã tạo"
+    "created": "Đã tạo",
+    "clickToView": "Nhấp để xem"
+  },
+  "resumeViewer": {
+    "loading": "Đang tải CV...",
+    "notFound": "Không tìm thấy CV",
+    "professionalSummary": "Tóm tắt chuyên môn",
+    "workExperience": "Kinh nghiệm làm việc",
+    "education": "Học vấn",
+    "skills": "Kỹ năng",
+    "projects": "Dự án",
+    "languages": "Ngôn ngữ",
+    "certifications": "Chứng chỉ",
+    "technologies": "Công nghệ",
+    "present": "Hiện tại"
   },
   "jobByCategory": {
     "noJobsInCategory": "Không tìm thấy việc làm nào trong danh mục này"

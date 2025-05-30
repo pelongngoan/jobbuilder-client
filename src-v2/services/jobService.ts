@@ -7,6 +7,16 @@ import {
   PaginatedResponse,
 } from "../types/common.types";
 
+export interface JobCategory {
+  _id: string;
+  name: string;
+  description: string;
+  slug: string;
+  parentCategory?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Job service
 const jobService = {
   getJobById: async (id: string) => {
@@ -16,13 +26,19 @@ const jobService = {
     return response.data;
   },
 
+  getAllJobCategories: async () => {
+    const response = await apiClient.get<ApiResponse<JobCategory[]>>(
+      "/jobs/categories"
+    );
+    return response.data;
+  },
+
   // Get jobs by company ID
   getCompanyJobs: async (companyId: string, page: number, limit: number) => {
     const response = await apiClient.get<
       ApiResponse<PaginatedResponse<JobPost>>
-    >("/jobs/company", {
+    >(`/jobs/company/${companyId}`, {
       params: {
-        companyId,
         page,
         limit,
       },
@@ -100,7 +116,7 @@ const jobService = {
     experienceLevel = "",
     salaryFrom,
     salaryTo,
-    currency = "",
+    salaryCurrency = "",
     page = 1,
     limit = 10,
   }: {
@@ -111,15 +127,25 @@ const jobService = {
     experienceLevel?: string;
     salaryFrom?: number;
     salaryTo?: number;
-    currency?: string;
+    salaryCurrency?: string;
     page?: number;
     limit?: number;
   }) => {
+    const params = new URLSearchParams();
+    if (title) params.append("title", title);
+    if (location) params.append("location", location);
+    if (category) params.append("category", category);
+    if (jobType) params.append("jobType", jobType);
+    if (experienceLevel) params.append("experienceLevel", experienceLevel);
+    if (salaryFrom) params.append("salaryFrom", salaryFrom.toString());
+    if (salaryTo) params.append("salaryTo", salaryTo.toString());
+    if (salaryCurrency) params.append("salaryCurrency", salaryCurrency);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+
     const response = await apiClient.get<
       ApiResponse<PaginatedResponse<JobPost>>
-    >(
-      `/jobs/search?title=${title}&location=${location}&category=${category}&jobType=${jobType}&experienceLevel=${experienceLevel}&salaryFrom=${salaryFrom}&salaryTo=${salaryTo}&currency=${currency}&page=${page}&limit=${limit}`
-    );
+    >(`/jobs/search?${params.toString()}`);
     return response.data;
   },
 };

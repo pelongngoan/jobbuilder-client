@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useJobs } from "../../hooks/useJobs";
 import { Container, Box, Typography } from "@mui/material";
 import { FilterList } from "@mui/icons-material";
 import Button from "../../components/common/Button";
 import { JobPost } from "../../types/job.types";
 import JobCard from "./JobCard";
-import { setCurrentJob } from "../../redux/slices/jobsSlice";
-import { useAppDispatch } from "../../redux/store";
 import { useTranslation } from "react-i18next";
 
 export const JobListPage = () => {
   const { t } = useTranslation();
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { categoryId } = useParams();
   const { jobs, getFeaturedJobs, getCategoryJobs } = useJobs();
   const [categoryName] = useState<string>("");
@@ -25,6 +21,7 @@ export const JobListPage = () => {
     } else {
       getFeaturedJobs();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId]);
 
   return (

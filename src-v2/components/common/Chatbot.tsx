@@ -29,6 +29,7 @@ const Chatbot: React.FC = () => {
     if (isOpen && messages.length === 0) {
       loadWelcomeMessage();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const loadWelcomeMessage = async () => {

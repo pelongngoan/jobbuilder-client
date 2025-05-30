@@ -2,13 +2,15 @@ import { useCallback } from "react";
 import { JobPost } from "../types/job.types";
 import { useAppSelector } from "../redux/store";
 import { useAppDispatch } from "../redux/store";
-import { jobService } from "../services";
+import { jobService, JobCategory } from "../services";
 import { setCurrentJob, setJobs } from "../redux/slices/jobsSlice";
 import { setTotalPages } from "../redux/slices/paginationSlice";
 import toast from "react-hot-toast";
+
 export const useJobs = () => {
   const dispatch = useAppDispatch();
   const { jobs, currentJob } = useAppSelector((state) => state.jobs);
+
   const createJob = useCallback(async (jobData: JobPost) => {
     const response = await jobService.createJob(jobData);
     if (response.success) {
@@ -40,6 +42,7 @@ export const useJobs = () => {
     },
     [dispatch]
   );
+
   const getHrJobs = useCallback(
     async (hrId: string, page: number, limit: number) => {
       const response = await jobService.getHrJobs(hrId, page, limit);
@@ -50,6 +53,7 @@ export const useJobs = () => {
     },
     [dispatch]
   );
+
   const importJobsFromCSV = useCallback(
     async (file: File, companyId: string) => {
       const response = await jobService.importJobsFromCSV(file, companyId);
@@ -59,6 +63,7 @@ export const useJobs = () => {
     },
     []
   );
+
   const getFeaturedJobs = useCallback(async () => {
     const response = await jobService.getFeaturedJobs();
     if (response.success && response.data) {
@@ -75,6 +80,7 @@ export const useJobs = () => {
     },
     [dispatch]
   );
+
   const getJobById = useCallback(
     async (jobId: string) => {
       const response = await jobService.getJobById(jobId);
@@ -84,12 +90,22 @@ export const useJobs = () => {
     },
     [dispatch]
   );
+
   const deleteJob = useCallback(async (jobId: string) => {
     const response = await jobService.deleteJob(jobId);
     if (response.success) {
       toast.success("Job deleted successfully");
     }
   }, []);
+
+  const getAllJobCategories = useCallback(async (): Promise<JobCategory[]> => {
+    const response = await jobService.getAllJobCategories();
+    if (response.success && response.data) {
+      return response.data;
+    }
+    return [];
+  }, []);
+
   const searchJobs = useCallback(
     async ({
       title,
@@ -99,7 +115,7 @@ export const useJobs = () => {
       experienceLevel,
       salaryFrom,
       salaryTo,
-      currency,
+      salaryCurrency,
       page,
       limit,
     }: {
@@ -110,7 +126,7 @@ export const useJobs = () => {
       experienceLevel?: string;
       salaryFrom?: number;
       salaryTo?: number;
-      currency?: string;
+      salaryCurrency?: string;
       page?: number;
       limit?: number;
     }) => {
@@ -122,7 +138,7 @@ export const useJobs = () => {
         experienceLevel,
         salaryFrom,
         salaryTo,
-        currency,
+        salaryCurrency,
         page,
         limit,
       });
@@ -147,5 +163,6 @@ export const useJobs = () => {
     currentJob,
     deleteJob,
     searchJobs,
+    getAllJobCategories,
   };
 };

@@ -16,6 +16,7 @@ export const CompanyDetail = () => {
   useEffect(() => {
     getCompanyById(companyId || "");
     getCompanyJobs(companyId || "", page, limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
   return (

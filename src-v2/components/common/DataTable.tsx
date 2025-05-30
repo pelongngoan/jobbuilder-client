@@ -4,7 +4,7 @@ export interface Column<T> {
   id: string;
   header: string | ReactNode;
   accessor: keyof T | ((row: T) => ReactNode);
-  render?: (value: any, row: T) => ReactNode;
+  render?: (value: unknown, row: T) => ReactNode;
   className?: string;
 }
 

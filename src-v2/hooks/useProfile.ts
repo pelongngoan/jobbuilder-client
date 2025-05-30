@@ -1,9 +1,10 @@
 import { RootState, useAppDispatch } from "../redux/store";
-import { setToast } from "../redux/slices/toastSlice";
 import profileService from "../services/profile";
 import { Profile } from "../types/profile.types";
 import { useSelector } from "react-redux";
 import { setProfile } from "../redux/slices/profileSlice";
+import toast from "react-hot-toast";
+
 export const useProfile = () => {
   const dispatch = useAppDispatch();
   // const { user, profile } = useSelector((state: RootState) => state.user);
@@ -11,11 +12,8 @@ export const useProfile = () => {
 
   const getProfile = async (userId: string) => {
     const response = await profileService.getProfile(userId);
-    console.log("response", response);
     if (response.success && response.data) {
-      console.log("response.data", response.data);
       dispatch(setProfile(response.data as unknown as Profile));
-      console.log("profile", profile);
     }
     return response;
   };
@@ -29,8 +27,9 @@ export const useProfile = () => {
       data,
       profilePicture || undefined
     );
+    console.log("response", response);
     if (response.success) {
-      dispatch(setToast({ message: response.message, type: "success" }));
+      toast.success(response.message || "Update profile successfully");
     }
     return response;
   };

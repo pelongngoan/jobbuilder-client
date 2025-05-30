@@ -1,5 +1,3 @@
-import React from "react";
-
 // Dashboard icon
 export const DashboardIcon = () => (
   <svg

@@ -13,5 +13,6 @@ export { LanguageSwitcher } from "./LanguageSwitcher";
 export { LanguageSwitcherDemo } from "./LanguageSwitcherDemo";
 export { default as FloatingLanguageSwitcher } from "./FloatingLanguageSwitcher";
 export { default as Notification } from "./Notification";
+export { default as NotificationToast } from "./Notification";
 export { default as ChatButton } from "./ChatButton";
 export { default as Chatbot } from "./Chatbot";

@@ -1,1088 +1,452 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import {
-  Box,
-  Button,
-  Container,
-  Divider,
-  Paper,
-  Typography,
-  TextField,
-  IconButton,
-  Card,
-  CardContent,
-} from "@mui/material";
-import { ArrowBack, Save, Delete, Add as AddIcon } from "@mui/icons-material";
-import { useResume } from "../../hooks/useResume";
-import { Resume } from "../../types";
+  Search as SearchIcon,
+  LocationOn,
+  Work,
+  AttachMoney,
+  Category,
+} from "@mui/icons-material";
+import { useJobs } from "../../hooks/useJobs";
 import { useTranslation } from "react-i18next";
-import { Theme } from "@mui/material/styles";
-import { SxProps } from "@mui/system";
+import { JobCategory } from "../../services";
+import JobCard from "./JobCard";
+
+interface SearchFilters {
+  title: string;
+  location: string;
+  category: string;
+  jobType: string;
+  experienceLevel: string;
+  salaryFrom: string;
+  salaryTo: string;
+  salaryCurrency: string;
+}
 
 export const JobSearchPage = () => {
   const { t } = useTranslation();
-  const { resumeId } = useParams<{ resumeId: string }>();
-  const navigate = useNavigate();
-  const { currentResume, getResumeById, createResume, updateResume } =
-    useResume();
+  const { jobs, searchJobs, getAllJobCategories } = useJobs();
 
-  const [resumeData, setResumeData] = useState<Partial<Resume>>({
-    title: currentResume?.title || "",
-    type: "generated",
-    content: {
-      personalInfo: {
-        fullName: currentResume?.content?.personalInfo?.fullName || "",
-        email: currentResume?.content?.personalInfo?.email || "",
-        phone: currentResume?.content?.personalInfo?.phone || "",
-        address: currentResume?.content?.personalInfo?.address || "",
-        linkedin: currentResume?.content?.personalInfo?.linkedin || "",
-        website: currentResume?.content?.personalInfo?.website || "",
-      },
-      summary: currentResume?.content?.summary || "",
-      workExperience: [
-        {
-          company: currentResume?.content?.workExperience?.[0]?.company || "",
-          position: currentResume?.content?.workExperience?.[0]?.position || "",
-          location: currentResume?.content?.workExperience?.[0]?.location || "",
-          startDate:
-            currentResume?.content?.workExperience?.[0]?.startDate || "",
-          endDate: currentResume?.content?.workExperience?.[0]?.endDate || "",
-          description:
-            currentResume?.content?.workExperience?.[0]?.description || "",
-          highlights: currentResume?.content?.workExperience?.[0]
-            ?.highlights || [""],
-        },
-      ],
-      education: [
-        {
-          institution:
-            currentResume?.content?.education?.[0]?.institution || "",
-          degree: currentResume?.content?.education?.[0]?.degree || "",
-          field: currentResume?.content?.education?.[0]?.field || "",
-          location: currentResume?.content?.education?.[0]?.location || "",
-          startDate: currentResume?.content?.education?.[0]?.startDate || "",
-          endDate: currentResume?.content?.education?.[0]?.endDate || "",
-          gpa: currentResume?.content?.education?.[0]?.gpa || "",
-          highlights: currentResume?.content?.education?.[0]?.highlights || [
-            "",
-          ],
-        },
-      ],
-      skills: [
-        {
-          category:
-            currentResume?.content?.skills?.[0]?.category || "Technical Skills",
-          items: currentResume?.content?.skills?.[0]?.items || [""],
-        },
-      ],
-      languages: [
-        {
-          language: currentResume?.content?.languages?.[0]?.language || "",
-          proficiency:
-            currentResume?.content?.languages?.[0]?.proficiency || "",
-        },
-      ],
-      projects: [
-        {
-          name: currentResume?.content?.projects?.[0]?.name || "",
-          description: currentResume?.content?.projects?.[0]?.description || "",
-          technologies: currentResume?.content?.projects?.[0]?.technologies || [
-            "",
-          ],
-          highlights: currentResume?.content?.projects?.[0]?.highlights || [""],
-        },
-      ],
-      certifications: [
-        {
-          name: currentResume?.content?.certifications?.[0]?.name || "",
-          issuer: currentResume?.content?.certifications?.[0]?.issuer || "",
-          date: currentResume?.content?.certifications?.[0]?.date || "",
-        },
-      ],
-    },
+  const [filters, setFilters] = useState<SearchFilters>({
+    title: "",
+    location: "",
+    category: "",
+    jobType: "",
+    experienceLevel: "",
+    salaryFrom: "",
+    salaryTo: "",
+    salaryCurrency: "VND",
   });
 
-  useEffect(() => {
-    if (resumeId) {
-      getResumeById(resumeId);
-    }
-  }, [resumeId, getResumeById]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<JobCategory[]>([]);
+  const itemsPerPage = 10;
 
-  useEffect(() => {
-    if (currentResume && resumeId) {
-      setResumeData(currentResume);
-    }
-  }, [currentResume, resumeId]);
+  // Job types and experience levels options
+  const jobTypes = [
+    "full-time",
+    "part-time",
+    "contract",
+    "freelance",
+    "internship",
+  ];
+  const experienceLevels = [
+    "entry",
+    "junior",
+    "mid",
+    "senior",
+    "lead",
+    "executive",
+  ];
+  const currencies = ["VND", "USD", "EUR", "GBP", "JPY", "CNY"];
 
-  const handleInputChange = (section: keyof ResumeContent, value: string) => {
-    setResumeData((prev) => ({
+  const handleFilterChange = (field: keyof SearchFilters, value: string) => {
+    setFilters((prev) => ({
       ...prev,
-      content: {
-        ...(prev.content || {}),
-        [section]: value,
-      },
+      [field]: value,
     }));
   };
 
-  type ResumeContent = NonNullable<Resume["content"]>;
-  type ArraySection = Extract<
-    keyof ResumeContent,
-    | "workExperience"
-    | "education"
-    | "skills"
-    | "certifications"
-    | "languages"
-    | "projects"
-  >;
-  type SectionItem<T extends ArraySection> = NonNullable<
-    ResumeContent[T]
-  >[number];
+  const handleSearch = async () => {
+    setLoading(true);
+    setCurrentPage(1);
 
-  type PersonalInfoField =
-    | "fullName"
-    | "email"
-    | "phone"
-    | "address"
-    | "linkedin"
-    | "website";
-
-  const handlePersonalInfoChange = (
-    field: PersonalInfoField,
-    value: string
-  ) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      return {
-        ...prev,
-        content: {
-          ...content,
-          personalInfo: {
-            ...content.personalInfo,
-            [field]: value,
-          },
-        },
-      };
-    });
-  };
-
-  const handleArrayChange = (
-    section: ArraySection,
-    index: number,
-    field: string,
-    value: string | string[]
-  ) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<
-        typeof section
-      >[];
-      sectionData[index] = {
-        ...sectionData[index],
-        [field]: value,
-      };
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const handleHighlightChange = (
-    section: string,
-    itemIndex: number,
-    highlightIndex: number,
-    value: string
-  ) => {
-    setResumeData((prev) => {
-      const sectionData = [
-        ...((prev.content?.[
-          section as keyof Resume["content"]
-        ] as unknown as any[]) || []),
-      ];
-      const highlights = [...(sectionData[itemIndex]?.highlights || [])];
-      highlights[highlightIndex] = value;
-
-      sectionData[itemIndex] = {
-        ...sectionData[itemIndex],
-        highlights,
-      };
-
-      return {
-        ...prev,
-        content: {
-          ...prev.content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const addItem = <T extends ArraySection>(
-    section: T,
-    template: SectionItem<T>
-  ) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<T>[];
-      sectionData.push(template);
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const removeItem = (section: ArraySection, index: number) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<
-        typeof section
-      >[];
-      if (sectionData.length > 1) {
-        sectionData.splice(index, 1);
-      }
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const addHighlight = (section: ArraySection, itemIndex: number) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<
-        typeof section
-      >[];
-      const item = sectionData[itemIndex] as { highlights?: string[] };
-      const highlights = [...(item.highlights || []), ""];
-
-      sectionData[itemIndex] = {
-        ...sectionData[itemIndex],
-        highlights,
-      } as SectionItem<typeof section>;
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const removeHighlight = (
-    section: ArraySection,
-    itemIndex: number,
-    highlightIndex: number
-  ) => {
-    setResumeData((prev) => {
-      const content = prev.content || ({} as ResumeContent);
-      const sectionData = [...(content[section] || [])] as SectionItem<
-        typeof section
-      >[];
-      const item = sectionData[itemIndex] as { highlights?: string[] };
-      const highlights = [...(item.highlights || [])];
-
-      if (highlights.length > 1) {
-        highlights.splice(highlightIndex, 1);
-      }
-
-      sectionData[itemIndex] = {
-        ...sectionData[itemIndex],
-        highlights,
-      } as SectionItem<typeof section>;
-
-      return {
-        ...prev,
-        content: {
-          ...content,
-          [section]: sectionData,
-        },
-      };
-    });
-  };
-
-  const handleSave = async () => {
     try {
-      if (resumeId) {
-        await updateResume({ ...resumeData, _id: resumeId } as Resume);
-      } else {
-        await createResume(resumeData as Resume);
-      }
-      navigate("/user/resumes");
+      await searchJobs({
+        title: filters.title || undefined,
+        location: filters.location || undefined,
+        category: filters.category || undefined,
+        jobType: filters.jobType || undefined,
+        experienceLevel: filters.experienceLevel || undefined,
+        salaryFrom: filters.salaryFrom ? Number(filters.salaryFrom) : undefined,
+        salaryTo: filters.salaryTo ? Number(filters.salaryTo) : undefined,
+        salaryCurrency: filters.salaryCurrency || undefined,
+        page: 1,
+        limit: itemsPerPage,
+      });
     } catch (error) {
-      console.error("Error saving resume:", error);
+      console.error("Search error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate("/user/resumes");
+  const handlePageChange = async (page: number) => {
+    setCurrentPage(page);
+    setLoading(true);
+
+    try {
+      await searchJobs({
+        title: filters.title || undefined,
+        location: filters.location || undefined,
+        category: filters.category || undefined,
+        jobType: filters.jobType || undefined,
+        experienceLevel: filters.experienceLevel || undefined,
+        salaryFrom: filters.salaryFrom ? Number(filters.salaryFrom) : undefined,
+        salaryTo: filters.salaryTo ? Number(filters.salaryTo) : undefined,
+        salaryCurrency: filters.salaryCurrency || undefined,
+        page,
+        limit: itemsPerPage,
+      });
+    } catch (error) {
+      console.error("Page change error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const formatDate = (date: Date | string | undefined) => {
-    if (!date) return "";
-    return new Date(date).toISOString().split("T")[0];
+  const clearFilters = () => {
+    setFilters({
+      title: "",
+      location: "",
+      category: "",
+      jobType: "",
+      experienceLevel: "",
+      salaryFrom: "",
+      salaryTo: "",
+      salaryCurrency: "USD",
+    });
   };
 
-  const renderPersonalInfo = () => (
-    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-        <TextField
-          label={t("resumeBuilder.personalInfo.fullName")}
-          value={resumeData.content?.personalInfo?.fullName || ""}
-          onChange={(e) => handlePersonalInfoChange("fullName", e.target.value)}
-          fullWidth
-          required
-          size="small"
-        />
-      </Box>
-      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-        <TextField
-          label={t("resumeBuilder.personalInfo.email")}
-          type="email"
-          value={resumeData.content?.personalInfo?.email || ""}
-          onChange={(e) => handlePersonalInfoChange("email", e.target.value)}
-          fullWidth
-          required
-          size="small"
-        />
-      </Box>
-      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-        <TextField
-          label={t("resumeBuilder.personalInfo.phone")}
-          value={resumeData.content?.personalInfo?.phone || ""}
-          onChange={(e) => handlePersonalInfoChange("phone", e.target.value)}
-          fullWidth
-          size="small"
-        />
-      </Box>
-      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-        <TextField
-          label={t("resumeBuilder.personalInfo.address")}
-          value={resumeData.content?.personalInfo?.address || ""}
-          onChange={(e) => handlePersonalInfoChange("address", e.target.value)}
-          fullWidth
-          size="small"
-        />
-      </Box>
-      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-        <TextField
-          label={t("resumeBuilder.personalInfo.linkedin")}
-          value={resumeData.content?.personalInfo?.linkedin || ""}
-          onChange={(e) => handlePersonalInfoChange("linkedin", e.target.value)}
-          fullWidth
-          size="small"
-        />
-      </Box>
-      <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-        <TextField
-          label={t("resumeBuilder.personalInfo.website")}
-          value={resumeData.content?.personalInfo?.website || ""}
-          onChange={(e) => handlePersonalInfoChange("website", e.target.value)}
-          fullWidth
-          size="small"
-        />
-      </Box>
-    </Box>
-  );
+  // Load categories and initial jobs on component mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      const categoriesData = await getAllJobCategories();
+      setCategories(categoriesData);
+    };
 
-  const renderSummary = () => (
-    <TextField
-      label={t("resumeBuilder.summary.label")}
-      value={resumeData.content?.summary || ""}
-      onChange={(e) => handleInputChange("summary", e.target.value)}
-      fullWidth
-      multiline
-      rows={4}
-      size="small"
-    />
-  );
+    loadCategories();
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const renderWorkExperience = () => (
-    <Box>
-      {resumeData.content?.workExperience?.map((job, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {job.position || t("resumeBuilder.workExperience.position")}{" "}
-              {index + 1}
-            </Typography>
-            <Box>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => removeItem("workExperience", index)}
-                disabled={resumeData.content?.workExperience?.length === 1}
-              >
-                <Delete />
-              </IconButton>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.workExperience.company")}
-                value={job.company || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "workExperience",
-                    index,
-                    "company",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                required
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.workExperience.position")}
-                value={job.position || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "workExperience",
-                    index,
-                    "position",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                required
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.workExperience.location")}
-                value={job.location || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "workExperience",
-                    index,
-                    "location",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
-              <TextField
-                label={t("resumeBuilder.workExperience.startDate")}
-                type="date"
-                value={formatDate(job.startDate)}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "workExperience",
-                    index,
-                    "startDate",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
-              <TextField
-                label={t("resumeBuilder.workExperience.endDate")}
-                type="date"
-                value={formatDate(job.endDate)}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "workExperience",
-                    index,
-                    "endDate",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 100%" }}>
-              <TextField
-                label={t("resumeBuilder.workExperience.description")}
-                value={job.description || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "workExperience",
-                    index,
-                    "description",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                multiline
-                rows={3}
-                size="small"
-              />
-            </Box>
-          </Box>
-        </Paper>
-      ))}
-
-      <Button
-        variant="outlined"
-        startIcon={<AddIcon />}
-        onClick={() =>
-          addItem("workExperience", {
-            company: "",
-            position: "",
-            location: "",
-            startDate: "",
-            endDate: "",
-            description: "",
-            highlights: [""],
-          })
-        }
-        sx={{ mt: 2 }}
-        size="small"
-      >
-        {t("resumeBuilder.workExperience.addPosition")}
-      </Button>
-    </Box>
-  );
-
-  const renderEducation = () => (
-    <Box>
-      {resumeData.content?.education?.map((edu, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {edu.degree || t("resumeBuilder.education.degree")} {index + 1}
-            </Typography>
-            <Box>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => removeItem("education", index)}
-                disabled={resumeData.content?.education?.length === 1}
-              >
-                <Delete />
-              </IconButton>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.education.institution")}
-                value={edu.institution || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "education",
-                    index,
-                    "institution",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                required
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.education.degree")}
-                value={edu.degree || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "education",
-                    index,
-                    "degree",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.education.field")}
-                value={edu.field || ""}
-                onChange={(e) =>
-                  handleArrayChange("education", index, "field", e.target.value)
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
-              <TextField
-                label={t("resumeBuilder.education.startDate")}
-                type="date"
-                value={formatDate(edu.startDate)}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "education",
-                    index,
-                    "startDate",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
-              <TextField
-                label={t("resumeBuilder.education.endDate")}
-                type="date"
-                value={formatDate(edu.endDate)}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "education",
-                    index,
-                    "endDate",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(25% - 8px)", minWidth: "200px" }}>
-              <TextField
-                label={t("resumeBuilder.education.gpa")}
-                value={edu.gpa || ""}
-                onChange={(e) =>
-                  handleArrayChange("education", index, "gpa", e.target.value)
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-          </Box>
-        </Paper>
-      ))}
-
-      <Button
-        variant="outlined"
-        startIcon={<AddIcon />}
-        onClick={() =>
-          addItem("education", {
-            institution: "",
-            degree: "",
-            field: "",
-            location: "",
-            startDate: "",
-            endDate: "",
-            gpa: "",
-            highlights: [""],
-          })
-        }
-        sx={{ mt: 2 }}
-        size="small"
-      >
-        {t("resumeBuilder.education.addEducation")}
-      </Button>
-    </Box>
-  );
-
-  const renderSkills = () => (
-    <Box>
-      {resumeData.content?.skills?.map((skillGroup, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {skillGroup.category || t("resumeBuilder.skills.category")}{" "}
-              {index + 1}
-            </Typography>
-            <Box>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => removeItem("skills", index)}
-                disabled={resumeData.content?.skills?.length === 1}
-              >
-                <Delete />
-              </IconButton>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Box>
-              <TextField
-                label={t("resumeBuilder.skills.category")}
-                value={skillGroup.category || ""}
-                onChange={(e) =>
-                  handleArrayChange("skills", index, "category", e.target.value)
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                {t("resumeBuilder.skills.items")}
-              </Typography>
-
-              {skillGroup.items?.map((skill, sIndex) => (
-                <Box key={sIndex} display="flex" alignItems="center" mb={1}>
-                  <TextField
-                    value={skill}
-                    onChange={(e) => {
-                      const items = [...skillGroup.items];
-                      items[sIndex] = e.target.value;
-                      handleArrayChange("skills", index, "items", items);
-                    }}
-                    fullWidth
-                    placeholder={`${t("resumeBuilder.skills.skill")} ${
-                      sIndex + 1
-                    }`}
-                    size="small"
-                  />
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => {
-                      const items = [...skillGroup.items];
-                      if (items.length > 1) {
-                        items.splice(sIndex, 1);
-                        handleArrayChange("skills", index, "items", items);
-                      }
-                    }}
-                    disabled={skillGroup.items?.length === 1}
-                    sx={{ ml: 1 }}
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
-                </Box>
-              ))}
-
-              <Button
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  const items = [...skillGroup.items, ""];
-                  handleArrayChange("skills", index, "items", items);
-                }}
-                size="small"
-                sx={{ mt: 1 }}
-              >
-                {t("resumeBuilder.skills.addSkill")}
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-      ))}
-
-      <Button
-        variant="outlined"
-        startIcon={<AddIcon />}
-        onClick={() =>
-          addItem("skills", {
-            category: "",
-            items: [""],
-          })
-        }
-        sx={{ mt: 2 }}
-        size="small"
-      >
-        {t("resumeBuilder.skills.addCategory")}
-      </Button>
-    </Box>
-  );
-
-  const renderAdditionalSections = () => (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        {t("resumeBuilder.languages.title")}
-      </Typography>
-
-      {resumeData.content?.languages?.map((lang, index) => (
-        <Box key={index} display="flex" alignItems="center" mb={2}>
-          <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px", mr: 2 }}>
-            <TextField
-              label={t("resumeBuilder.languages.language")}
-              value={lang.language || ""}
-              onChange={(e) =>
-                handleArrayChange(
-                  "languages",
-                  index,
-                  "language",
-                  e.target.value
-                )
-              }
-              fullWidth
-              size="small"
-            />
-          </Box>
-          <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-            <TextField
-              label={t("resumeBuilder.languages.proficiency")}
-              value={lang.proficiency || ""}
-              onChange={(e) =>
-                handleArrayChange(
-                  "languages",
-                  index,
-                  "proficiency",
-                  e.target.value
-                )
-              }
-              fullWidth
-              size="small"
-            />
-          </Box>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={() => removeItem("languages", index)}
-            disabled={resumeData.content?.languages?.length === 1}
-            sx={{ ml: 1 }}
-          >
-            <Delete />
-          </IconButton>
-        </Box>
-      ))}
-
-      <Button
-        variant="outlined"
-        startIcon={<AddIcon />}
-        onClick={() =>
-          addItem("languages", {
-            language: "",
-            proficiency: "",
-          })
-        }
-        sx={{ mb: 4, mt: 1 }}
-        size="small"
-      >
-        {t("resumeBuilder.languages.addLanguage")}
-      </Button>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="h6" gutterBottom>
-        {t("resumeBuilder.certifications.title")}
-      </Typography>
-
-      {resumeData.content?.certifications?.map((cert, index) => (
-        <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {cert.name || t("resumeBuilder.certifications.name")} {index + 1}
-            </Typography>
-            <Box>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => removeItem("certifications", index)}
-                disabled={resumeData.content?.certifications?.length === 1}
-              >
-                <Delete />
-              </IconButton>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.certifications.name")}
-                value={cert.name || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "certifications",
-                    index,
-                    "name",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                required
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.certifications.issuer")}
-                value={cert.issuer || ""}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "certifications",
-                    index,
-                    "issuer",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 calc(50% - 8px)", minWidth: "250px" }}>
-              <TextField
-                label={t("resumeBuilder.certifications.date")}
-                type="date"
-                value={formatDate(cert.date)}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "certifications",
-                    index,
-                    "date",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Box>
-          </Box>
-        </Paper>
-      ))}
-
-      <Button
-        variant="outlined"
-        startIcon={<AddIcon />}
-        onClick={() =>
-          addItem("certifications", {
-            name: "",
-            issuer: "",
-            date: "",
-          })
-        }
-        sx={{ mt: 2 }}
-        size="small"
-      >
-        {t("resumeBuilder.certifications.addCertification")}
-      </Button>
-    </Box>
-  );
+  const totalPages = Math.ceil(jobs.length / itemsPerPage);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box display="flex" alignItems="center" mb={4}>
-        <IconButton onClick={handleCancel} sx={{ mr: 2 }}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h4" component="h1">
-          {resumeId
-            ? t("resumeBuilder.editResume")
-            : t("resumeBuilder.createNewResume")}
-        </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          startIcon={<Save />}
-          disabled={!resumeData.title}
-          sx={{ ml: 2 }}
-        >
-          {t("resumeBuilder.saveResume")}
-        </Button>
-      </Box>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            {t("jobSearch.title", "Find Your Dream Job")}
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Discover thousands of opportunities and take the next step in your
+            career journey
+          </p>
+        </div>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        <Paper elevation={1} sx={{ p: 3 }}>
-          <TextField
-            label={t("resumeBuilder.resumeTitle")}
-            value={resumeData.title || ""}
-            onChange={(e) =>
-              setResumeData({ ...resumeData, title: e.target.value })
-            }
-            fullWidth
-            required
-            size="small"
-          />
-        </Paper>
+        {/* Search Filters */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8 mb-8 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <SearchIcon className="text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              {t("jobSearch.filters", "Search Filters")}
+            </h2>
+          </div>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("resumeBuilder.personalInfo.title")}
-            </Typography>
-            {renderPersonalInfo()}
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Title Search */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t("jobSearch.jobTitle", "Job Title")}
+              </label>
+              <div className="relative">
+                <Work className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  placeholder={t(
+                    "jobSearch.titlePlaceholder",
+                    "e.g. Software Engineer"
+                  )}
+                  value={filters.title}
+                  onChange={(e) => handleFilterChange("title", e.target.value)}
+                />
+              </div>
+            </div>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("resumeBuilder.summary.title")}
-            </Typography>
-            {renderSummary()}
-          </CardContent>
-        </Card>
+            {/* Location Search */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t("jobSearch.location", "Location")}
+              </label>
+              <div className="relative">
+                <LocationOn className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  placeholder={t(
+                    "jobSearch.locationPlaceholder",
+                    "e.g. New York, Remote"
+                  )}
+                  value={filters.location}
+                  onChange={(e) =>
+                    handleFilterChange("location", e.target.value)
+                  }
+                />
+              </div>
+            </div>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("resumeBuilder.workExperience.title")}
-            </Typography>
-            {renderWorkExperience()}
-          </CardContent>
-        </Card>
+            {/* Category */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t("jobSearch.category", "Category")}
+              </label>
+              <div className="relative">
+                <Category className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <select
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 bg-white"
+                  value={filters.category}
+                  onChange={(e) =>
+                    handleFilterChange("category", e.target.value)
+                  }
+                >
+                  <option value="">
+                    {t("jobSearch.allCategories", "All Categories")}
+                  </option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("resumeBuilder.education.title")}
-            </Typography>
-            {renderEducation()}
-          </CardContent>
-        </Card>
+            {/* Job Type */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t("jobSearch.jobType", "Job Type")}
+              </label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 bg-white"
+                value={filters.jobType}
+                onChange={(e) => handleFilterChange("jobType", e.target.value)}
+              >
+                <option value="">{t("jobSearch.allTypes", "All Types")}</option>
+                {jobTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {t(
+                      `jobTypes.${type}`,
+                      type.charAt(0).toUpperCase() + type.slice(1)
+                    )}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("resumeBuilder.skills.title")}
-            </Typography>
-            {renderSkills()}
-          </CardContent>
-        </Card>
+            {/* Experience Level */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t("jobSearch.experienceLevel", "Experience Level")}
+              </label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 bg-white"
+                value={filters.experienceLevel}
+                onChange={(e) =>
+                  handleFilterChange("experienceLevel", e.target.value)
+                }
+              >
+                <option value="">
+                  {t("jobSearch.allLevels", "All Levels")}
+                </option>
+                {experienceLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {t(
+                      `experienceLevels.${level}`,
+                      level.charAt(0).toUpperCase() + level.slice(1)
+                    )}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("resumeBuilder.additionalSections.title")}
-            </Typography>
-            {renderAdditionalSections()}
-          </CardContent>
-        </Card>
-      </Box>
-    </Container>
+            {/* Currency */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t("jobSearch.currency", "Currency")}
+              </label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 bg-white"
+                value={filters.salaryCurrency}
+                onChange={(e) =>
+                  handleFilterChange("salaryCurrency", e.target.value)
+                }
+              >
+                {currencies.map((currency) => (
+                  <option key={currency} value={currency}>
+                    {currency}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Salary Range */}
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Salary Range
+            </label>
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <AttachMoney className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="number"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  placeholder={t("jobSearch.salaryFrom", "Min Salary")}
+                  value={filters.salaryFrom}
+                  onChange={(e) =>
+                    handleFilterChange("salaryFrom", e.target.value)
+                  }
+                />
+              </div>
+              <span className="text-gray-500 font-medium">to</span>
+              <div className="relative flex-1">
+                <AttachMoney className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="number"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                  placeholder={t("jobSearch.salaryTo", "Max Salary")}
+                  value={filters.salaryTo}
+                  onChange={(e) =>
+                    handleFilterChange("salaryTo", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <SearchIcon className="w-5 h-5" />
+              )}
+              {t("jobSearch.search", "Search Jobs")}
+            </button>
+            <button
+              onClick={clearFilters}
+              className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-gray-400 hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 transition-all duration-200"
+            >
+              {t("jobSearch.clearFilters", "Clear Filters")}
+            </button>
+          </div>
+        </div>
+
+        {/* Search Results */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              {t("jobSearch.results", "Search Results")}
+            </h2>
+            <div className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full font-medium">
+              {jobs.length} {t("jobSearch.jobsFound", "jobs found")}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Loading jobs...</p>
+              </div>
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <SearchIcon className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                {t("jobSearch.noResults", "No jobs found")}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {t(
+                  "jobSearch.tryDifferentFilters",
+                  "Try adjusting your search filters"
+                )}
+              </p>
+              <button
+                onClick={clearFilters}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobs.map((job) => (
+                <JobCard key={job._id} job={job} />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {jobs.length > 0 && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-12">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
