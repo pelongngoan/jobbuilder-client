@@ -15,7 +15,7 @@ const getImageUrl = (path: string) => {
   if (path.startsWith("http")) return path;
   // Use the backend URL for serving static files
   // return `http://localhost:3000/uploads/${path}`;
-  return `https://jobbuilder-server.onrender.com/uploads/${path}`;
+  return `https://jobbuilder-server.onrender.com${path}`;
 };
 
 const ChatPage: React.FC = () => {
@@ -302,7 +302,10 @@ const ChatPage: React.FC = () => {
                             <div className="flex justify-between items-start">
                               <div className="flex items-center space-x-2">
                                 <p className="text-sm font-medium text-gray-900 truncate">
-                                  {staff ? getStaffName(staff) : "Staff"}
+                                  {/* {staff ? getStaffName(staff) : "Staff"} */}
+                                  {user?.profile?.firstName +
+                                    " " +
+                                    user?.profile?.lastName}
                                 </p>
                               </div>
                               <p className="text-xs text-gray-500">

@@ -30,7 +30,8 @@ const PREVIEW_HEIGHT = 200;
 const BACKEND_URL =
   import.meta.env.VITE_API_URL || "https://jobbuilder-server.onrender.com";
 
-const USER_URL = import.meta.env.VITE_USER_URL || "http://localhost:5173";
+const USER_URL =
+  import.meta.env.VITE_USER_URL || "https://jobbuilder-client.vercel.app";
 
 interface ResumeCardProps {
   resume: Resume;

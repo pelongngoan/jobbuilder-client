@@ -31,9 +31,11 @@ export const useCompany = () => {
   const getCompanyByProfile = useCallback(async () => {
     const response = await companyService.getCompanyByProfile();
     if (response.success && response.data) {
-      dispatch(setCurrentCompany(response.data as unknown as CompanyProfile));
-      return response.data;
+      dispatch(
+        setCurrentCompany(response.data?.data as unknown as CompanyProfile)
+      );
     }
+    return response.data;
   }, [dispatch]);
 
   const getAllCompanies = useCallback(async (page: number, limit: number) => {

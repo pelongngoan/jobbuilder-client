@@ -188,11 +188,7 @@ export const ManageApplications = () => {
       render: (date: unknown) => {
         if (!date) return <span className="text-gray-500">N/A</span>;
         const dateData = date as Date;
-        return (
-          <span className="text-sm text-gray-900">
-            {dateData.toLocaleDateString("vi-VN")}
-          </span>
-        );
+        return <span className="text-sm text-gray-900">{dateData}</span>;
       },
     },
     {

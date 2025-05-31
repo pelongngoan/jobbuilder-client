@@ -13,7 +13,7 @@ const getImageUrl = (path: string) => {
   if (path.startsWith("http")) return path;
   // Use the backend URL for serving static files
   // return `http://localhost:3000/uploads/${path}`;
-  return `https://jobbuilder-server.onrender.com/uploads/${path}`;
+  return `https://jobbuilder-server.onrender.com${path}`;
 };
 
 export const ManageProfile = () => {
@@ -32,12 +32,12 @@ export const ManageProfile = () => {
 
   // Form state for staff profile
   const [formValues, setFormValues] = useState<Profile>({
-    firstName: (currentStaff?.profile as Profile).firstName || "",
-    lastName: (currentStaff?.profile as Profile).lastName || "",
-    email: (currentStaff?.profile as Profile).email || "",
-    phone: (currentStaff?.profile as Profile).phone || "",
-    address: (currentStaff?.profile as Profile).address || "",
-    profilePicture: (currentStaff?.profile as Profile).profilePicture || "",
+    firstName: (currentStaff?.profile as Profile)?.firstName || "",
+    lastName: (currentStaff?.profile as Profile)?.lastName || "",
+    email: (currentStaff?.profile as Profile)?.email || "",
+    phone: (currentStaff?.profile as Profile)?.phone || "",
+    address: (currentStaff?.profile as Profile)?.address || "",
+    profilePicture: (currentStaff?.profile as Profile)?.profilePicture || "",
   });
 
   // Form state for company profile
@@ -64,7 +64,7 @@ export const ManageProfile = () => {
   }, [id, role]);
 
   useEffect(() => {
-    if (currentStaff) {
+    if (currentStaff && role === "staff") {
       setFormValues({
         firstName: (currentStaff.profile as Profile).firstName || "",
         lastName: (currentStaff.profile as Profile).lastName || "",
@@ -74,10 +74,10 @@ export const ManageProfile = () => {
         address: (currentStaff.profile as Profile).address || "",
       });
     }
-  }, [currentStaff]);
+  }, [currentStaff, role]);
 
   useEffect(() => {
-    if (currentCompany) {
+    if (currentCompany && role === "company") {
       setCompanyFormValues({
         companyName: currentCompany.companyName || "",
         email: currentCompany.email || "",
@@ -90,7 +90,7 @@ export const ManageProfile = () => {
         domain: currentCompany.domain || "",
       });
     }
-  }, [currentCompany]);
+  }, [currentCompany, role]);
 
   const handleFileChange = (
     event: ChangeEvent<HTMLInputElement>,
