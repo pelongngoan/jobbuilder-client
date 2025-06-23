@@ -485,5 +485,17 @@
   "languageDemo": {
     "title": "Language Switcher Demo",
     "description": "Test the language switching functionality"
+  },
+  "jobSearchHero": {
+    "jobCategory": "Job Category",
+    "location": "Location",
+    "search": "Search",
+    "category1": "Human Resources",
+    "category2": "Accounting",
+    "category3": "IT/Software",
+    "category4": "Marketing/PR",
+    "category5": "Business/Sales",
+    "title": "Find jobs fast 24/7, latest jobs nationwide",
+    "description": "Access over <strong>40,000+</strong> job listings daily from thousands of reputable companies in Vietnam"
   }
 }

@@ -4,6 +4,7 @@ import { Search as SearchIcon, LocationOn } from "@mui/icons-material";
 import Input from "../common/Input";
 import Button from "../common/Button";
 import { styled } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 const HeroSection = styled(Box)({
   background: "linear-gradient(135deg, #0f4c3a 0%, #1a7a5e 100%)",
@@ -65,7 +66,7 @@ interface JobSearchHeroProps {
 export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
-
+  const { t } = useTranslation();
   const handleSearch = () => {
     onSearch(searchQuery, location);
   };
@@ -88,7 +89,8 @@ export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
             fontSize: { xs: "2rem", md: "2.5rem" },
           }}
         >
-          Tìm việc làm nhanh 24h, việc làm mới nhất trên toàn quốc
+          {t("jobSearchHero.title")}
+          {/* Tìm việc làm nhanh 24h, việc làm mới nhất trên toàn quốc */}
         </Typography>
         <Typography
           variant="h6"
@@ -99,15 +101,16 @@ export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
             fontSize: "1.1rem",
           }}
         >
-          Tiếp cận <strong>40,000+</strong> tin tuyển dụng việc làm mỗi ngày từ
-          hàng nghìn doanh nghiệp uy tín tại Việt Nam
+          {/* Tiếp cận <strong>40,000+</strong> tin tuyển dụng việc làm mỗi ngày từ
+          hàng nghìn doanh nghiệp uy tín tại Việt Nam */}
+          {t("jobSearchHero.description")}
         </Typography>
 
         <SearchContainer>
           <StyledInput sx={{ flex: 2, color: "black" }}>
             <Input
               fullWidth
-              placeholder="Danh mục Nghề, remote job..."
+              placeholder={t("jobSearchHero.jobCategory")}
               value={searchQuery}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setSearchQuery(e.target.value)
@@ -120,7 +123,7 @@ export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
           <StyledInput sx={{ flex: 1, color: "black" }}>
             <Input
               fullWidth
-              placeholder="Địa điểm"
+              placeholder={t("jobSearchHero.location")}
               value={location}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setLocation(e.target.value)
@@ -150,7 +153,7 @@ export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
             //   transition: "all 0.2s ease",
             // }}
           >
-            Tìm kiếm
+            {t("jobSearchHero.search")}
           </Button>
         </SearchContainer>
 
@@ -165,11 +168,11 @@ export const JobSearchHero: React.FC<JobSearchHeroProps> = ({ onSearch }) => {
           }}
         >
           {[
-            "Kinh doanh/Bán hàng",
-            "Marketing/PR",
-            "IT/Phần mềm",
-            "Nhân sự",
-            "Kế toán",
+            t("jobSearchHero.category1"),
+            t("jobSearchHero.category2"),
+            t("jobSearchHero.category3"),
+            t("jobSearchHero.category4"),
+            t("jobSearchHero.category5"),
           ].map((category) => (
             <Box
               key={category}

@@ -485,5 +485,17 @@
   "languageDemo": {
     "title": "Demo chuyển đổi ngôn ngữ",
     "description": "Kiểm tra tính năng chuyển đổi ngôn ngữ"
+  },
+  "jobSearchHero": {
+    "jobCategory": "Danh mục việc làm",
+    "location": "Địa điểm",
+    "search": "Tìm kiếm",
+    "category1": "Nhân sự",
+    "category2": "Kế toán",
+    "category3": "IT/Phần mềm",
+    "category4": "Marketing/PR",
+    "category5": "Kinh doanh/Bán hàng",
+    "title": "Tìm việc làm nhanh 24h, việc làm mới nhất trên toàn quốc",
+    "description": "Truy cập hơn <strong>40,000+</strong> tin tuyển dụng việc làm mỗi ngày từ hàng nghìn doanh nghiệp uy tín tại Việt Nam"
   }
 }

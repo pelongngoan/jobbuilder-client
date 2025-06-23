@@ -19,7 +19,6 @@ const getImageUrl = (path: string) => {
 };
 
 const ChatPage: React.FC = () => {
-  const { chatId } = useParams();
   const dispatch = useDispatch();
   const {
     messages,
@@ -30,6 +29,7 @@ const ChatPage: React.FC = () => {
     getChatById,
     getChats,
   } = useChat();
+  const [chatId, setChatId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,17 +40,21 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     getChats();
-    if (chatId) {
-      getChatById(chatId);
-      getChatMessages(chatId);
+  }, []);
+  useEffect(() => {
+    if (socket) {
+      socket.on("new_message", (message: ChatMessage) => {
+        console.log("message", message);
+        console.log([...messages, message]);
+        dispatch(setMessages([...messages, message]));
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatId]);
+  }, [messages, socket]);
 
   // Socket.io setup for real-time messaging
   useEffect(() => {
     if (!socket || !chatId) return;
-
     // Join the chat room
     joinChat(chatId);
 
@@ -279,6 +283,7 @@ const ChatPage: React.FC = () => {
                         onClick={() => {
                           getChatMessages(chat._id);
                           getChatById(chat._id);
+                          setChatId(chat._id);
                         }}
                         className={`p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
                           currentChat?._id === chat._id
@@ -302,10 +307,10 @@ const ChatPage: React.FC = () => {
                             <div className="flex justify-between items-start">
                               <div className="flex items-center space-x-2">
                                 <p className="text-sm font-medium text-gray-900 truncate">
-                                  {/* {staff ? getStaffName(staff) : "Staff"} */}
-                                  {user?.profile?.firstName +
+                                  {staff ? getStaffName(staff) : "Staff"}
+                                  {/* {user?.profile?.firstName +
                                     " " +
-                                    user?.profile?.lastName}
+                                    user?.profile?.lastName} */}
                                 </p>
                               </div>
                               <p className="text-xs text-gray-500">

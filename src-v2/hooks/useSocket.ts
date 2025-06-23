@@ -22,7 +22,7 @@ export const useSocket = (): UseSocketReturn => {
 
     // Initialize socket connection
     const socket = io(
-      // "http://localhost:3000"
+      // "http://localhost:3000",
       "https://jobbuilder-server.onrender.com",
       {
         auth: {
