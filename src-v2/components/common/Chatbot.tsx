@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { chatbotService, ChatbotMessage } from "../../services/chatbotService";
+import {
+  chatbotService,
+  ChatbotMessage,
+  NavigationLink,
+} from "../../services/chatbotService";
 import Button from "./Button";
 import Input from "./Input";
+import { useNavigate } from "react-router-dom";
 
 interface ChatMessage extends ChatbotMessage {
   isUser: boolean;
@@ -16,6 +21,7 @@ const Chatbot: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -177,6 +183,11 @@ const Chatbot: React.FC = () => {
     return file.type.startsWith("image/");
   };
 
+  const handleNavigationClick = (link: NavigationLink) => {
+    navigate(link.url);
+    setIsOpen(false); // Close chatbot after navigation
+  };
+
   return (
     <>
       {/* Floating Button */}
@@ -319,6 +330,22 @@ const Chatbot: React.FC = () => {
                       <p className="text-xs sm:text-sm whitespace-pre-wrap break-words leading-relaxed">
                         {message.message}
                       </p>
+
+                      {/* Show navigation links for website navigation responses */}
+                      {message.isWebsiteNavigation &&
+                        message.navigationLinks && (
+                          <div className="mt-3 space-y-2">
+                            {message.navigationLinks.map((link, linkIndex) => (
+                              <button
+                                key={linkIndex}
+                                onClick={() => handleNavigationClick(link)}
+                                className="block w-full text-left px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors"
+                              >
+                                🔗 {link.text}
+                              </button>
+                            ))}
+                          </div>
+                        )}
 
                       {/* Show attachment indicator for bot responses */}
                       {!message.isUser && message.hasAttachments && (

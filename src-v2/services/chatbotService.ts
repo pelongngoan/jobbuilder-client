@@ -1,10 +1,17 @@
 import apiClient from "./api";
 
+export interface NavigationLink {
+  text: string;
+  url: string;
+}
+
 export interface ChatbotMessage {
   message: string;
   timestamp: string;
   hasAttachments?: boolean;
   attachmentCount?: number;
+  isWebsiteNavigation?: boolean;
+  navigationLinks?: NavigationLink[];
 }
 
 export interface ChatbotResponse {
